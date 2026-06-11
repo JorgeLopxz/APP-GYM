@@ -1,19 +1,32 @@
-import type { MuscleId } from '../types'
+﻿import type { MuscleId } from '../types'
 
 interface Shape {
   muscle: MuscleId
   d: string
 }
 
-// Color base (sin entrenar) → plata brillante (muy entrenado)
-const BASE: [number, number, number] = [38, 38, 44]
-const HOT: [number, number, number] = [232, 232, 240]
+// Escala de calor: gris (sin entrenar) â†’ rojo oscuro â†’ rojo vivo (muy entrenado)
+const BASE: [number, number, number] = [40, 40, 46]
+const MID: [number, number, number] = [122, 22, 28]
+const HOT: [number, number, number] = [255, 45, 58]
+
+function mix(
+  a: [number, number, number],
+  b: [number, number, number],
+  t: number
+): [number, number, number] {
+  return [0, 1, 2].map((i) => Math.round(a[i] + (b[i] - a[i]) * t)) as [
+    number,
+    number,
+    number
+  ]
+}
 
 export function heatColor(intensity: number): string {
   const t = Math.max(0, Math.min(1, intensity))
   // curva suave para que pocas series ya se noten
   const k = Math.pow(t, 0.65)
-  const c = BASE.map((b, i) => Math.round(b + (HOT[i] - b) * k))
+  const c = k < 0.5 ? mix(BASE, MID, k * 2) : mix(MID, HOT, (k - 0.5) * 2)
   return `rgb(${c[0]},${c[1]},${c[2]})`
 }
 
@@ -26,14 +39,14 @@ const FRONT: Shape[] = [
   { muscle: 'trapecio', d: 'M80,55 L91,61 L91,66 L72,64 Z' },
   { muscle: 'trapecio', d: 'M110,55 L99,61 L99,66 L118,64 Z' },
   // hombro anterior (interior) y lateral (exterior)
-  { muscle: 'hombro_anterior', d: 'M62,67 Q70,64 73,70 Q74,80 68,84 Q61,80 62,67 Z' },
-  { muscle: 'hombro_anterior', d: 'M128,67 Q120,64 117,70 Q116,80 122,84 Q129,80 128,67 Z' },
-  { muscle: 'hombro_lateral', d: 'M61,67 Q52,70 50,80 Q52,90 58,90 Q63,84 61,67 Z' },
-  { muscle: 'hombro_lateral', d: 'M129,67 Q138,70 140,80 Q138,90 132,90 Q127,84 129,67 Z' },
+  { muscle: 'deltoide_anterior', d: 'M62,67 Q70,64 73,70 Q74,80 68,84 Q61,80 62,67 Z' },
+  { muscle: 'deltoide_anterior', d: 'M128,67 Q120,64 117,70 Q116,80 122,84 Q129,80 128,67 Z' },
+  { muscle: 'deltoide_lateral', d: 'M61,67 Q52,70 50,80 Q52,90 58,90 Q63,84 61,67 Z' },
+  { muscle: 'deltoide_lateral', d: 'M129,67 Q138,70 140,80 Q138,90 132,90 Q127,84 129,67 Z' },
   // pecho
-  { muscle: 'pecho', d: 'M70,67 Q92,70 91,92 Q80,101 69,95 Q62,82 70,67 Z' },
-  { muscle: 'pecho', d: 'M120,67 Q98,70 99,92 Q110,101 121,95 Q128,82 120,67 Z' },
-  // bíceps
+  { muscle: 'pecho_inferior', d: 'M70,67 Q92,70 91,92 Q80,101 69,95 Q62,82 70,67 Z' },
+  { muscle: 'pecho_inferior', d: 'M120,67 Q98,70 99,92 Q110,101 121,95 Q128,82 120,67 Z' },
+  // bÃ­ceps
   { muscle: 'biceps', d: 'M50,93 Q58,92 59,104 Q59,118 53,124 Q47,120 47,106 Q47,97 50,93 Z' },
   { muscle: 'biceps', d: 'M140,93 Q132,92 131,104 Q131,118 137,124 Q143,120 143,106 Q143,97 140,93 Z' },
   // antebrazo
@@ -41,7 +54,7 @@ const FRONT: Shape[] = [
   { muscle: 'antebrazo', d: 'M140,128 Q135,126 134,136 Q134,156 140,170 Q145,168 145,148 Q145,134 140,128 Z' },
   // abdominales
   { muscle: 'abs', d: 'M83,100 L107,100 Q109,128 105,152 Q95,160 85,152 Q81,128 83,100 Z' },
-  // cuádriceps
+  // cuÃ¡driceps
   { muscle: 'cuadriceps', d: 'M71,170 Q66,212 73,250 Q81,258 88,250 Q92,212 87,172 Q79,166 71,170 Z' },
   { muscle: 'cuadriceps', d: 'M119,170 Q124,212 117,250 Q109,258 102,250 Q98,212 103,172 Q111,166 119,170 Z' },
   // abductor (cadera exterior)
@@ -57,8 +70,8 @@ const BACK: Shape[] = [
   // trapecio (rombo)
   { muscle: 'trapecio', d: 'M285,54 L306,67 L285,96 L264,67 Z' },
   // hombro posterior
-  { muscle: 'hombro_posterior', d: 'M252,67 Q243,71 241,81 Q243,91 250,91 Q256,84 252,67 Z' },
-  { muscle: 'hombro_posterior', d: 'M318,67 Q327,71 329,81 Q327,91 320,91 Q314,84 318,67 Z' },
+  { muscle: 'deltoide_posterior', d: 'M252,67 Q243,71 241,81 Q243,91 250,91 Q256,84 252,67 Z' },
+  { muscle: 'deltoide_posterior', d: 'M318,67 Q327,71 329,81 Q327,91 320,91 Q314,84 318,67 Z' },
   // espalda alta (romboides / redondos)
   { muscle: 'espalda_alta', d: 'M254,68 L266,73 L264,92 L252,86 Z' },
   { muscle: 'espalda_alta', d: 'M316,68 L304,73 L306,92 L318,86 Z' },
@@ -67,16 +80,16 @@ const BACK: Shape[] = [
   { muscle: 'dorsal', d: 'M318,90 Q320,118 298,140 Q289,130 289,104 L306,94 Z' },
   // lumbar
   { muscle: 'lumbar', d: 'M277,134 L293,134 Q295,150 290,160 L280,160 Q275,150 277,134 Z' },
-  // tríceps
+  // trÃ­ceps
   { muscle: 'triceps', d: 'M240,93 Q248,92 249,104 Q249,120 243,126 Q237,122 237,106 Q237,97 240,93 Z' },
   { muscle: 'triceps', d: 'M330,93 Q322,92 321,104 Q321,120 327,126 Q333,122 333,106 Q333,97 330,93 Z' },
   // antebrazo
   { muscle: 'antebrazo', d: 'M240,130 Q245,128 246,138 Q246,158 240,172 Q235,170 235,150 Q235,136 240,130 Z' },
   { muscle: 'antebrazo', d: 'M330,130 Q325,128 324,138 Q324,158 330,172 Q335,170 335,150 Q335,136 330,130 Z' },
-  // abductor / glúteo medio
+  // abductor / glÃºteo medio
   { muscle: 'abductor', d: 'M256,160 Q250,168 253,180 Q258,184 262,178 Q262,164 256,160 Z' },
   { muscle: 'abductor', d: 'M314,160 Q320,168 317,180 Q312,184 308,178 Q308,164 314,160 Z' },
-  // glúteos
+  // glÃºteos
   { muscle: 'gluteo', d: 'M266,164 Q258,180 266,194 Q276,200 283,192 L283,168 Q274,160 266,164 Z' },
   { muscle: 'gluteo', d: 'M304,164 Q312,180 304,194 Q294,200 287,192 L287,168 Q296,160 304,164 Z' },
   // isquios
@@ -112,7 +125,7 @@ function Skeleton({ cx }: { cx: number }) {
 }
 
 export function BodyMap(props: {
-  /** intensidad 0..1 por músculo */
+  /** intensidad 0..1 por mÃºsculo */
   heat: Partial<Record<MuscleId, number>>
   selected: MuscleId | null
   onSelect: (m: MuscleId | null) => void

@@ -1,40 +1,48 @@
 export type MuscleId =
-  | 'pecho'
-  | 'hombro_anterior'
-  | 'hombro_lateral'
-  | 'hombro_posterior'
+  | 'trapecio'
+  | 'deltoide_anterior'
+  | 'deltoide_lateral'
+  | 'deltoide_posterior'
+  | 'pecho_superior'
+  | 'pecho_inferior'
   | 'biceps'
   | 'triceps'
   | 'antebrazo'
   | 'abs'
+  | 'oblicuos'
+  | 'serrato'
   | 'dorsal'
   | 'espalda_alta'
-  | 'trapecio'
   | 'lumbar'
+  | 'gluteo'
+  | 'abductor'
+  | 'aductor'
   | 'cuadriceps'
   | 'isquios'
-  | 'gluteo'
   | 'gemelo'
-  | 'abductor'
 
 export const MUSCLE_NAMES: Record<MuscleId, string> = {
-  pecho: 'Pecho',
-  hombro_anterior: 'Hombro anterior',
-  hombro_lateral: 'Hombro lateral',
-  hombro_posterior: 'Hombro posterior',
+  trapecio: 'Trapecio',
+  deltoide_anterior: 'Deltoide anterior',
+  deltoide_lateral: 'Deltoide lateral',
+  deltoide_posterior: 'Deltoide posterior',
+  pecho_superior: 'Pecho superior',
+  pecho_inferior: 'Pecho inferior',
   biceps: 'Bíceps',
   triceps: 'Tríceps',
   antebrazo: 'Antebrazo',
   abs: 'Abdominales',
+  oblicuos: 'Oblicuos',
+  serrato: 'Serrato',
   dorsal: 'Dorsal',
   espalda_alta: 'Espalda alta',
-  trapecio: 'Trapecio',
   lumbar: 'Lumbar',
+  gluteo: 'Glúteo',
+  abductor: 'Glúteo medio',
+  aductor: 'Aductor',
   cuadriceps: 'Cuádriceps',
   isquios: 'Isquios',
-  gluteo: 'Glúteo',
-  gemelo: 'Gemelo',
-  abductor: 'Abductor'
+  gemelo: 'Gemelos'
 }
 
 export interface ExerciseDef {
@@ -46,6 +54,8 @@ export interface ExerciseDef {
   secondary: MuscleId[]
   /** true = ejercicio a peso corporal (dominadas): el peso es lastre opcional. */
   bodyweight?: boolean
+  /** Vídeo de técnica (URL de YouTube) */
+  videoUrl?: string
 }
 
 export type SetTag = 'dropset' | 'fallo' | 'negativas'
@@ -93,10 +103,36 @@ export interface Settings {
   restSeconds: number
 }
 
+export interface WeightEntry {
+  date: string // YYYY-MM-DD
+  kg: number
+}
+
+export type Objetivo = 'definicion' | 'recomp' | 'volumen'
+
+export interface Profile {
+  edad?: number
+  sexo?: 'M' | 'F'
+  alturaCm?: number
+  /** Historial de peso corporal (el último es el actual) */
+  pesoLog: WeightEntry[]
+  /** Objetivo nutricional actual */
+  objetivo?: Objetivo
+  /** Ya se le pidieron las métricas al usuario (no volver a preguntar) */
+  prompted?: boolean
+}
+
 export interface AppData {
   version: number
   exercises: ExerciseDef[]
   routines: Routine[]
   sessions: Session[]
   settings: Settings
+  profile: Profile
+}
+
+/** Peso corporal actual (kg) o null si no se ha registrado. */
+export function currentBodyweight(profile: Profile): number | null {
+  if (profile.pesoLog.length === 0) return null
+  return profile.pesoLog[profile.pesoLog.length - 1].kg
 }

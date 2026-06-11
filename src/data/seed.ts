@@ -1,4 +1,5 @@
 import type { AppData, ExerciseDef, Routine, Session, SetEntry } from '../types'
+import { CATALOG_EXERCISES } from './catalog'
 
 // ---------------------------------------------------------------------------
 // Catálogo de ejercicios (con variantes y músculos implicados)
@@ -10,42 +11,42 @@ export const SEED_EXERCISES: ExerciseDef[] = [
     id: 'press-inclinado',
     name: 'Press inclinado',
     variants: [],
-    primary: ['pecho', 'hombro_anterior'],
+    primary: ['pecho_superior', 'deltoide_anterior'],
     secondary: ['triceps']
   },
   {
     id: 'press-plano',
     name: 'Press plano',
     variants: ['Hammer', 'Technogym'],
-    primary: ['pecho'],
-    secondary: ['triceps', 'hombro_anterior']
+    primary: ['pecho_inferior'],
+    secondary: ['triceps', 'deltoide_anterior']
   },
   {
     id: 'cruce-poleas',
     name: 'Cruce de poleas',
     variants: [],
-    primary: ['pecho'],
-    secondary: []
+    primary: ['pecho_inferior'],
+    secondary: ['pecho_superior']
   },
   {
     id: 'contractora',
     name: 'Contractora',
     variants: [],
-    primary: ['pecho'],
-    secondary: []
+    primary: ['pecho_inferior'],
+    secondary: ['pecho_superior']
   },
   {
     id: 'elevaciones-laterales',
     name: 'Elevaciones laterales',
     variants: ['Máquina', 'Libre', 'Polea'],
-    primary: ['hombro_lateral'],
+    primary: ['deltoide_lateral'],
     secondary: []
   },
   {
     id: 'face-pull',
     name: 'Face pull',
     variants: ['Polea', 'Unilateral'],
-    primary: ['hombro_posterior'],
+    primary: ['deltoide_posterior'],
     secondary: ['espalda_alta', 'trapecio']
   },
   {
@@ -68,7 +69,7 @@ export const SEED_EXERCISES: ExerciseDef[] = [
     name: 'Dominadas',
     variants: [],
     primary: ['dorsal'],
-    secondary: ['biceps', 'espalda_alta'],
+    secondary: ['biceps', 'espalda_alta', 'antebrazo'],
     bodyweight: true
   },
   {
@@ -96,7 +97,7 @@ export const SEED_EXERCISES: ExerciseDef[] = [
     id: 'contractora-invertida',
     name: 'Contractora invertida',
     variants: [],
-    primary: ['hombro_posterior'],
+    primary: ['deltoide_posterior'],
     secondary: ['espalda_alta']
   },
   {
@@ -104,7 +105,7 @@ export const SEED_EXERCISES: ExerciseDef[] = [
     name: 'Pull over en polea',
     variants: [],
     primary: ['dorsal'],
-    secondary: ['triceps']
+    secondary: ['triceps', 'serrato']
   },
   {
     id: 'remo-gironda',
@@ -133,14 +134,14 @@ export const SEED_EXERCISES: ExerciseDef[] = [
     name: 'Curl femoral',
     variants: ['Sentado', 'Tumbado'],
     primary: ['isquios'],
-    secondary: []
+    secondary: ['gemelo']
   },
   {
     id: 'hakka',
     name: 'Sentadilla hack',
     variants: [],
     primary: ['cuadriceps'],
-    secondary: ['gluteo']
+    secondary: ['gluteo', 'aductor']
   },
   {
     id: 'peso-muerto-rumano',
@@ -175,10 +176,38 @@ export const SEED_EXERCISES: ExerciseDef[] = [
     id: 'press-inclinado-mancuernas',
     name: 'Press inclinado mancuernas',
     variants: [],
-    primary: ['pecho', 'hombro_anterior'],
+    primary: ['pecho_superior', 'deltoide_anterior'],
     secondary: ['triceps']
   }
 ]
+
+/** Vídeos de técnica verificados contra YouTube (oEmbed). Editables por el usuario. */
+export const SEED_VIDEOS: Record<string, string> = {
+  'press-inclinado': 'https://www.youtube.com/watch?v=pdW4JmCDT7w',
+  'press-plano': 'https://www.youtube.com/watch?v=4J5Ww3gXSkI',
+  'cruce-poleas': 'https://www.youtube.com/watch?v=XnaMi2Gb_9Q',
+  contractora: 'https://www.youtube.com/watch?v=hmZrepX1DqU',
+  'elevaciones-laterales': 'https://www.youtube.com/watch?v=aVa9ce3SlSA',
+  'face-pull': 'https://www.youtube.com/watch?v=X-xCQ1gh-kA',
+  'extension-triceps': 'https://www.youtube.com/watch?v=KQL18Jw9-r4',
+  'extension-triceps-cabeza': 'https://www.youtube.com/watch?v=AjH0cP7Lh4k',
+  'press-inclinado-mancuernas': 'https://www.youtube.com/watch?v=oTD5g77GgSA',
+  'pull-ups': 'https://www.youtube.com/watch?v=vXjICxvES0U',
+  'remo-t': 'https://www.youtube.com/watch?v=1WdZRc7m6Tc',
+  jalon: 'https://www.youtube.com/watch?v=TIZbG7Tjbf8',
+  'jalon-abierto': 'https://www.youtube.com/watch?v=EA42wwLwDgs',
+  'contractora-invertida': 'https://www.youtube.com/watch?v=E2uXi3W6ouU',
+  'pull-over': 'https://www.youtube.com/watch?v=9YQ1YXKko8s',
+  'remo-gironda': 'https://www.youtube.com/watch?v=BADq8JYkehw',
+  predicador: 'https://www.youtube.com/watch?v=lXbs6as_TvA',
+  'curl-martillo': 'https://www.youtube.com/watch?v=mPvlpDWIoDA',
+  'curl-femoral': 'https://www.youtube.com/watch?v=CBCPBnMzsMI',
+  hakka: 'https://www.youtube.com/watch?v=VNpkYdex6Yc',
+  'peso-muerto-rumano': 'https://www.youtube.com/watch?v=UgqrPwoTick',
+  'extension-cuadriceps': 'https://www.youtube.com/watch?v=ndnA6yvGoqQ',
+  'abduccion-gluteo': 'https://www.youtube.com/watch?v=2vCRMi-lgJ4',
+  gemelo: 'https://www.youtube.com/watch?v=_R3TOH-vnF8'
+}
 
 // ---------------------------------------------------------------------------
 // Rutinas
@@ -394,10 +423,16 @@ export function buildSeedSessions(): Session[] {
   ]
 }
 
+export function seedExercisesWithVideos(): ExerciseDef[] {
+  return SEED_EXERCISES.map((e) =>
+    SEED_VIDEOS[e.id] ? { ...e, videoUrl: SEED_VIDEOS[e.id] } : e
+  )
+}
+
 export function buildSeedData(): AppData {
   return {
-    version: 1,
-    exercises: SEED_EXERCISES,
+    version: 3,
+    exercises: [...seedExercisesWithVideos(), ...CATALOG_EXERCISES],
     routines: SEED_ROUTINES,
     sessions: buildSeedSessions(),
     settings: {
@@ -405,6 +440,7 @@ export function buildSeedData(): AppData {
       creatineHour: '09:00',
       creatineTaken: [],
       restSeconds: 120
-    }
+    },
+    profile: { pesoLog: [] }
   }
 }

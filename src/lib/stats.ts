@@ -6,6 +6,7 @@ import type {
   Session,
   SetEntry
 } from '../types'
+import { currentBodyweight } from '../types'
 
 /** 1RM estimado (fórmula de Epley). Para comparar series con distintas reps. */
 export function e1rm(weight: number, reps: number): number {
@@ -13,20 +14,30 @@ export function e1rm(weight: number, reps: number): number {
   return weight * (1 + reps / 30)
 }
 
-export function setVolume(set: SetEntry): number {
-  let v = set.weight * set.reps
-  if (set.tag === 'dropset' && set.dropWeight && set.dropReps) {
-    v += set.dropWeight * set.dropReps
+/** Kilos "base" de una serie: el peso corporal en ejercicios como dominadas. */
+export function exerciseBase(data: AppData, def: ExerciseDef | undefined): number {
+  if (!def?.bodyweight) return 0
+  return currentBodyweight(data.profile) ?? 0
+}
+
+export function setVolume(set: SetEntry, base = 0): number {
+  let v = (set.weight + base) * set.reps
+  if (set.tag === 'dropset' && set.dropWeight != null && set.dropReps) {
+    v += (set.dropWeight + base) * set.dropReps
   }
   return v
 }
 
-export function logVolume(log: ExerciseLog): number {
-  return log.sets.reduce((acc, set) => acc + setVolume(set), 0)
+export function logVolume(log: ExerciseLog, base = 0): number {
+  return log.sets.reduce((acc, set) => acc + setVolume(set, base), 0)
 }
 
-export function sessionVolume(session: Session): number {
-  return session.exercises.reduce((acc, log) => acc + logVolume(log), 0)
+export function sessionVolume(data: AppData, session: Session): number {
+  const defs = new Map(data.exercises.map((e) => [e.id, e]))
+  return session.exercises.reduce(
+    (acc, log) => acc + logVolume(log, exerciseBase(data, defs.get(log.exerciseId))),
+    0
+  )
 }
 
 export function sessionSetCount(session: Session): number {
@@ -58,6 +69,29 @@ export function lastLog(
   return null
 }
 
+/** Último registro del ejercicio con cualquier variante (para pre-rellenar). */
+export function lastLogAny(
+  data: AppData,
+  exerciseId: string,
+  excludeSessionId?: string
+): { date: string; variant?: string; sets: SetEntry[] } | null {
+  const sessions = finishedSessions(data)
+  for (let i = sessions.length - 1; i >= 0; i--) {
+    const session = sessions[i]
+    if (session.id === excludeSessionId) continue
+    const log = session.exercises.find(
+      (l) => l.exerciseId === exerciseId && l.sets.length > 0
+    )
+    if (log) return { date: session.date, variant: log.variant, sets: log.sets }
+  }
+  return null
+}
+
+/** Copia las series de una sesión anterior como plantilla (sin marcar hechas). */
+export function prefillSets(sets: SetEntry[]): SetEntry[] {
+  return sets.map((s) => ({ ...s, done: false }))
+}
+
 export interface ExercisePoint {
   date: string
   sessionId: string
@@ -67,12 +101,17 @@ export interface ExercisePoint {
   volume: number
 }
 
-/** Serie temporal de un ejercicio (+variante) a lo largo de las sesiones. */
+/**
+ * Serie temporal de un ejercicio (+variante) a lo largo de las sesiones.
+ * En ejercicios a peso corporal, si hay peso registrado en el perfil, los kilos
+ * incluyen el cuerpo (dominadas de un usuario de 75 kg con 5 kg de lastre = 80 kg).
+ */
 export function exerciseSeries(
   data: AppData,
   exerciseId: string,
   variant: string | undefined
 ): ExercisePoint[] {
+  const base = exerciseBase(data, getExercise(data, exerciseId))
   const points: ExercisePoint[] = []
   for (const session of finishedSessions(data)) {
     const logs = session.exercises.filter(
@@ -85,10 +124,10 @@ export function exerciseSeries(
     points.push({
       date: session.date,
       sessionId: session.id,
-      maxWeight: Math.max(...sets.map((s) => s.weight)),
-      maxE1rm: Math.max(...sets.map((s) => e1rm(s.weight, s.reps))),
+      maxWeight: Math.max(...sets.map((s) => s.weight + base)),
+      maxE1rm: Math.max(...sets.map((s) => e1rm(s.weight + base, s.reps))),
       maxReps: Math.max(...sets.map((s) => s.reps)),
-      volume: logs.reduce((acc, l) => acc + logVolume(l), 0)
+      volume: logs.reduce((acc, l) => acc + logVolume(l, base), 0)
     })
   }
   return points
@@ -179,6 +218,33 @@ export function muscleWeek(data: AppData, offset: number): MuscleWeek {
     }
   }
   return result
+}
+
+/**
+ * Media de series semanales por músculo en las últimas 4 semanas (solo cuenta
+ * semanas con algún entreno, para no diluir la media con vacaciones).
+ */
+export function muscleWeeklyAverage(data: AppData): {
+  avg: Partial<Record<MuscleId, number>>
+  weeks: number
+} {
+  let weeks = 0
+  const total: Partial<Record<MuscleId, number>> = {}
+  for (let o = 0; o >= -3; o--) {
+    const w = muscleWeek(data, o)
+    if (w.sessionCount === 0) continue
+    weeks++
+    for (const [m, s] of Object.entries(w.sets)) {
+      total[m as MuscleId] = (total[m as MuscleId] ?? 0) + (s ?? 0)
+    }
+  }
+  const avg: Partial<Record<MuscleId, number>> = {}
+  if (weeks > 0) {
+    for (const [m, s] of Object.entries(total)) {
+      avg[m as MuscleId] = (s ?? 0) / weeks
+    }
+  }
+  return { avg, weeks }
 }
 
 // ---------------------------------------------------------------------------

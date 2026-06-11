@@ -5,7 +5,7 @@ import { WorkoutView } from './views/WorkoutView'
 import { ProgressView } from './views/ProgressView'
 import { MusclesView } from './views/MusclesView'
 import { HistoryView } from './views/HistoryView'
-import { SettingsView } from './views/SettingsView'
+import { SettingsView, ProfileSheet } from './views/SettingsView'
 import { RestTimer } from './components/ui'
 
 type Tab = 'entreno' | 'progreso' | 'musculos' | 'historial' | 'ajustes'
@@ -22,6 +22,8 @@ export default function App() {
   const [data, setData] = useState<AppData>(() => loadData())
   const [tab, setTab] = useState<Tab>('entreno')
   const [restEndsAt, setRestEndsAt] = useState<number | null>(null)
+  // primera vez: la app te pide tus métricas (edad, sexo, altura, peso)
+  const [askProfile, setAskProfile] = useState(() => !loadData().profile.prompted)
 
   useEffect(() => {
     requestPersistence()
@@ -41,7 +43,7 @@ export default function App() {
         {tab === 'entreno' && (
           <WorkoutView data={data} update={update} onSetDone={startRest} />
         )}
-        {tab === 'progreso' && <ProgressView data={data} />}
+        {tab === 'progreso' && <ProgressView data={data} update={update} />}
         {tab === 'musculos' && <MusclesView data={data} />}
         {tab === 'historial' && <HistoryView data={data} update={update} />}
         {tab === 'ajustes' && (
@@ -51,6 +53,10 @@ export default function App() {
 
       {restEndsAt !== null && (
         <RestTimer endsAt={restEndsAt} onDismiss={() => setRestEndsAt(null)} />
+      )}
+
+      {askProfile && (
+        <ProfileSheet data={data} update={update} onClose={() => setAskProfile(false)} />
       )}
 
       <nav className="tabbar">

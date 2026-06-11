@@ -18,14 +18,28 @@ import {
   fmtWeight,
   getExercise,
   lastLog,
+  lastLogAny,
+  prefillSets,
   prsBefore,
   sessionSetCount,
   sessionVolume,
   todayKey
 } from '../lib/stats'
+import { youtubeId, youtubeSearchUrl } from '../lib/youtube'
+import { exerciseRegion, REGION_ORDER } from '../data/catalog'
 import { NumberField, Sheet } from '../components/ui'
 
 type Update = (fn: (d: AppData) => AppData) => void
+
+function groupByRegion(exercises: ExerciseDef[]): [string, ExerciseDef[]][] {
+  return REGION_ORDER.map(
+    (region) =>
+      [region, exercises.filter((e) => exerciseRegion(e) === region)] as [
+        string,
+        ExerciseDef[]
+      ]
+  ).filter(([, list]) => list.length > 0)
+}
 
 // ---------------------------------------------------------------------------
 // Vista principal: selector de rutina o sesión activa
@@ -68,12 +82,21 @@ function RoutinePicker({ data, update }: { data: AppData; update: Update }) {
       routineId: routine.id,
       routineName: routine.name,
       finished: false,
+      // cada ejercicio arranca pre-rellenado con las series de la última vez:
+      // solo tienes que ir marcando ✓ o corregir el campo que cambie
       exercises: routine.exerciseIds
         .map((exId) => {
           const def = getExercise(data, exId)
           if (!def) return null
-          const variant = def.variants.length > 0 ? def.variants[0] : undefined
-          return { exerciseId: exId, variant, sets: [] } as ExerciseLog
+          const last = lastLogAny(data, exId)
+          const variant =
+            last?.variant ??
+            (def.variants.length > 0 ? def.variants[0] : undefined)
+          return {
+            exerciseId: exId,
+            variant,
+            sets: last ? prefillSets(last.sets) : []
+          } as ExerciseLog
         })
         .filter((l): l is ExerciseLog => l !== null)
     }
@@ -138,12 +161,17 @@ function RoutineEditor(props: {
   const [name, setName] = useState(routine?.name ?? '')
   const [exerciseIds, setExerciseIds] = useState<string[]>(routine?.exerciseIds ?? [])
   const [creating, setCreating] = useState(false)
+  const [query, setQuery] = useState('')
 
   const toggle = (id: string) => {
     setExerciseIds((ids) =>
       ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]
     )
   }
+
+  const visible = data.exercises.filter((e) =>
+    e.name.toLowerCase().includes(query.toLowerCase())
+  )
 
   const save = () => {
     const trimmed = name.trim() || 'Rutina'
@@ -181,21 +209,32 @@ function RoutineEditor(props: {
       <p className="sheet-hint">
         Toca para añadir o quitar ejercicios. El orden es el orden en que los toques.
       </p>
+      <input
+        className="text-input"
+        placeholder="Buscar ejercicio…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
       <div className="exercise-pick-list">
-        {data.exercises.map((ex) => {
-          const idx = exerciseIds.indexOf(ex.id)
-          return (
-            <button
-              key={ex.id}
-              type="button"
-              className={`pick-row ${idx >= 0 ? 'picked' : ''}`}
-              onClick={() => toggle(ex.id)}
-            >
-              <span>{ex.name}</span>
-              {idx >= 0 && <span className="pick-order">{idx + 1}</span>}
-            </button>
-          )
-        })}
+        {groupByRegion(visible).map(([region, list]) => (
+          <div key={region}>
+            <div className="pick-region">{region}</div>
+            {list.map((ex) => {
+              const idx = exerciseIds.indexOf(ex.id)
+              return (
+                <button
+                  key={ex.id}
+                  type="button"
+                  className={`pick-row ${idx >= 0 ? 'picked' : ''}`}
+                  onClick={() => toggle(ex.id)}
+                >
+                  <span>{ex.name}</span>
+                  {idx >= 0 && <span className="pick-order">{idx + 1}</span>}
+                </button>
+              )
+            })}
+          </div>
+        ))}
       </div>
       <button type="button" className="btn-ghost" onClick={() => setCreating(true)}>
         + Crear ejercicio nuevo
@@ -362,7 +401,7 @@ function ActiveSession(props: {
           <h1 className="view-title">{session.routineName}</h1>
           <p className="view-subtitle">
             {elapsedMin} min · {sessionSetCount(session)} series ·{' '}
-            {fmtWeight(sessionVolume(session))} kg movidos
+            {fmtWeight(sessionVolume(data, session))} kg movidos
           </p>
         </div>
         <button type="button" className="btn-primary" onClick={() => setFinishing(true)}>
@@ -372,12 +411,13 @@ function ActiveSession(props: {
 
       {session.exercises.map((log, i) => (
         <ExerciseCard
-          key={`${log.exerciseId}-${log.variant ?? ''}-${i}`}
+          key={`${log.exerciseId}-${i}`}
           data={data}
           session={session}
           log={log}
           index={i}
           patchSession={patchSession}
+          update={update}
           onSetDone={onSetDone}
         />
       ))}
@@ -441,9 +481,11 @@ function ExerciseCard(props: {
   log: ExerciseLog
   index: number
   patchSession: (fn: (s: Session) => Session) => void
+  update: Update
   onSetDone: () => void
 }) {
-  const { data, session, log, index, patchSession, onSetDone } = props
+  const { data, session, log, index, patchSession, update, onSetDone } = props
+  const [showInfo, setShowInfo] = useState(false)
   const def = getExercise(data, log.exerciseId)
   const last = useMemo(
     () => lastLog(data, log.exerciseId, log.variant, session.id),
@@ -457,6 +499,17 @@ function ExerciseCard(props: {
       ...s,
       exercises: s.exercises.map((l, i) => (i === index ? fn(l) : l))
     }))
+  }
+
+  const changeVariant = (variant: string) => {
+    patchLog((l) => {
+      // si aún no se ha marcado ninguna serie, re-rellenamos con la última
+      // sesión de ESA variante (cada variante guarda sus propias marcas)
+      const touched = l.sets.some((s) => s.done)
+      if (touched) return { ...l, variant }
+      const ref = lastLog(data, l.exerciseId, variant, session.id)
+      return { ...l, variant, sets: ref ? prefillSets(ref.sets) : l.sets }
+    })
   }
 
   const addSet = () => {
@@ -482,12 +535,14 @@ function ExerciseCard(props: {
     <div className="exercise-card">
       <div className="exercise-head">
         <div className="exercise-titlebox">
-          <span className="exercise-name">{def.name}</span>
+          <button type="button" className="exercise-name" onClick={() => setShowInfo(true)}>
+            {def.name} <span className="info-hint">ⓘ</span>
+          </button>
           {def.variants.length > 0 && (
             <select
               className="variant-select"
               value={log.variant ?? def.variants[0]}
-              onChange={(e) => patchLog((l) => ({ ...l, variant: e.target.value }))}
+              onChange={(e) => changeVariant(e.target.value)}
             >
               {def.variants.map((v) => (
                 <option key={v} value={v}>
@@ -501,6 +556,16 @@ function ExerciseCard(props: {
           ✕
         </button>
       </div>
+
+      {showInfo && (
+        <ExerciseInfoSheet
+          data={data}
+          def={def}
+          variant={log.variant}
+          update={update}
+          onClose={() => setShowInfo(false)}
+        />
+      )}
 
       {last && (
         <p className="last-time">
@@ -637,6 +702,137 @@ function SetRow(props: {
 }
 
 // ---------------------------------------------------------------------------
+// Ficha de ejercicio: vídeo de técnica, músculos e historial
+// ---------------------------------------------------------------------------
+
+function ExerciseInfoSheet(props: {
+  data: AppData
+  def: ExerciseDef
+  variant?: string
+  update: Update
+  onClose: () => void
+}) {
+  const { data, def, variant, update, onClose } = props
+  const [editingVideo, setEditingVideo] = useState(false)
+  const [videoInput, setVideoInput] = useState(def.videoUrl ?? '')
+
+  const videoId = def.videoUrl ? youtubeId(def.videoUrl) : null
+
+  const history = useMemo(() => {
+    const out: { date: string; variant?: string; sets: string }[] = []
+    const sessions = [...data.sessions]
+      .filter((s) => s.finished)
+      .sort((a, b) => b.date.localeCompare(a.date))
+    for (const session of sessions) {
+      for (const log of session.exercises) {
+        if (log.exerciseId !== def.id || log.sets.length === 0) continue
+        if (variant && (log.variant ?? '') !== variant) continue
+        out.push({
+          date: session.date,
+          variant: log.variant,
+          sets: log.sets.map((s) => fmtSet(s, def.bodyweight)).join(' · ')
+        })
+      }
+      if (out.length >= 4) break
+    }
+    return out.slice(0, 4)
+  }, [data, def, variant])
+
+  const saveVideo = () => {
+    const url = videoInput.trim()
+    if (url && !youtubeId(url)) {
+      alert('Eso no parece un enlace de YouTube válido.')
+      return
+    }
+    update((d) => ({
+      ...d,
+      exercises: d.exercises.map((e) =>
+        e.id === def.id ? { ...e, videoUrl: url || undefined } : e
+      )
+    }))
+    setEditingVideo(false)
+  }
+
+  return (
+    <Sheet open onClose={onClose} title={def.name + (variant ? ` · ${variant}` : '')}>
+      {videoId ? (
+        <div className="video-box">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`}
+            title={`Técnica: ${def.name}`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      ) : (
+        <a
+          className="btn-ghost video-search"
+          href={youtubeSearchUrl(def.name)}
+          target="_blank"
+          rel="noreferrer"
+        >
+          🎬 Buscar técnica en YouTube
+        </a>
+      )}
+
+      {editingVideo ? (
+        <div className="video-edit">
+          <input
+            className="text-input"
+            placeholder="Pega un enlace de YouTube…"
+            value={videoInput}
+            onChange={(e) => setVideoInput(e.target.value)}
+          />
+          <button type="button" className="btn-primary" onClick={saveVideo}>
+            Guardar
+          </button>
+        </div>
+      ) : (
+        <button type="button" className="btn-ghost small" onClick={() => setEditingVideo(true)}>
+          {def.videoUrl ? '✏️ Cambiar vídeo' : '➕ Poner mi vídeo favorito'}
+        </button>
+      )}
+
+      <p className="sheet-hint">Músculos principales</p>
+      <div className="chip-grid">
+        {def.primary.map((m) => (
+          <span key={m} className="chip active">
+            {MUSCLE_NAMES[m]}
+          </span>
+        ))}
+      </div>
+      {def.secondary.length > 0 && (
+        <>
+          <p className="sheet-hint">Secundarios</p>
+          <div className="chip-grid">
+            {def.secondary.map((m) => (
+              <span key={m} className="chip">
+                {MUSCLE_NAMES[m]}
+              </span>
+            ))}
+          </div>
+        </>
+      )}
+
+      {history.length > 0 && (
+        <>
+          <p className="sheet-hint">Últimas sesiones</p>
+          {history.map((h, i) => (
+            <p key={i} className="history-mini">
+              <span className="history-mini-date">
+                {fmtDate(h.date)}
+                {!variant && h.variant ? ` · ${h.variant}` : ''}
+              </span>
+              {h.sets}
+            </p>
+          ))}
+        </>
+      )}
+    </Sheet>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Añadir ejercicio a la sesión
 // ---------------------------------------------------------------------------
 
@@ -664,13 +860,18 @@ function AddExerciseSheet(props: {
         onChange={(e) => setQuery(e.target.value)}
       />
       <div className="exercise-pick-list">
-        {filtered.map((ex) => (
-          <button key={ex.id} type="button" className="pick-row" onClick={() => onAdd(ex.id)}>
-            <span>{ex.name}</span>
-            <span className="pick-muscles">
-              {ex.primary.map((m) => MUSCLE_NAMES[m]).join(', ')}
-            </span>
-          </button>
+        {groupByRegion(filtered).map(([region, list]) => (
+          <div key={region}>
+            <div className="pick-region">{region}</div>
+            {list.map((ex) => (
+              <button key={ex.id} type="button" className="pick-row" onClick={() => onAdd(ex.id)}>
+                <span>{ex.name}</span>
+                <span className="pick-muscles">
+                  {ex.primary.map((m) => MUSCLE_NAMES[m]).join(', ')}
+                </span>
+              </button>
+            ))}
+          </div>
         ))}
       </div>
       <button type="button" className="btn-ghost" onClick={() => setCreating(true)}>
@@ -735,7 +936,7 @@ function FinishSheet(props: {
           <span className="stat-label">series</span>
         </div>
         <div className="stat">
-          <span className="stat-value">{fmtWeight(sessionVolume(session))}</span>
+          <span className="stat-value">{fmtWeight(sessionVolume(data, session))}</span>
           <span className="stat-label">kg movidos</span>
         </div>
         <div className="stat">

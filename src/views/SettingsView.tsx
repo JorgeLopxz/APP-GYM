@@ -1,11 +1,97 @@
 import { useRef, useState } from 'react'
 import type { AppData } from '../types'
-import { creatineStreak, todayKey } from '../lib/stats'
+import { currentBodyweight } from '../types'
+import { creatineStreak, fmtWeight, todayKey } from '../lib/stats'
 import { exportJSON, importJSON, resetData } from '../lib/storage'
 import { downloadCreatineICS, testNotification } from '../lib/ics'
-import { NumberField } from '../components/ui'
+import { NumberField, Segmented, Sheet } from '../components/ui'
 
 type Update = (fn: (d: AppData) => AppData) => void
+
+// ---------------------------------------------------------------------------
+// Perfil corporal: la app pide tus métricas para afinar los cálculos
+// ---------------------------------------------------------------------------
+
+export function ProfileSheet(props: {
+  data: AppData
+  update: Update
+  onClose: () => void
+}) {
+  const { data, update, onClose } = props
+  const p = data.profile
+  const [edad, setEdad] = useState(p.edad ?? 20)
+  const [sexo, setSexo] = useState<'M' | 'F'>(p.sexo ?? 'M')
+  const [altura, setAltura] = useState(p.alturaCm ?? 175)
+  const [peso, setPeso] = useState(currentBodyweight(p) ?? 70)
+
+  const save = () => {
+    update((d) => {
+      const today = todayKey()
+      const log = d.profile.pesoLog.filter((e) => e.date !== today)
+      return {
+        ...d,
+        profile: {
+          ...d.profile,
+          edad,
+          sexo,
+          alturaCm: altura,
+          pesoLog: [...log, { date: today, kg: peso }].sort((a, b) =>
+            a.date.localeCompare(b.date)
+          ),
+          prompted: true
+        }
+      }
+    })
+    onClose()
+  }
+
+  const skip = () => {
+    update((d) => ({ ...d, profile: { ...d.profile, prompted: true } }))
+    onClose()
+  }
+
+  return (
+    <Sheet open onClose={skip} title="Cuéntame sobre ti 💪">
+      <p className="sheet-hint">
+        Con tu peso corporal las dominadas cuentan los kilos de verdad (tu cuerpo +
+        lastre) y el progreso se mide también en relación a lo que pesas.
+      </p>
+      <div className="profile-grid">
+        <div className="settings-row">
+          <span>Edad</span>
+          <NumberField value={edad} step={1} min={10} onChange={setEdad} />
+        </div>
+        <div className="settings-row">
+          <span>Sexo</span>
+          <Segmented
+            value={sexo}
+            onChange={setSexo}
+            options={[
+              { value: 'M', label: 'Hombre' },
+              { value: 'F', label: 'Mujer' }
+            ]}
+          />
+        </div>
+        <div className="settings-row">
+          <span>Altura (cm)</span>
+          <NumberField value={altura} step={1} min={100} onChange={setAltura} />
+        </div>
+        <div className="settings-row">
+          <span>Peso (kg)</span>
+          <NumberField value={peso} step={0.5} min={30} onChange={setPeso} />
+        </div>
+      </div>
+      <div className="sheet-actions">
+        <button type="button" className="btn-ghost" onClick={skip}>
+          Ahora no
+        </button>
+        <button type="button" className="btn-primary" onClick={save}>
+          Guardar
+        </button>
+      </div>
+    </Sheet>
+  )
+}
 
 export function SettingsView(props: {
   data: AppData
@@ -13,17 +99,36 @@ export function SettingsView(props: {
   replace: (d: AppData) => void
 }) {
   const { data, update, replace } = props
-  const { settings } = data
+  const { settings, profile } = data
   const fileRef = useRef<HTMLInputElement>(null)
   const [notifMsg, setNotifMsg] = useState<string | null>(null)
+  const [editingProfile, setEditingProfile] = useState(false)
 
   const today = todayKey()
   const takenToday = settings.creatineTaken.includes(today)
   const streak = creatineStreak(settings.creatineTaken)
+  const bw = currentBodyweight(profile)
 
   return (
     <div className="view">
       <h1 className="view-title">Ajustes</h1>
+
+      <section className="settings-section">
+        <h2 className="settings-title">👤 Perfil</h2>
+        <p className="hint-block">
+          {profile.edad
+            ? `${profile.edad} años · ${profile.alturaCm ?? '—'} cm · ${
+                bw ? `${fmtWeight(bw)} kg` : 'sin peso registrado'
+              }`
+            : 'Sin datos. Con tu edad, altura y peso la app afina cálculos como las dominadas con peso real o tus calorías.'}
+        </p>
+        <button type="button" className="btn-ghost" onClick={() => setEditingProfile(true)}>
+          ✏️ {profile.edad ? 'Editar perfil' : 'Completar perfil'}
+        </button>
+        {editingProfile && (
+          <ProfileSheet data={data} update={update} onClose={() => setEditingProfile(false)} />
+        )}
+      </section>
 
       <section className="settings-section">
         <h2 className="settings-title">💊 Creatina</h2>

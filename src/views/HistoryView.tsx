@@ -60,7 +60,7 @@ export function HistoryView({ data, update }: { data: AppData; update: Update })
               </div>
               <div className="history-meta">
                 <span>{sessionSetCount(session)} series</span>
-                <span>{fmtWeight(sessionVolume(session))} kg</span>
+                <span>{fmtWeight(sessionVolume(data, session))} kg</span>
                 {session.durationMin ? <span>{session.durationMin} min</span> : null}
               </div>
             </button>

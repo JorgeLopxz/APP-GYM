@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { AppData, MuscleId } from '../types'
 import { MUSCLE_NAMES } from '../types'
-import { muscleWeek, weekLabel } from '../lib/stats'
+import { muscleWeek, muscleWeeklyAverage, weekLabel } from '../lib/stats'
 import { BodyMap, heatColor } from '../components/BodyMap'
 
 /** Series semanales a partir de las cuales un músculo se pinta al máximo. */
@@ -89,6 +89,8 @@ export function MusclesView({ data }: { data: AppData }) {
         )}
       </div>
 
+      <WeakPoints data={data} />
+
       {untouched.length > 0 && ranked.length > 0 && (
         <p className="hint-block">
           Sin trabajo esta semana: {untouched.map((m) => MUSCLE_NAMES[m]).join(', ')}.
@@ -105,4 +107,51 @@ export function MusclesView({ data }: { data: AppData }) {
 
 function fmtSets(n: number): string {
   return n.toLocaleString('es-ES', { maximumFractionDigits: 1 })
+}
+
+// ---------------------------------------------------------------------------
+// Puntos débiles: músculos con poco volumen + ejercicios recomendados
+// ---------------------------------------------------------------------------
+
+function WeakPoints({ data }: { data: AppData }) {
+  const { avg, weeks } = useMemo(() => muscleWeeklyAverage(data), [data])
+
+  if (weeks === 0) return null
+
+  const weakest = (Object.keys(MUSCLE_NAMES) as MuscleId[])
+    .map((m) => ({ muscle: m, sets: avg[m] ?? 0 }))
+    .filter((x) => x.sets < 6)
+    .sort((a, b) => a.sets - b.sets)
+    .slice(0, 4)
+
+  if (weakest.length === 0) return null
+
+  return (
+    <div className="settings-section">
+      <h2 className="settings-title">💡 Puntos débiles</h2>
+      <p className="hint-block">
+        Media de las últimas {weeks === 1 ? 'semana' : `${weeks} semanas`}. Por debajo
+        de ~6 series semanales un músculo apenas crece; estos son los tuyos más
+        olvidados y ejercicios para atacarlos:
+      </p>
+      {weakest.map(({ muscle, sets }) => {
+        const suggestions = data.exercises
+          .filter((e) => e.primary.includes(muscle))
+          .slice(0, 2)
+        return (
+          <div key={muscle} className="weak-row">
+            <div className="weak-head">
+              <span className="weak-name">{MUSCLE_NAMES[muscle]}</span>
+              <span className="weak-sets">{fmtSets(sets)} series/sem</span>
+            </div>
+            {suggestions.length > 0 && (
+              <span className="weak-suggest">
+                → {suggestions.map((e) => e.name).join(' · ')}
+              </span>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
 }

@@ -1,10 +1,38 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+
+/**
+ * Content-Security-Policy solo en producción (en dev rompería el HMR de Vite).
+ * GitHub Pages no permite cabeceras HTTP, así que va como <meta>.
+ */
+const csp = (): Plugin => ({
+  name: 'inject-csp',
+  apply: 'build',
+  transformIndexHtml(html) {
+    const policy = [
+      "default-src 'self'",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob:",
+      'frame-src https://www.youtube-nocookie.com',
+      "connect-src 'self'",
+      "manifest-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'"
+    ].join('; ')
+    return html.replace(
+      '<head>',
+      `<head>\n    <meta http-equiv="Content-Security-Policy" content="${policy}" />`
+    )
+  }
+})
 
 export default defineConfig({
   base: '/APP-GYM/',
   plugins: [
+    csp(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
