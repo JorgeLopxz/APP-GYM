@@ -150,8 +150,12 @@ export function TimerView(props: {
 }
 
 /** Chip flotante con el tiempo restante cuando estás en otra pestaña. */
-export function TimerChip(props: { timer: TimerState; onClick: () => void }) {
-  const { timer, onClick } = props
+export function TimerChip(props: {
+  timer: TimerState
+  onClick: () => void
+  onReset: () => void
+}) {
+  const { timer, onClick, onReset } = props
   const now = useNow(timer.pausedRemaining === null)
   const remaining = remainingOf(timer, now)
   const paused = timer.pausedRemaining !== null
@@ -161,9 +165,9 @@ export function TimerChip(props: { timer: TimerState; onClick: () => void }) {
     <button
       type="button"
       className={`timer-chip ${finished ? 'done' : ''}`}
-      onClick={onClick}
+      onClick={finished ? onReset : onClick}
     >
-      {finished ? '⏱ ¡Descanso terminado!' : `${paused ? '⏸' : '⏱'} ${fmt(remaining)}`}
+      {finished ? '⏱ ¡Descanso terminado! ✕' : `${paused ? '⏸' : '⏱'} ${fmt(remaining)}`}
     </button>
   )
 }

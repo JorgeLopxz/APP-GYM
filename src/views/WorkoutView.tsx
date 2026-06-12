@@ -305,7 +305,7 @@ function RoutineEditor(props: {
       {infoFor && (
         <ExerciseInfoSheet
           data={data}
-          def={infoFor}
+          def={data.exercises.find((e) => e.id === infoFor.id) ?? infoFor}
           update={update}
           onClose={() => setInfoFor(null)}
         />
@@ -521,11 +521,21 @@ function ActiveSession(props: {
           session={session}
           onClose={() => setFinishing(false)}
           onFinish={() => {
-            patchSession((s) => ({
-              ...s,
-              finished: true,
-              exercises: s.exercises.filter((l) => l.sets.length > 0)
-            }))
+            patchSession((s) => {
+              // si has usado los ✓, las series sin marcar eran pre-relleno
+              // que no llegaste a hacer: no deben guardarse como hechas
+              const usedTicks = s.exercises.some((l) => l.sets.some((x) => x.done))
+              return {
+                ...s,
+                finished: true,
+                exercises: s.exercises
+                  .map((l) => ({
+                    ...l,
+                    sets: usedTicks ? l.sets.filter((x) => x.done) : l.sets
+                  }))
+                  .filter((l) => l.sets.length > 0)
+              }
+            })
             setFinishing(false)
           }}
         />
@@ -957,7 +967,7 @@ function AddExerciseSheet(props: {
       {infoFor && (
         <ExerciseInfoSheet
           data={data}
-          def={infoFor}
+          def={data.exercises.find((e) => e.id === infoFor.id) ?? infoFor}
           update={update}
           onClose={() => setInfoFor(null)}
         />
@@ -976,14 +986,30 @@ function FinishSheet(props: {
   onClose: () => void
   onFinish: () => void
 }) {
-  const { data, session, onClose, onFinish } = props
+  const { data, session: rawSession, onClose, onFinish } = props
+
+  // lo que de verdad se guardará: si usaste los ✓, solo las series marcadas
+  const usedTicks = rawSession.exercises.some((l) => l.sets.some((x) => x.done))
+  const session = useMemo<Session>(
+    () => ({
+      ...rawSession,
+      exercises: rawSession.exercises
+        .map((l) => ({
+          ...l,
+          sets: usedTicks ? l.sets.filter((x) => x.done) : l.sets
+        }))
+        .filter((l) => l.sets.length > 0)
+    }),
+    [rawSession, usedTicks]
+  )
+  const skipped = sessionSetCount(rawSession) - sessionSetCount(session)
 
   const prs = useMemo(() => {
     const found: string[] = []
     for (const log of session.exercises) {
       const def = getExercise(data, log.exerciseId)
       if (!def || log.sets.length === 0) continue
-      const before = prsBefore(data, log.exerciseId, log.variant, session.id)
+      const before = prsBefore(data, log.exerciseId, log.variant, session.id, session.date)
       const label = def.name + (log.variant ? ` (${log.variant})` : '')
       const maxW = Math.max(...log.sets.map((s) => s.weight))
       const maxE = Math.max(...log.sets.map((s) => e1rm(s.weight, s.reps)))
@@ -1029,7 +1055,17 @@ function FinishSheet(props: {
           ))}
         </div>
       )}
-      {sets === 0 && <p className="sheet-hint">No has apuntado ninguna serie todavía.</p>}
+      {skipped > 0 && (
+        <p className="sheet-hint">
+          ⚠️ {skipped} {skipped === 1 ? 'serie sin marcar ✓ no se guardará' : 'series sin marcar ✓ no se guardarán'}{' '}
+          (eran el pre-relleno de la última vez).
+        </p>
+      )}
+      {sets === 0 && (
+        <p className="sheet-hint">
+          No has marcado ninguna serie como hecha (✓) todavía.
+        </p>
+      )}
       <div className="sheet-actions">
         <button type="button" className="btn-ghost" onClick={onClose}>
           Seguir entrenando
@@ -1049,21 +1085,26 @@ function FinishSheet(props: {
 export function CreatineBanner({ data, update }: { data: AppData; update: Update }) {
   const { settings } = data
   if (!settings.creatineEnabled) return null
-  const today = todayKey()
-  if (settings.creatineTaken.includes(today)) return null
+  if (settings.creatineTaken.includes(todayKey())) return null
 
   return (
     <button
       type="button"
       className="creatine-banner"
       onClick={() =>
-        update((d) => ({
-          ...d,
-          settings: {
-            ...d.settings,
-            creatineTaken: [...d.settings.creatineTaken, today]
+        // todayKey se calcula AL PULSAR: si dejas la app abierta y tocas
+        // pasada la medianoche, debe marcar el día correcto
+        update((d) => {
+          const today = todayKey()
+          if (d.settings.creatineTaken.includes(today)) return d
+          return {
+            ...d,
+            settings: {
+              ...d.settings,
+              creatineTaken: [...d.settings.creatineTaken, today]
+            }
           }
-        }))
+        })
       }
     >
       💊 Creatina pendiente hoy — toca para marcarla

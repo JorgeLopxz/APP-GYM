@@ -957,6 +957,23 @@ select:focus {
   text-align: right;
 }
 
+.muscle-row {
+  width: 100%;
+}
+
+.muscle-row-detail {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  margin: -4px 8px 2px;
+  padding: 10px 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  animation: viewIn 0.2s var(--ease);
+}
+
 /* ---------- calendario mensual ---------- */
 
 .calendar {

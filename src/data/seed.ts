@@ -279,18 +279,20 @@ const s = (weight: number, reps: number, extra?: Partial<SetEntry>): SetEntry =>
   ...extra
 })
 
-function daysAgo(n: number, hour = 18): string {
-  const d = new Date()
-  d.setDate(d.getDate() - n)
-  d.setHours(hour, 30, 0, 0)
-  return d.toISOString()
+// Fechas FIJAS (la semana real de los apuntes): re-fecharlas en cada
+// instalación fabricaría un historial falso que contamina récords y calorías
+const SEED_DATES = {
+  pechoEspalda: '2026-06-05T18:30:00',
+  push: '2026-06-08T18:30:00',
+  pull: '2026-06-09T18:30:00',
+  leg: '2026-06-10T18:30:00'
 }
 
 export function buildSeedSessions(): Session[] {
   return [
     {
       id: 'seed-pecho-espalda',
-      date: daysAgo(6),
+      date: SEED_DATES.pechoEspalda,
       routineId: 'pecho-espalda',
       routineName: 'PECHO · ESPALDA',
       finished: true,
@@ -309,7 +311,7 @@ export function buildSeedSessions(): Session[] {
     },
     {
       id: 'seed-push',
-      date: daysAgo(3),
+      date: SEED_DATES.push,
       routineId: 'push',
       routineName: 'PUSH',
       finished: true,
@@ -360,7 +362,7 @@ export function buildSeedSessions(): Session[] {
     },
     {
       id: 'seed-pull',
-      date: daysAgo(2),
+      date: SEED_DATES.pull,
       routineId: 'pull',
       routineName: 'PULL',
       finished: true,
@@ -394,7 +396,7 @@ export function buildSeedSessions(): Session[] {
     },
     {
       id: 'seed-leg',
-      date: daysAgo(1),
+      date: SEED_DATES.leg,
       routineId: 'leg',
       routineName: 'LEG',
       finished: true,

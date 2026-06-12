@@ -185,11 +185,14 @@ export function prsBefore(
   data: AppData,
   exerciseId: string,
   variant: string | undefined,
-  beforeSessionId: string
+  beforeSessionId: string,
+  beforeDate?: string
 ): PRs {
   const prs: PRs = { maxWeight: 0, maxE1rm: 0, maxReps: 0 }
   for (const session of finishedSessions(data)) {
     if (session.id === beforeSessionId) continue
+    // un récord solo puede compararse contra sesiones ANTERIORES
+    if (beforeDate && session.date >= beforeDate) continue
     for (const log of session.exercises) {
       if (log.exerciseId !== exerciseId) continue
       if ((log.variant ?? '') !== (variant ?? '')) continue
@@ -272,12 +275,24 @@ export function muscleWeeklyAverage(data: AppData): {
 } {
   let weeks = 0
   const total: Partial<Record<MuscleId, number>> = {}
-  for (let o = 0; o >= -3; o--) {
+  // solo semanas COMPLETAS (-1..-4): la semana en curso a medias diluiría la
+  // media y marcaría puntos débiles falsos un lunes
+  for (let o = -1; o >= -4; o--) {
     const w = muscleWeek(data, o)
     if (w.sessionCount === 0) continue
     weeks++
     for (const [m, s] of Object.entries(w.sets)) {
       total[m as MuscleId] = (total[m as MuscleId] ?? 0) + (s ?? 0)
+    }
+  }
+  // sin histórico todavía: usa la semana actual como mejor aproximación
+  if (weeks === 0) {
+    const w = muscleWeek(data, 0)
+    if (w.sessionCount > 0) {
+      weeks = 1
+      for (const [m, s] of Object.entries(w.sets)) {
+        total[m as MuscleId] = s ?? 0
+      }
     }
   }
   const avg: Partial<Record<MuscleId, number>> = {}
@@ -301,7 +316,7 @@ export function fmtSet(set: SetEntry, bodyweight?: boolean): string {
   const base = bodyweight && set.weight === 0
     ? `${set.reps}`
     : `${fmtWeight(set.weight)}×${set.reps}`
-  if (set.tag === 'dropset' && set.dropWeight) {
+  if (set.tag === 'dropset' && set.dropWeight != null) {
     return `${base} +drop ${fmtWeight(set.dropWeight)}×${set.dropReps ?? '?'}`
   }
   if (set.tag === 'negativas' && set.negReps) return `${base} +${set.negReps} neg`

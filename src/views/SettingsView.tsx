@@ -176,15 +176,19 @@ export function SettingsView(props: {
                 type="button"
                 className={`btn-primary ${takenToday ? 'taken' : ''}`}
                 onClick={() =>
-                  update((d) => ({
-                    ...d,
-                    settings: {
-                      ...d.settings,
-                      creatineTaken: takenToday
-                        ? d.settings.creatineTaken.filter((x) => x !== today)
-                        : [...d.settings.creatineTaken, today]
+                  update((d) => {
+                    const t = todayKey() // fresco: a prueba de medianoche
+                    const has = d.settings.creatineTaken.includes(t)
+                    return {
+                      ...d,
+                      settings: {
+                        ...d.settings,
+                        creatineTaken: has
+                          ? d.settings.creatineTaken.filter((x) => x !== t)
+                          : [...d.settings.creatineTaken, t]
+                      }
                     }
-                  }))
+                  })
                 }
               >
                 {takenToday ? 'Tomada hoy ✓' : 'Marcar tomada hoy'}

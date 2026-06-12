@@ -114,7 +114,11 @@ export function importJSON(file: File): Promise<AppData> {
       typeof parsed.version !== 'number' ||
       parsed.version < 1 ||
       parsed.version > CURRENT_VERSION ||
-      !Array.isArray(parsed.sessions)
+      !Array.isArray(parsed.sessions) ||
+      !Array.isArray(parsed.exercises) ||
+      !Array.isArray(parsed.routines) ||
+      typeof parsed.settings !== 'object' ||
+      parsed.settings === null
     ) {
       throw new Error('Archivo no válido')
     }

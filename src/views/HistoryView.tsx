@@ -99,6 +99,16 @@ function MonthCalendar(props: {
 export function HistoryView({ data, update }: { data: AppData; update: Update }) {
   const [openId, setOpenId] = useState<string | null>(null)
 
+  // abre un entreno Y se desplaza hasta él (desde el calendario)
+  const openAndScroll = (id: string) => {
+    setOpenId(id)
+    setTimeout(() => {
+      document
+        .getElementById(`hsession-${id}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
+
   const sessions = data.sessions
     .filter((s) => s.finished)
     .sort((a, b) => b.date.localeCompare(a.date))
@@ -124,13 +134,17 @@ export function HistoryView({ data, update }: { data: AppData; update: Update })
       <h1 className="view-title">Historial</h1>
       <p className="view-subtitle">{sessions.length} entrenos registrados</p>
 
-      <MonthCalendar data={data} onPickDay={(id) => setOpenId(id)} />
+      <MonthCalendar data={data} onPickDay={openAndScroll} />
 
       {sessions.map((session) => {
         const open = openId === session.id
         const date = new Date(session.date)
         return (
-          <div key={session.id} className={`history-card ${open ? 'open' : ''}`}>
+          <div
+            key={session.id}
+            id={`hsession-${session.id}`}
+            className={`history-card ${open ? 'open' : ''}`}
+          >
             <button
               type="button"
               className="history-head"

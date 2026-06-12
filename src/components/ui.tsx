@@ -124,6 +124,10 @@ export function LineChart(props: {
     return <div className="chart-empty">Sin datos todavía. Registra entrenos para ver tu progreso.</div>
   }
 
+  // el efecto de arriba corre DESPUÉS del render: si los puntos encogen al
+  // cambiar de ejercicio, un índice fuera de rango haría crashear la vista
+  const sel = selected === null ? null : Math.min(selected, points.length - 1)
+
   const W = 340
   const H = 180
   const PAD = { top: 16, right: 16, bottom: 26, left: 38 }
@@ -187,8 +191,8 @@ export function LineChart(props: {
             <circle
               cx={x(i)}
               cy={y(p.value)}
-              r={selected === i ? 5 : 3.5}
-              fill={selected === i ? '#f0f0f6' : '#0a0a0c'}
+              r={sel === i ? 5 : 3.5}
+              fill={sel === i ? '#f0f0f6' : '#0a0a0c'}
               stroke="#d4d4de"
               strokeWidth="2"
             />
@@ -201,11 +205,11 @@ export function LineChart(props: {
           {points[points.length - 1].label}
         </text>
       </svg>
-      {selected !== null && (
+      {sel !== null && points[sel] && (
         <div className="chart-info">
-          <span className="chart-info-date">{points[selected].label}</span>
+          <span className="chart-info-date">{points[sel].label}</span>
           <span className="chart-info-value">
-            {fmtWeight(Math.round(points[selected].value * 10) / 10)} {unit}
+            {fmtWeight(Math.round(points[sel].value * 10) / 10)} {unit}
           </span>
         </div>
       )}

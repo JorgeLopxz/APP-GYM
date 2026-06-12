@@ -98,7 +98,13 @@ export default function App() {
       </main>
 
       {timerActive && tab !== 'timer' && (
-        <TimerChip timer={timer} onClick={() => setTab('timer')} />
+        <TimerChip
+          timer={timer}
+          onClick={() => setTab('timer')}
+          onReset={() =>
+            setTimer({ duration: timer.duration, endsAt: null, pausedRemaining: null })
+          }
+        />
       )}
 
       {askProfile && (

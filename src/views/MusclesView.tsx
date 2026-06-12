@@ -16,6 +16,8 @@ const FULL_SETS = 12
 export function MusclesView({ data }: { data: AppData }) {
   const [offset, setOffset] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
+  // fila expandida en la lista (desplegable bajo el músculo tocado)
+  const [openRow, setOpenRow] = useState<MuscleId | null>(null)
 
   const week = useMemo(() => muscleWeek(data, offset), [data, offset])
 
@@ -58,11 +60,14 @@ export function MusclesView({ data }: { data: AppData }) {
       <BodyMap
         heat={heat}
         selected={selected}
-        onSelect={setSelected}
+        onSelect={(r) => {
+          setSelected(r)
+          setOpenRow(null)
+        }}
         sexo={data.profile.sexo}
       />
 
-      {selected && (
+      {selected && openRow === null && (
         <div className="muscle-detail">
           <p className="muscle-detail-title">
             {REGION_NAMES[selected.split(':')[1]] ?? selected} —{' '}
@@ -88,26 +93,49 @@ export function MusclesView({ data }: { data: AppData }) {
       <div className="muscle-list">
         {ranked.map(([m, sets]) => {
           const region = regionForMuscle(m)
+          const open = openRow === m
           return (
-            <button
-              type="button"
-              key={m}
-              className={`muscle-row ${selected !== null && selected === region ? 'selected' : ''}`}
-              onClick={() => setSelected(selected === region ? null : region)}
-            >
-              <span className="muscle-dot" style={{ background: heatColor(Math.min(1, sets / FULL_SETS)) }} />
-              <span className="muscle-name">{MUSCLE_NAMES[m]}</span>
-              <span className="muscle-bar">
-                <span
-                  className="muscle-bar-fill"
-                  style={{
-                    width: `${Math.min(100, (sets / FULL_SETS) * 100)}%`,
-                    background: heatColor(Math.min(1, sets / FULL_SETS))
-                  }}
-                />
-              </span>
-              <span className="muscle-sets">{fmtSets(sets)}</span>
-            </button>
+            <div key={m}>
+              <button
+                type="button"
+                className={`muscle-row ${selected !== null && selected === region ? 'selected' : ''}`}
+                onClick={() => {
+                  if (open) {
+                    setOpenRow(null)
+                    setSelected(null)
+                  } else {
+                    setOpenRow(m)
+                    setSelected(region)
+                  }
+                }}
+              >
+                <span className="muscle-dot" style={{ background: heatColor(Math.min(1, sets / FULL_SETS)) }} />
+                <span className="muscle-name">{MUSCLE_NAMES[m]}</span>
+                <span className="muscle-bar">
+                  <span
+                    className="muscle-bar-fill"
+                    style={{
+                      width: `${Math.min(100, (sets / FULL_SETS) * 100)}%`,
+                      background: heatColor(Math.min(1, sets / FULL_SETS))
+                    }}
+                  />
+                </span>
+                <span className="muscle-sets">{fmtSets(sets)}</span>
+              </button>
+              {open && (
+                <div className="muscle-row-detail">
+                  {week.sources[m] ? (
+                    [...week.sources[m]!.entries()].map(([name, n]) => (
+                      <p key={name} className="muscle-detail-line">
+                        {name}: {fmtSets(n)} series
+                      </p>
+                    ))
+                  ) : (
+                    <p className="muscle-detail-line">Sin trabajo esta semana.</p>
+                  )}
+                </div>
+              )}
+            </div>
           )
         })}
         {ranked.length === 0 && (
