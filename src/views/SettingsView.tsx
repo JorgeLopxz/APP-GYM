@@ -199,10 +199,12 @@ export function SettingsView(props: {
               📅 Añadir aviso diario al Calendario de iOS
             </button>
             <p className="hint-block">
-              iOS no permite a las apps web programar notificaciones locales con la app
-              cerrada. El truco fiable: este botón descarga un evento de calendario que
-              se repite a diario a las {settings.creatineHour} con aviso — ábrelo y pulsa
-              «Añadir todos». Funciona siempre, sin permisos raros.
+              iOS no deja a las apps web lanzar notificaciones programadas con la app
+              cerrada (haría falta un servidor enviándolas). Lo que sí tienes: ①{' '}
+              <strong>un puntito rojo en el icono</strong> de HIERRO mientras la
+              creatina del día esté pendiente (concede el permiso con el botón de
+              abajo), y ② el evento de calendario de arriba, que avisa cada día a las{' '}
+              {settings.creatineHour} pase lo que pase — ábrelo y pulsa «Añadir todos».
             </p>
             <button
               type="button"

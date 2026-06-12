@@ -134,6 +134,49 @@ export function uid(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
 }
 
+// ---------------------------------------------------------------------------
+// Temporizador de descanso: persiste para sobrevivir a cambios de pestaña,
+// cierres de la app y bloqueos de pantalla (endsAt es un timestamp absoluto).
+// ---------------------------------------------------------------------------
+
+export interface TimerState {
+  /** segundos elegidos */
+  duration: number
+  /** timestamp de fin si está corriendo (o ya terminado) */
+  endsAt: number | null
+  /** segundos restantes si está en pausa */
+  pausedRemaining: number | null
+}
+
+const TIMER_KEY = 'hierro-timer-v1'
+
+export function loadTimer(defaultDuration: number): TimerState {
+  try {
+    const raw = localStorage.getItem(TIMER_KEY)
+    if (raw) {
+      const t = JSON.parse(raw) as TimerState
+      if (typeof t.duration === 'number' && t.duration >= 15) {
+        // si terminó hace más de 10 minutos, vuelve al reposo
+        if (t.endsAt !== null && Date.now() - t.endsAt > 10 * 60 * 1000) {
+          return { duration: t.duration, endsAt: null, pausedRemaining: null }
+        }
+        return t
+      }
+    }
+  } catch {
+    // estado corrupto: reposo
+  }
+  return { duration: defaultDuration, endsAt: null, pausedRemaining: null }
+}
+
+export function saveTimer(t: TimerState): void {
+  try {
+    localStorage.setItem(TIMER_KEY, JSON.stringify(t))
+  } catch {
+    // sin almacenamiento: el timer vivirá solo en memoria
+  }
+}
+
 /** Pide a iOS/Android que no borre el almacenamiento de la app instalada. */
 export function requestPersistence(): void {
   try {

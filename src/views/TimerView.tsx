@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { AppData } from '../types'
+import type { TimerState } from '../lib/storage'
+import { unlockAudio } from '../lib/notify'
 
 type Update = (fn: (d: AppData) => AppData) => void
+type SetTimer = (t: TimerState) => void
 
 const PRESETS = [60, 90, 120, 180]
 
@@ -11,88 +14,69 @@ function fmt(s: number): string {
   return `${mm}:${ss}`
 }
 
-function beep() {
-  try {
-    const ctx = new AudioContext()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.frequency.value = 880
-    gain.gain.setValueAtTime(0.25, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8)
-    osc.start()
-    osc.stop(ctx.currentTime + 0.8)
-  } catch {
-    // sin audio: el cambio visual basta
-  }
-  navigator.vibrate?.([200, 100, 200])
-}
-
-export function TimerView({ data, update }: { data: AppData; update: Update }) {
-  const [duration, setDuration] = useState(data.settings.restSeconds)
-  const [endsAt, setEndsAt] = useState<number | null>(null)
-  const [paused, setPaused] = useState<number | null>(null) // segundos restantes al pausar
+function useNow(active: boolean): number {
   const [now, setNow] = useState(Date.now())
-  const beeped = useRef(false)
-
   useEffect(() => {
-    if (endsAt === null) return
+    if (!active) return
     const t = setInterval(() => setNow(Date.now()), 200)
     return () => clearInterval(t)
-  }, [endsAt])
+  }, [active])
+  return now
+}
 
-  const remaining =
-    paused !== null
-      ? paused
-      : endsAt !== null
-        ? Math.max(0, (endsAt - now) / 1000)
-        : duration
+function remainingOf(timer: TimerState, now: number): number {
+  if (timer.pausedRemaining !== null) return timer.pausedRemaining
+  if (timer.endsAt !== null) return Math.max(0, (timer.endsAt - now) / 1000)
+  return timer.duration
+}
 
-  useEffect(() => {
-    if (endsAt !== null && paused === null && remaining <= 0 && !beeped.current) {
-      beeped.current = true
-      beep()
-    }
-  }, [remaining, endsAt, paused])
+export function TimerView(props: {
+  data: AppData
+  update: Update
+  timer: TimerState
+  setTimer: SetTimer
+}) {
+  const { update, timer, setTimer } = props
 
-  const running = endsAt !== null && paused === null && remaining > 0
-  const finished = endsAt !== null && paused === null && remaining <= 0
+  const now = useNow(timer.endsAt !== null && timer.pausedRemaining === null)
+  const remaining = remainingOf(timer, now)
+
+  const running = timer.endsAt !== null && timer.pausedRemaining === null && remaining > 0
+  const finished = timer.endsAt !== null && timer.pausedRemaining === null && remaining <= 0
 
   const setNewDuration = (s: number) => {
     const clamped = Math.max(15, s)
-    setDuration(clamped)
-    setEndsAt(null)
-    setPaused(null)
-    beeped.current = false
+    setTimer({ duration: clamped, endsAt: null, pausedRemaining: null })
     // recuerda tu descanso preferido
     update((d) => ({ ...d, settings: { ...d.settings, restSeconds: clamped } }))
   }
 
   const start = () => {
-    beeped.current = false
-    setPaused(null)
-    setEndsAt(Date.now() + (paused ?? duration) * 1000)
-    setNow(Date.now())
+    unlockAudio() // iOS solo deja sonar audio desbloqueado en un gesto
+    const seconds = timer.pausedRemaining ?? timer.duration
+    setTimer({ ...timer, endsAt: Date.now() + seconds * 1000, pausedRemaining: null })
   }
 
-  const pause = () => setPaused(remaining)
+  const pause = () =>
+    setTimer({ ...timer, pausedRemaining: remaining, endsAt: null })
 
-  const reset = () => {
-    setEndsAt(null)
-    setPaused(null)
-    beeped.current = false
-  }
+  const reset = () =>
+    setTimer({ duration: timer.duration, endsAt: null, pausedRemaining: null })
 
   // anillo de progreso
   const R = 84
   const CIRC = 2 * Math.PI * R
-  const progress = endsAt === null ? 1 : Math.max(0, remaining / duration)
+  const progress =
+    timer.endsAt === null && timer.pausedRemaining === null
+      ? 1
+      : Math.max(0, remaining / timer.duration)
 
   return (
     <div className="view">
       <h1 className="view-title">Descanso</h1>
-      <p className="view-subtitle">Tu temporizador entre series</p>
+      <p className="view-subtitle">
+        Sigue corriendo aunque cambies de pestaña o cierres la app
+      </p>
 
       <div className="timer-wrap">
         <svg viewBox="0 0 200 200" className="timer-ring">
@@ -112,7 +96,7 @@ export function TimerView({ data, update }: { data: AppData; update: Update }) {
             strokeWidth="10"
             strokeLinecap="round"
             strokeDasharray={CIRC}
-            strokeDashoffset={CIRC * (1 - progress)}
+            strokeDashoffset={CIRC * (1 - Math.min(1, progress))}
             transform="rotate(-90 100 100)"
             style={{ transition: 'stroke-dashoffset 0.2s linear' }}
           />
@@ -129,7 +113,7 @@ export function TimerView({ data, update }: { data: AppData; update: Update }) {
           </button>
         ) : (
           <button type="button" className="btn-primary timer-btn" onClick={start}>
-            {paused !== null ? '▶ Seguir' : '▶ Empezar'}
+            {timer.pausedRemaining !== null ? '▶ Seguir' : '▶ Empezar'}
           </button>
         )}
         <button type="button" className="btn-ghost timer-btn" onClick={reset}>
@@ -142,24 +126,44 @@ export function TimerView({ data, update }: { data: AppData; update: Update }) {
           <button
             key={p}
             type="button"
-            className={`chip ${duration === p ? 'active' : ''}`}
+            className={`chip ${timer.duration === p ? 'active' : ''}`}
             onClick={() => setNewDuration(p)}
           >
             {fmt(p)}
           </button>
         ))}
-        <button type="button" className="chip" onClick={() => setNewDuration(duration - 15)}>
+        <button type="button" className="chip" onClick={() => setNewDuration(timer.duration - 15)}>
           −15s
         </button>
-        <button type="button" className="chip" onClick={() => setNewDuration(duration + 15)}>
+        <button type="button" className="chip" onClick={() => setNewDuration(timer.duration + 15)}>
           +15s
         </button>
       </div>
 
       <p className="hint-block">
-        El tiempo elegido se queda guardado. Suena un aviso y vibra (si el móvil lo
-        permite) al llegar a cero.
+        Suena un triple bip al llegar a cero (y notificación si diste permiso en
+        Ajustes). Con la pantalla bloqueada, iOS congela las apps web: el tiempo
+        sigue siendo exacto, pero el aviso sonará al volver a la app.
       </p>
     </div>
+  )
+}
+
+/** Chip flotante con el tiempo restante cuando estás en otra pestaña. */
+export function TimerChip(props: { timer: TimerState; onClick: () => void }) {
+  const { timer, onClick } = props
+  const now = useNow(timer.pausedRemaining === null)
+  const remaining = remainingOf(timer, now)
+  const paused = timer.pausedRemaining !== null
+  const finished = !paused && timer.endsAt !== null && remaining <= 0
+
+  return (
+    <button
+      type="button"
+      className={`timer-chip ${finished ? 'done' : ''}`}
+      onClick={onClick}
+    >
+      {finished ? '⏱ ¡Descanso terminado!' : `${paused ? '⏸' : '⏱'} ${fmt(remaining)}`}
+    </button>
   )
 }

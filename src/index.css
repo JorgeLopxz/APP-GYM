@@ -39,6 +39,7 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+  overflow-x: hidden;
 }
 
 button {
@@ -306,7 +307,7 @@ select:focus {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 14px;
+  padding: 14px 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -364,18 +365,21 @@ select:focus {
 .set-main {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 4px;
+  min-width: 0;
 }
 
 .set-num {
-  width: 18px;
+  width: 14px;
+  flex-shrink: 0;
   color: var(--text-faint);
-  font-size: 13px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 
 .set-x {
   color: var(--text-faint);
+  font-size: 12px;
 }
 
 .set-extra {
@@ -388,8 +392,8 @@ select:focus {
 }
 
 .set-check {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 1.5px solid var(--border-light);
   color: transparent;
@@ -405,10 +409,11 @@ select:focus {
 }
 
 .tag-select {
-  padding: 6px 4px;
-  font-size: 12px;
+  padding: 6px 2px;
+  font-size: 11px;
   border-radius: 8px;
-  max-width: 64px;
+  max-width: 50px;
+  flex-shrink: 0;
 }
 
 .btn-add-set {
@@ -441,10 +446,10 @@ select:focus {
 }
 
 .numfield input {
-  width: 52px;
+  width: 42px;
   text-align: center;
-  padding: 8px 2px;
-  font-size: 15px;
+  padding: 8px 1px;
+  font-size: 14px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   border-radius: 0;
@@ -453,12 +458,12 @@ select:focus {
 }
 
 .numfield-btn {
-  width: 30px;
-  height: 35px;
+  width: 25px;
+  height: 34px;
   background: var(--bg-input);
   border: 1px solid var(--border);
   color: var(--text-dim);
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -1335,6 +1340,51 @@ button.exercise-name {
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
+}
+
+/* móviles estrechos: que la fila de serie quepa siempre */
+@media (max-width: 385px) {
+  .set-x {
+    display: none;
+  }
+  .numfield input {
+    width: 38px;
+  }
+  .tag-select {
+    max-width: 44px;
+  }
+  .icon-btn.subtle {
+    padding: 4px 4px;
+  }
+}
+
+/* ---------- chip flotante del temporizador ---------- */
+
+.timer-chip {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 86px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--metal);
+  color: #101014;
+  font-weight: 800;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  padding: 11px 22px;
+  border-radius: 999px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  z-index: 60;
+  animation: viewIn 0.3s var(--ease);
+  white-space: nowrap;
+}
+
+.timer-chip:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+.timer-chip.done {
+  background: var(--ok);
+  color: #08130d;
 }
 
 /* ---------- confirmación de entreno ---------- */

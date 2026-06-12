@@ -1,11 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { AppData } from './types'
-import { loadData, requestPersistence, saveData } from './lib/storage'
+import {
+  loadData,
+  loadTimer,
+  requestPersistence,
+  saveData,
+  saveTimer,
+  type TimerState
+} from './lib/storage'
+import { todayKey } from './lib/stats'
+import { notifyTimerDone, timerBeep, updateCreatineBadge } from './lib/notify'
 import { WorkoutView } from './views/WorkoutView'
 import { ProgressView } from './views/ProgressView'
 import { MusclesView } from './views/MusclesView'
 import { HistoryView } from './views/HistoryView'
-import { TimerView } from './views/TimerView'
+import { TimerView, TimerChip } from './views/TimerView'
 import { SettingsView, ProfileSheet } from './views/SettingsView'
 
 type Tab = 'entreno' | 'timer' | 'progreso' | 'musculos' | 'historial' | 'ajustes'
@@ -22,6 +31,9 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 export default function App() {
   const [data, setData] = useState<AppData>(() => loadData())
   const [tab, setTab] = useState<Tab>('entreno')
+  const [timer, setTimer] = useState<TimerState>(() =>
+    loadTimer(loadData().settings.restSeconds)
+  )
   // primera vez: la app te pide tus métricas (edad, sexo, altura, peso)
   const [askProfile, setAskProfile] = useState(() => !loadData().profile.prompted)
 
@@ -33,13 +45,50 @@ export default function App() {
     saveData(data)
   }, [data])
 
+  useEffect(() => {
+    saveTimer(timer)
+  }, [timer])
+
+  // pitido + notificación al llegar a cero, estés en la pestaña que estés
+  const beepedAt = useRef<number | null>(null)
+  useEffect(() => {
+    if (timer.endsAt === null || timer.pausedRemaining !== null) return
+    if (Date.now() >= timer.endsAt) return // ya estaba terminado al montar
+    const endsAt = timer.endsAt
+    const id = setInterval(() => {
+      if (Date.now() >= endsAt && beepedAt.current !== endsAt) {
+        beepedAt.current = endsAt
+        timerBeep()
+        void notifyTimerDone()
+        clearInterval(id)
+      }
+    }, 250)
+    return () => clearInterval(id)
+  }, [timer.endsAt, timer.pausedRemaining])
+
+  // puntito en el icono mientras la creatina del día esté pendiente
+  useEffect(() => {
+    const refresh = () =>
+      updateCreatineBadge(
+        data.settings.creatineEnabled &&
+          !data.settings.creatineTaken.includes(todayKey())
+      )
+    refresh()
+    document.addEventListener('visibilitychange', refresh)
+    return () => document.removeEventListener('visibilitychange', refresh)
+  }, [data.settings.creatineEnabled, data.settings.creatineTaken])
+
   const update = (fn: (d: AppData) => AppData) => setData(fn)
+
+  const timerActive = timer.endsAt !== null || timer.pausedRemaining !== null
 
   return (
     <div className="app">
       <main className="content" key={tab}>
         {tab === 'entreno' && <WorkoutView data={data} update={update} />}
-        {tab === 'timer' && <TimerView data={data} update={update} />}
+        {tab === 'timer' && (
+          <TimerView data={data} update={update} timer={timer} setTimer={setTimer} />
+        )}
         {tab === 'progreso' && <ProgressView data={data} update={update} />}
         {tab === 'musculos' && <MusclesView data={data} />}
         {tab === 'historial' && <HistoryView data={data} update={update} />}
@@ -47,6 +96,10 @@ export default function App() {
           <SettingsView data={data} update={update} replace={setData} />
         )}
       </main>
+
+      {timerActive && tab !== 'timer' && (
+        <TimerChip timer={timer} onClick={() => setTab('timer')} />
+      )}
 
       {askProfile && (
         <ProfileSheet data={data} update={update} onClose={() => setAskProfile(false)} />
