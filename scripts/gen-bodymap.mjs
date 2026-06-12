@@ -2,6 +2,8 @@
 // Las formas se definen para el lado IZQUIERDO (o centro) en coordenadas
 // locales (figura centrada en x=100) y el lado derecho se espeja
 // automáticamente, garantizando simetría perfecta.
+// Referencia visual: lámina anatómica clásica (frente/espalda, brazos caídos
+// con manos abiertas junto a los muslos).
 import sharp from 'sharp'
 import { writeFileSync } from 'node:fs'
 
@@ -43,19 +45,22 @@ const expand = (shapes) =>
   )
 
 // ---------------------------------------------------------------------------
-// SILUETA (compartida por ambas figuras; el derecho se espeja)
+// SILUETA (mitad izquierda + centro; el lado derecho se espeja)
 // ---------------------------------------------------------------------------
 
 const SIL_LEFT = [
-  // cabeza + cuello
-  'M86,34 Q86,16 100,16 L100,52 Q92,52 90,46 Z',
-  'M92,46 L100,46 L100,66 L90,66 Z',
-  // torso (mitad izquierda)
-  'M100,58 Q80,59 64,69 Q56,74 55,86 L57,98 Q58,106 63,110 L66,140 Q68,152 76,164 Q73,176 72,192 Q72,210 84,221 Q92,227 100,228 Z',
-  // brazo izquierdo
-  'M56,75 Q45,82 43,98 L37,160 L31,206 Q28,222 36,231 Q46,235 50,222 L52,206 L51,162 L56,118 L61,106 Q52,94 56,75 Z',
+  // cabeza (mitad izquierda, ovalada con mandíbula)
+  'M100,12 Q88,12 87,27 Q86,40 92,47 Q96,52 100,52 Z',
+  // cuello
+  'M93,45 L100,45 L100,68 L91,68 Q93,56 93,45 Z',
+  // torso (mitad izquierda): hombros anchos, cintura estrecha, cadera
+  'M100,60 Q82,61 67,69 Q56,75 54,88 L56,101 Q57,109 63,113 L65,143 Q67,157 78,169 Q74,182 73,196 Q73,215 86,225 Q94,230 100,231 Z',
+  // brazo izquierdo: hombro→codo→muñeca
+  'M57,74 Q45,81 43,99 L39,158 Q38,167 36,177 L32,212 Q30,218 33,222 L42,220 Q44,214 44,210 L46,170 L50,128 L55,108 Q49,94 57,74 Z',
+  // mano izquierda abierta junto al muslo
+  'M32,214 Q26,226 27,240 Q29,251 34,250 Q33,240 36,230 Q39,222 41,218 Q37,212 32,214 Z',
   // pierna izquierda + pie
-  'M72,194 L70,252 Q68,292 73,320 Q70,334 70,348 Q67,376 71,402 L73,425 Q70,438 78,443 L93,443 Q98,437 95,424 L96,394 Q99,362 93,338 L95,320 Q100,290 99,252 L100,226 Q84,222 72,194 Z'
+  'M73,196 L71,258 Q69,300 75,324 Q71,340 71,354 Q67,384 72,410 L74,430 Q70,444 80,448 L92,448 Q97,442 94,430 L96,398 Q99,366 93,342 L95,324 Q101,292 100,256 L100,232 Q85,226 73,196 Z'
 ]
 
 // ---------------------------------------------------------------------------
@@ -63,28 +68,35 @@ const SIL_LEFT = [
 // ---------------------------------------------------------------------------
 
 const FRONT = [
-  L('trapecio', 'M94,58 Q82,60 68,69 L74,76 Q86,68 94,65 Z'),
-  L('deltoide_anterior', 'M63,73 Q71,71 74,80 Q75,92 69,99 Q63,92 61,82 Q61,76 63,73 Z'),
-  L('deltoide_lateral', 'M60,74 Q50,80 48,94 Q49,105 55,108 Q60,100 59,88 Q58,79 60,74 Z'),
-  L('pecho_superior', 'M75,80 L98,78 L98,88 Q85,90 77,94 Q75,86 75,80 Z'),
-  L('pecho_inferior', 'M77,96 Q87,92 98,90 L98,122 Q88,131 79,124 Q70,112 75,100 Z'),
-  L('serrato', 'M70,118 L78,123 L76,131 L68,125 Z'),
-  L('serrato', 'M67,129 L75,134 L73,141 L66,134 Z'),
-  L('biceps', 'M56,108 Q64,112 62,132 Q60,148 52,154 Q46,146 48,128 Q50,112 56,108 Z'),
-  L('antebrazo', 'M50,158 Q58,162 54,182 Q49,202 42,212 Q36,205 39,186 Q42,166 50,158 Z'),
-  // abdominales: 3 filas de 2 + zona baja
-  L('abs', 'M88,124 L99,122 L99,139 L88,140 Q86,131 88,124 Z'),
-  L('abs', 'M88,143 L99,142 L99,158 L88,159 Q87,150 88,143 Z'),
-  L('abs', 'M89,162 L99,161 L99,177 L89,178 Q88,169 89,162 Z'),
-  C('abs', 'M89,181 L111,181 Q112,198 100,206 Q88,198 89,181 Z'),
-  L('oblicuos', 'M79,126 Q75,146 79,166 Q82,176 86,181 L86,128 Q82,125 79,126 Z'),
-  L('abductor', 'M73,186 Q67,194 69,207 Q73,215 79,211 Q81,198 79,190 Q76,184 73,186 Z'),
-  L('aductor', 'M97,230 Q91,242 93,260 L98,268 Q101,246 100,231 Z'),
-  // cuádriceps: vasto lateral, recto femoral, vasto medial
-  L('cuadriceps', 'M72,206 Q67,252 72,298 Q76,309 81,300 Q78,252 80,212 Q76,203 72,206 Z'),
-  L('cuadriceps', 'M83,211 Q78,254 83,301 Q88,312 93,301 Q95,252 90,213 Q86,204 83,211 Z'),
-  L('cuadriceps', 'M93,262 Q98,284 95,309 Q91,320 87,310 Q88,284 90,264 Q92,258 93,262 Z'),
-  L('gemelo', 'M88,336 Q95,358 92,386 Q88,395 84,384 Q83,358 86,338 Z')
+  // trapecio superior (cuello → hombro)
+  L('trapecio', 'M94,56 Q83,59 70,68 L76,75 Q87,66 95,64 Z'),
+  // deltoides
+  L('deltoide_anterior', 'M64,72 Q73,70 76,80 Q77,93 70,100 Q63,93 61,82 Q61,75 64,72 Z'),
+  L('deltoide_lateral', 'M61,73 Q50,79 48,95 Q49,107 56,110 Q61,101 60,88 Q59,78 61,73 Z'),
+  // pectoral: franja clavicular + masa esternal cuadrada-redondeada
+  L('pecho_superior', 'M76,79 L99,77 L99,87 Q86,89 78,94 Q76,86 76,79 Z'),
+  L('pecho_inferior', 'M78,96 Q88,91 99,89 L99,120 Q89,131 80,124 Q70,112 75,100 Z'),
+  // serrato: tres digitaciones bajo la axila
+  L('serrato', 'M68,116 L76,121 L74,128 L66,122 Z'),
+  L('serrato', 'M66,126 L74,132 L72,139 L65,131 Z'),
+  L('serrato', 'M65,136 L72,142 L70,149 L64,141 Z'),
+  // brazo
+  L('biceps', 'M57,106 Q66,110 64,132 Q62,150 53,158 Q46,150 48,130 Q50,112 57,106 Z'),
+  L('antebrazo', 'M52,162 Q61,166 56,186 Q50,204 43,216 Q37,210 40,190 Q43,170 52,162 Z'),
+  // abdominales: 3 filas + zona baja (8-pack)
+  L('abs', 'M89,124 L99,122 L99,138 L89,139 Q87,131 89,124 Z'),
+  L('abs', 'M89,142 L99,141 L99,156 L89,157 Q88,149 89,142 Z'),
+  L('abs', 'M90,160 L99,159 L99,174 L90,175 Q89,167 90,160 Z'),
+  C('abs', 'M90,178 L110,178 Q111,199 100,209 Q89,199 90,178 Z'),
+  L('oblicuos', 'M80,124 Q75,147 80,171 Q83,181 88,185 L88,126 Q84,122 80,124 Z'),
+  // cadera y muslo
+  L('abductor', 'M74,184 Q67,192 69,206 Q73,214 80,210 Q82,196 80,189 Q77,182 74,184 Z'),
+  L('aductor', 'M98,234 Q91,246 92,266 L98,274 Q102,250 101,235 Z'),
+  L('cuadriceps', 'M73,204 Q67,252 73,306 Q77,317 82,307 Q78,254 80,210 Q76,201 73,204 Z'),
+  L('cuadriceps', 'M84,209 Q79,256 84,308 Q89,319 94,308 Q96,254 91,211 Q87,202 84,209 Z'),
+  L('cuadriceps', 'M94,268 Q99,290 96,315 Q92,326 88,316 Q89,290 91,270 Q93,264 94,268 Z'),
+  // gemelo interno visible de frente
+  L('gemelo', 'M89,342 Q96,364 93,392 Q89,401 85,390 Q84,364 87,344 Z')
 ]
 
 // ---------------------------------------------------------------------------
@@ -92,33 +104,37 @@ const FRONT = [
 // ---------------------------------------------------------------------------
 
 const BACK = [
-  C('trapecio', 'M100,56 Q284,60 266,71 Q278,80 288,86 L297,140 L100,150 L100,56 Z'), // se sustituye abajo
-  L('deltoide_posterior', 'M62,74 Q52,80 50,94 Q51,104 57,107 Q62,99 61,86 Q60,78 62,74 Z'),
-  L('espalda_alta', 'M66,88 Q62,100 66,113 L78,119 Q80,104 78,94 Q72,88 66,88 Z'),
-  L('dorsal', 'M62,114 Q58,136 68,156 Q80,170 92,174 L94,148 Q90,126 78,117 Q69,112 62,114 Z'),
-  L('lumbar', 'M94,154 L98,156 L98,198 Q95,202 92,198 Q91,174 94,154 Z'),
-  L('triceps', 'M56,108 Q49,114 48,132 Q48,150 54,156 Q60,149 61,130 Q61,114 56,108 Z'),
-  L('antebrazo', 'M50,160 Q57,164 53,184 Q48,202 42,212 Q37,205 39,187 Q42,168 50,160 Z'),
-  L('abductor', 'M73,180 Q67,186 69,199 Q73,205 79,201 Q81,189 78,182 Q75,177 73,180 Z'),
-  L('gluteo', 'M77,196 Q66,206 68,228 Q74,243 90,241 L97,230 Q98,209 92,199 Q84,191 77,196 Z'),
-  L('isquios', 'M71,247 Q67,279 71,312 Q76,321 81,312 Q81,279 80,249 Z'),
-  L('isquios', 'M84,249 Q81,281 85,314 Q90,323 95,312 Q94,281 91,249 Z'),
-  L('gemelo', 'M71,334 Q65,357 70,384 Q75,393 80,383 Q81,357 77,336 Z'),
-  L('gemelo', 'M83,336 Q79,359 83,386 Q88,395 93,384 Q94,357 90,336 Z')
+  // trapecio: cometa desde el cuello hasta media espalda
+  C(
+    'trapecio',
+    'M100,54 Q84,58 66,70 Q78,79 88,85 L98,142 Q99,150 100,152 Q101,150 102,142 L112,85 Q122,79 134,70 Q116,58 100,54 Z'
+  ),
+  L('deltoide_posterior', 'M62,73 Q51,79 49,95 Q50,106 57,109 Q62,100 61,87 Q60,77 62,73 Z'),
+  // zona escapular (infraespinoso/romboides/redondos)
+  L('espalda_alta', 'M67,86 Q62,98 67,112 L80,118 Q82,102 80,92 Q73,86 67,86 Z'),
+  // dorsal ancho: ala en V que afila hacia la cintura
+  L('dorsal', 'M63,112 Q57,136 66,156 Q78,174 95,182 L97,158 Q95,130 82,117 Q71,109 63,112 Z'),
+  L('lumbar', 'M95,156 L99,158 L99,200 Q96,205 93,200 Q92,176 95,156 Z'),
+  L('triceps', 'M57,106 Q49,112 48,132 Q48,152 55,158 Q61,150 62,130 Q62,113 57,106 Z'),
+  L('antebrazo', 'M52,162 Q61,166 56,186 Q50,204 43,216 Q37,210 40,190 Q43,170 52,162 Z'),
+  // glúteo medio y mayor
+  L('abductor', 'M74,178 Q67,184 69,198 Q73,205 80,201 Q82,189 79,181 Q76,175 74,178 Z'),
+  L('gluteo', 'M78,194 Q66,204 68,228 Q74,245 91,243 L98,231 Q99,208 93,198 Q85,189 78,194 Z'),
+  L('aductor', 'M99,236 Q93,248 94,268 L99,274 Q102,252 101,237 Z'),
+  // isquios: dos columnas
+  L('isquios', 'M72,249 Q67,283 72,316 Q77,326 82,316 Q82,283 81,251 Z'),
+  L('isquios', 'M85,251 Q82,285 86,318 Q91,328 96,316 Q95,283 92,251 Z'),
+  // gemelos: dos cabezas
+  L('gemelo', 'M72,340 Q65,364 70,392 Q75,402 80,391 Q81,364 78,342 Z'),
+  L('gemelo', 'M84,342 Q80,366 84,394 Q89,404 94,392 Q95,364 91,342 Z')
 ]
-
-// el trapecio trasero es central (cometa): se define entero a mano
-BACK[0] = C(
-  'trapecio',
-  'M100,56 Q84,60 66,71 Q78,80 88,86 L97,140 Q99,148 100,150 Q101,148 103,140 L112,86 Q122,80 134,71 Q116,60 100,56 Z'
-)
 
 // ---------------------------------------------------------------------------
 // Salida
 // ---------------------------------------------------------------------------
 
 const data = {
-  sil: [...SIL_LEFT, ...SIL_LEFT.slice(2).map(mirror), mirror(SIL_LEFT[0]), mirror(SIL_LEFT[1])],
+  sil: [...SIL_LEFT, ...SIL_LEFT.map(mirror)],
   front: expand(FRONT),
   back: expand(BACK)
 }
@@ -128,16 +144,37 @@ console.log(
   `✓ bodymap.json — sil: ${data.sil.length}, front: ${data.front.length}, back: ${data.back.length}`
 )
 
-// preview PNG: silueta + músculos en rojo medio para inspección visual
-const REDS = ['#8c1a22', '#a01820', '#c41e28', '#7a161c', '#b01c24']
+// ---------------------------------------------------------------------------
+// Preview PNG con la escala de calor real (clarito = poco, intenso = mucho)
+// para inspección visual: cada forma recibe una intensidad distinta.
+// ---------------------------------------------------------------------------
+
+const STOPS = [
+  [242, 235, 235], // 0: sin trabajar, casi blanco
+  [238, 158, 158], // medio: rojo clarito
+  [165, 14, 22] // 1: rojo intenso
+]
+function heat(t) {
+  const k = Math.max(0, Math.min(1, t))
+  const seg = k < 0.5 ? [STOPS[0], STOPS[1], k * 2] : [STOPS[1], STOPS[2], (k - 0.5) * 2]
+  const c = [0, 1, 2].map((i) => Math.round(seg[0][i] + (seg[1][i] - seg[0][i]) * seg[2]))
+  return `rgb(${c[0]},${c[1]},${c[2]})`
+}
+
+// intensidad por MÚSCULO (no por forma) para poder juzgar la simetría
+const demoHeat = (muscle) => {
+  let h = 0
+  for (const ch of muscle) h = (h * 31 + ch.charCodeAt(0)) % 97
+  return h / 96
+}
 const muscles = (shapes) =>
   shapes
     .map(
-      (s, i) =>
-        `<path d="${s.d}" fill="${REDS[i % REDS.length]}" stroke="#0a0a0c" stroke-width="0.8"/>`
+      (s) =>
+        `<path d="${s.d}" fill="${heat(demoHeat(s.muscle))}" stroke="#1a1a1f" stroke-width="0.8"/>`
     )
     .join('\n')
-const sil = data.sil.map((d) => `<path d="${d}" fill="#23232a"/>`).join('\n')
+const sil = data.sil.map((d) => `<path d="${d}" fill="#cfcfd8"/>`).join('\n')
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 470">
 <rect width="400" height="470" fill="#0a0a0c"/>

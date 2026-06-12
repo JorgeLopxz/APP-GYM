@@ -592,10 +592,7 @@ select:focus {
 
 .pick-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 14px;
-  text-align: left;
+  align-items: stretch;
   border-bottom: 1px solid var(--border);
   background: var(--bg-card);
   font-size: 14.5px;
@@ -608,6 +605,23 @@ select:focus {
 .pick-row.picked {
   background: #1e1e26;
   color: var(--silver-bright);
+}
+
+.pick-main {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.pick-video {
+  padding: 0 13px;
+  border-left: 1px solid var(--border);
+  font-size: 15px;
+  filter: grayscale(0.4);
 }
 
 .pick-order {
@@ -823,19 +837,19 @@ select:focus {
 }
 
 .body-sil {
-  fill: #1f1f25;
+  fill: #cfcfd8;
 }
 
 .body-muscle {
-  stroke: #0a0a0c;
+  stroke: #1a1a1f;
   stroke-width: 0.8;
   transition: fill 0.5s var(--ease);
   cursor: pointer;
 }
 
 .body-muscle.selected {
-  stroke: var(--silver-bright);
-  stroke-width: 1.5;
+  stroke: #0a0a0c;
+  stroke-width: 2;
 }
 
 .bodymap-label {
@@ -932,6 +946,71 @@ select:focus {
   color: var(--text-dim);
   min-width: 32px;
   text-align: right;
+}
+
+/* ---------- calendario mensual ---------- */
+
+.calendar {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.calendar .week-nav {
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-dow {
+  text-align: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  padding-bottom: 2px;
+}
+
+.cal-cell {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  background: var(--bg-elev);
+}
+
+.cal-cell:disabled {
+  opacity: 0.6;
+}
+
+.cal-cell.trained {
+  background: var(--metal);
+  color: #101014;
+  font-weight: 800;
+  opacity: 1;
+}
+
+.cal-cell.today {
+  box-shadow: inset 0 0 0 1.5px var(--silver);
+}
+
+.cal-count {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-dim);
 }
 
 /* ---------- historial ---------- */

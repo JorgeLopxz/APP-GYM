@@ -15,10 +15,11 @@ const SIL = body.sil as string[]
 const FRONT = body.front as BodyShape[]
 const BACK = body.back as BodyShape[]
 
-// Escala de calor: gris (sin entrenar) → rojo oscuro → rojo vivo (muy entrenado)
-const BASE: [number, number, number] = [40, 40, 46]
-const MID: [number, number, number] = [122, 22, 28]
-const HOT: [number, number, number] = [255, 45, 58]
+// Escala de calor: casi blanco (sin trabajar) → rojo clarito (poco) → rojo
+// intenso (mucho). Cuanto más se entrena un músculo, más fuerte el rojo.
+const BASE: [number, number, number] = [242, 235, 235]
+const MID: [number, number, number] = [238, 158, 158]
+const HOT: [number, number, number] = [165, 14, 22]
 
 function mix(
   a: [number, number, number],

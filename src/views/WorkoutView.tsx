@@ -184,6 +184,7 @@ function RoutineEditor(props: {
   const [exerciseIds, setExerciseIds] = useState<string[]>(routine?.exerciseIds ?? [])
   const [creating, setCreating] = useState(false)
   const [query, setQuery] = useState('')
+  const [infoFor, setInfoFor] = useState<ExerciseDef | null>(null)
 
   const toggle = (id: string) => {
     setExerciseIds((ids) =>
@@ -252,15 +253,20 @@ function RoutineEditor(props: {
             {list.map((ex) => {
               const idx = exerciseIds.indexOf(ex.id)
               return (
-                <button
-                  key={ex.id}
-                  type="button"
-                  className={`pick-row ${idx >= 0 ? 'picked' : ''}`}
-                  onClick={() => toggle(ex.id)}
-                >
-                  <span>{ex.name}</span>
-                  {idx >= 0 && <span className="pick-order">{idx + 1}</span>}
-                </button>
+                <div key={ex.id} className={`pick-row ${idx >= 0 ? 'picked' : ''}`}>
+                  <button type="button" className="pick-main" onClick={() => toggle(ex.id)}>
+                    <span>{ex.name}</span>
+                    {idx >= 0 && <span className="pick-order">{idx + 1}</span>}
+                  </button>
+                  <button
+                    type="button"
+                    className="pick-video"
+                    onClick={() => setInfoFor(ex)}
+                    aria-label={`Ver técnica de ${ex.name}`}
+                  >
+                    🎬
+                  </button>
+                </div>
               )
             })}
           </div>
@@ -290,6 +296,14 @@ function RoutineEditor(props: {
             setCreating(false)
           }}
           onClose={() => setCreating(false)}
+        />
+      )}
+      {infoFor && (
+        <ExerciseInfoSheet
+          data={data}
+          def={infoFor}
+          update={update}
+          onClose={() => setInfoFor(null)}
         />
       )}
     </Sheet>
@@ -884,6 +898,7 @@ function AddExerciseSheet(props: {
   const { open, data, update, onClose, onAdd } = props
   const [query, setQuery] = useState('')
   const [creating, setCreating] = useState(false)
+  const [infoFor, setInfoFor] = useState<ExerciseDef | null>(null)
 
   const filtered = data.exercises.filter((e) =>
     e.name.toLowerCase().includes(query.toLowerCase())
@@ -902,12 +917,22 @@ function AddExerciseSheet(props: {
           <div key={region}>
             <div className="pick-region">{region}</div>
             {list.map((ex) => (
-              <button key={ex.id} type="button" className="pick-row" onClick={() => onAdd(ex.id)}>
-                <span>{ex.name}</span>
-                <span className="pick-muscles">
-                  {ex.primary.map((m) => MUSCLE_NAMES[m]).join(', ')}
-                </span>
-              </button>
+              <div key={ex.id} className="pick-row">
+                <button type="button" className="pick-main" onClick={() => onAdd(ex.id)}>
+                  <span>{ex.name}</span>
+                  <span className="pick-muscles">
+                    {ex.primary.map((m) => MUSCLE_NAMES[m]).join(', ')}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="pick-video"
+                  onClick={() => setInfoFor(ex)}
+                  aria-label={`Ver técnica de ${ex.name}`}
+                >
+                  🎬
+                </button>
+              </div>
             ))}
           </div>
         ))}
@@ -923,6 +948,14 @@ function AddExerciseSheet(props: {
             onAdd(id)
           }}
           onClose={() => setCreating(false)}
+        />
+      )}
+      {infoFor && (
+        <ExerciseInfoSheet
+          data={data}
+          def={infoFor}
+          update={update}
+          onClose={() => setInfoFor(null)}
         />
       )}
     </Sheet>

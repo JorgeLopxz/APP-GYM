@@ -4,6 +4,98 @@ import { fmtSet, getExercise, sessionSetCount } from '../lib/stats'
 
 type Update = (fn: (d: AppData) => AppData) => void
 
+// ---------------------------------------------------------------------------
+// Calendario mensual: qué días has entrenado
+// ---------------------------------------------------------------------------
+
+const DOW = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+
+function MonthCalendar(props: {
+  data: AppData
+  onPickDay: (sessionId: string) => void
+}) {
+  const { data, onPickDay } = props
+  const [offset, setOffset] = useState(0)
+
+  const now = new Date()
+  const month = new Date(now.getFullYear(), now.getMonth() + offset, 1)
+  const year = month.getFullYear()
+  const m = month.getMonth()
+  const daysInMonth = new Date(year, m + 1, 0).getDate()
+  const firstDow = (month.getDay() + 6) % 7 // 0 = lunes
+
+  // primera sesión terminada de cada día del mes
+  const byDay = new Map<number, string>()
+  let monthCount = 0
+  for (const s of data.sessions) {
+    if (!s.finished) continue
+    const d = new Date(s.date)
+    if (d.getFullYear() !== year || d.getMonth() !== m) continue
+    monthCount++
+    if (!byDay.has(d.getDate())) byDay.set(d.getDate(), s.id)
+  }
+
+  const label = month.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+  const isToday = (day: number) =>
+    offset === 0 && day === now.getDate()
+
+  const cells: (number | null)[] = [
+    ...Array.from({ length: firstDow }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1)
+  ]
+
+  return (
+    <div className="calendar">
+      <div className="week-nav">
+        <button type="button" className="icon-btn" onClick={() => setOffset((o) => o - 1)}>
+          ◀
+        </button>
+        <span className="week-label">
+          {label.charAt(0).toUpperCase() + label.slice(1)}
+        </span>
+        <button
+          type="button"
+          className="icon-btn"
+          disabled={offset >= 0}
+          onClick={() => setOffset((o) => Math.min(0, o + 1))}
+        >
+          ▶
+        </button>
+      </div>
+      <div className="cal-grid">
+        {DOW.map((d) => (
+          <span key={d} className="cal-dow">
+            {d}
+          </span>
+        ))}
+        {cells.map((day, i) =>
+          day === null ? (
+            <span key={`x${i}`} />
+          ) : (
+            <button
+              key={day}
+              type="button"
+              disabled={!byDay.has(day)}
+              className={`cal-cell ${byDay.has(day) ? 'trained' : ''} ${isToday(day) ? 'today' : ''}`}
+              onClick={() => {
+                const id = byDay.get(day)
+                if (id) onPickDay(id)
+              }}
+            >
+              {day}
+            </button>
+          )
+        )}
+      </div>
+      <p className="cal-count">
+        {monthCount === 0
+          ? 'Sin entrenos este mes todavía'
+          : `${monthCount} ${monthCount === 1 ? 'entreno' : 'entrenos'} este mes 🔥`}
+      </p>
+    </div>
+  )
+}
+
 export function HistoryView({ data, update }: { data: AppData; update: Update }) {
   const [openId, setOpenId] = useState<string | null>(null)
 
@@ -31,6 +123,8 @@ export function HistoryView({ data, update }: { data: AppData; update: Update })
     <div className="view">
       <h1 className="view-title">Historial</h1>
       <p className="view-subtitle">{sessions.length} entrenos registrados</p>
+
+      <MonthCalendar data={data} onPickDay={(id) => setOpenId(id)} />
 
       {sessions.map((session) => {
         const open = openId === session.id
