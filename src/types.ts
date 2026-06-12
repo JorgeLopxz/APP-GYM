@@ -101,6 +101,8 @@ export interface Settings {
   /** Días (YYYY-MM-DD) en los que se marcó la creatina como tomada */
   creatineTaken: string[]
   restSeconds: number
+  /** Push diario de creatina activado en este dispositivo */
+  pushEnabled?: boolean
 }
 
 export interface WeightEntry {

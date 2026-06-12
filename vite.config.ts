@@ -16,7 +16,7 @@ const csp = (): Plugin => ({
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       'frame-src https://www.youtube-nocookie.com',
-      "connect-src 'self'",
+      "connect-src 'self' https://hierro-push.dawn-dust-950a.workers.dev",
       "manifest-src 'self'",
       "object-src 'none'",
       "base-uri 'self'",
@@ -62,7 +62,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
-        navigateFallback: '/APP-GYM/index.html'
+        navigateFallback: '/APP-GYM/index.html',
+        importScripts: ['push-sw.js']
       }
     })
   ]

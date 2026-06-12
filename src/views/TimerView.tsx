@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { AppData } from '../types'
 import type { TimerState } from '../lib/storage'
 import { unlockAudio } from '../lib/notify'
+import { cancelPushTimer, schedulePushTimer } from '../lib/push'
 
 type Update = (fn: (d: AppData) => AppData) => void
 type SetTimer = (t: TimerState) => void
@@ -54,14 +55,21 @@ export function TimerView(props: {
   const start = () => {
     unlockAudio() // iOS solo deja sonar audio desbloqueado en un gesto
     const seconds = timer.pausedRemaining ?? timer.duration
-    setTimer({ ...timer, endsAt: Date.now() + seconds * 1000, pausedRemaining: null })
+    const endsAt = Date.now() + seconds * 1000
+    setTimer({ ...timer, endsAt, pausedRemaining: null })
+    // push exacto de fin de descanso si este dispositivo está suscrito
+    void schedulePushTimer(endsAt)
   }
 
-  const pause = () =>
+  const pause = () => {
     setTimer({ ...timer, pausedRemaining: remaining, endsAt: null })
+    void cancelPushTimer()
+  }
 
-  const reset = () =>
+  const reset = () => {
     setTimer({ duration: timer.duration, endsAt: null, pausedRemaining: null })
+    void cancelPushTimer()
+  }
 
   // anillo de progreso
   const R = 84

@@ -5,3 +5,4 @@ dev-dist
 .DS_Store
 bodymap-preview.png
 realbody-preview.png
+worker/.vapid.json

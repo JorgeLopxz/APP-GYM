@@ -59,7 +59,8 @@ export default function App() {
       if (Date.now() >= endsAt && beepedAt.current !== endsAt) {
         beepedAt.current = endsAt
         timerBeep()
-        void notifyTimerDone()
+        // si hay push activo, el aviso llega del servidor: no dupliques
+        if (!data.settings.pushEnabled) void notifyTimerDone()
         clearInterval(id)
       }
     }, 250)

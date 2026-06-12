@@ -1,0 +1,19 @@
+name = "hierro-push"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+
+# cada 5 minutos: comprueba qué recordatorios de creatina tocan
+[triggers]
+crons = ["*/5 * * * *"]
+
+[[kv_namespaces]]
+binding = "SUBS"
+id = "22a693f0e12c4d69bbb533e8908730f6"
+
+[[durable_objects.bindings]]
+name = "TIMERS"
+class_name = "TimerAlarms"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TimerAlarms"]

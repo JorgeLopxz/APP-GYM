@@ -4,6 +4,7 @@ import { currentBodyweight } from '../types'
 import { creatineStreak, fmtWeight, todayKey } from '../lib/stats'
 import { exportJSON, importJSON, resetData } from '../lib/storage'
 import { downloadCreatineICS, testNotification } from '../lib/ics'
+import { disablePush, enablePush, syncPushHour } from '../lib/push'
 import { NumberField, Segmented, Sheet } from '../components/ui'
 
 type Update = (fn: (d: AppData) => AppData) => void
@@ -163,12 +164,14 @@ export function SettingsView(props: {
                 type="time"
                 className="time-input"
                 value={settings.creatineHour}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const hour = e.target.value
                   update((d) => ({
                     ...d,
-                    settings: { ...d.settings, creatineHour: e.target.value }
+                    settings: { ...d.settings, creatineHour: hour }
                   }))
-                }
+                  if (settings.pushEnabled) void syncPushHour(hour)
+                }}
               />
             </div>
             <div className="creatine-status">
@@ -197,18 +200,50 @@ export function SettingsView(props: {
             </div>
             <button
               type="button"
+              className={settings.pushEnabled ? 'btn-ghost' : 'btn-primary'}
+              onClick={() => {
+                if (settings.pushEnabled) {
+                  void disablePush().then(() => {
+                    update((d) => ({
+                      ...d,
+                      settings: { ...d.settings, pushEnabled: false }
+                    }))
+                    setNotifMsg('Push desactivado en este dispositivo.')
+                  })
+                } else {
+                  void enablePush(settings.creatineHour).then((result) => {
+                    if (result === 'ok') {
+                      update((d) => ({
+                        ...d,
+                        settings: { ...d.settings, pushEnabled: true }
+                      }))
+                      setNotifMsg(
+                        `Push activado ✓ — te llegará a las ${settings.creatineHour} aunque la app esté cerrada, como un WhatsApp. El fin del temporizador también avisará por push.`
+                      )
+                    } else {
+                      setNotifMsg(result)
+                    }
+                  })
+                }
+              }}
+            >
+              {settings.pushEnabled
+                ? '🔕 Desactivar notificación push'
+                : '🔔 Activar notificación push diaria (sin calendario)'}
+            </button>
+            <button
+              type="button"
               className="btn-ghost"
               onClick={() => downloadCreatineICS(settings.creatineHour)}
             >
-              📅 Añadir aviso diario al Calendario de iOS
+              📅 Alternativa: aviso por Calendario de iOS
             </button>
             <p className="hint-block">
-              iOS no deja a las apps web lanzar notificaciones programadas con la app
-              cerrada (haría falta un servidor enviándolas). Lo que sí tienes: ①{' '}
-              <strong>un puntito rojo en el icono</strong> de HIERRO mientras la
-              creatina del día esté pendiente (concede el permiso con el botón de
-              abajo), y ② el evento de calendario de arriba, que avisa cada día a las{' '}
-              {settings.creatineHour} pase lo que pase — ábrelo y pulsa «Añadir todos».
+              El push lo envía nuestro servidor: te llega a las {settings.creatineHour}{' '}
+              con la app cerrada o el móvil bloqueado, como cualquier app. Requiere
+              tener HIERRO instalada en la pantalla de inicio (iOS 16.4+) y aceptar el
+              permiso. Además, el icono lleva un <strong>puntito rojo</strong> mientras
+              la creatina del día esté pendiente.
             </p>
             <button
               type="button"
