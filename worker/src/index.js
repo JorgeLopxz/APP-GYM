@@ -51,16 +51,105 @@ async function vapidHeaders(endpoint, env) {
   }
 }
 
-/** Envía un push sin payload. Devuelve el status (404/410 = suscripción muerta). */
-async function sendPush(subscription, env) {
+// ---------------------------------------------------------------------------
+// Cifrado del payload (RFC 8291, aes128gcm) — Apple NO entrega pushes vacíos
+// a iOS, así que el mensaje va cifrado de verdad.
+// ---------------------------------------------------------------------------
+
+function b64uToBytes(s) {
+  const b64 = s.replace(/-/g, '+').replace(/_/g, '/')
+  const raw = atob(b64)
+  return Uint8Array.from(raw, (c) => c.charCodeAt(0))
+}
+
+function concatBytes(...arrays) {
+  const total = arrays.reduce((n, a) => n + a.length, 0)
+  const out = new Uint8Array(total)
+  let off = 0
+  for (const a of arrays) {
+    out.set(a, off)
+    off += a.length
+  }
+  return out
+}
+
+async function hkdf(salt, ikm, info, len) {
+  const key = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits'])
+  return new Uint8Array(
+    await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt, info }, key, len * 8)
+  )
+}
+
+async function encryptPayload(subscription, plaintext) {
+  const enc = new TextEncoder()
+  const uaPublic = b64uToBytes(subscription.keys.p256dh)
+  const authSecret = b64uToBytes(subscription.keys.auth)
+
+  const asKeys = await crypto.subtle.generateKey(
+    { name: 'ECDH', namedCurve: 'P-256' },
+    true,
+    ['deriveBits']
+  )
+  const asPublic = new Uint8Array(await crypto.subtle.exportKey('raw', asKeys.publicKey))
+  const uaKey = await crypto.subtle.importKey(
+    'raw',
+    uaPublic,
+    { name: 'ECDH', namedCurve: 'P-256' },
+    false,
+    []
+  )
+  const ecdh = new Uint8Array(
+    await crypto.subtle.deriveBits({ name: 'ECDH', public: uaKey }, asKeys.privateKey, 256)
+  )
+
+  const ikm = await hkdf(
+    authSecret,
+    ecdh,
+    concatBytes(enc.encode('WebPush: info\0'), uaPublic, asPublic),
+    32
+  )
+  const salt = crypto.getRandomValues(new Uint8Array(16))
+  const cek = await hkdf(salt, ikm, enc.encode('Content-Encoding: aes128gcm\0'), 16)
+  const nonce = await hkdf(salt, ikm, enc.encode('Content-Encoding: nonce\0'), 12)
+
+  // registro: texto || 0x02 (delimitador de último registro)
+  const record = concatBytes(enc.encode(plaintext), new Uint8Array([2]))
+  const aesKey = await crypto.subtle.importKey('raw', cek, 'AES-GCM', false, ['encrypt'])
+  const ciphertext = new Uint8Array(
+    await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, aesKey, record)
+  )
+
+  // cabecera: salt(16) | rs(4) | idlen(1) | clave pública efímera(65)
+  const header = new Uint8Array(16 + 4 + 1 + 65)
+  header.set(salt, 0)
+  new DataView(header.buffer).setUint32(16, 4096)
+  header[20] = 65
+  header.set(asPublic, 21)
+  return concatBytes(header, ciphertext)
+}
+
+/** Envía un push con payload cifrado. Devuelve el status (404/410 = muerta). */
+async function sendPush(subscription, env, payload) {
   try {
     const headers = await vapidHeaders(subscription.endpoint, env)
-    const res = await fetch(subscription.endpoint, { method: 'POST', headers })
+    const body = await encryptPayload(subscription, JSON.stringify(payload))
+    const res = await fetch(subscription.endpoint, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Encoding': 'aes128gcm',
+        'Content-Type': 'application/octet-stream'
+      },
+      body
+    })
     return res.status
   } catch {
     return 0
   }
 }
+
+const MSG_CREATINE = { title: '💊 Tómate la creatina', body: 'Tu recordatorio diario de HIERRO.' }
+const MSG_TIMER = { title: '⏱ ¡Descanso terminado!', body: 'A por la siguiente serie 💪' }
 
 // ---------------------------------------------------------------------------
 // HTTP API
@@ -114,6 +203,22 @@ export default {
       return new Response(JSON.stringify({ ok: true }), { headers })
     }
 
+    if (url.pathname === '/test') {
+      // prueba end-to-end inmediata: envía un push real y devuelve el status
+      if (!body.endpoint) {
+        return new Response(JSON.stringify({ error: 'falta endpoint' }), { status: 400, headers })
+      }
+      const raw = await env.SUBS.get(await subKey(body.endpoint))
+      if (!raw) {
+        return new Response(JSON.stringify({ error: 'suscripción no registrada' }), { status: 404, headers })
+      }
+      const status = await sendPush(JSON.parse(raw).subscription, env, {
+        title: '✅ ¡El push funciona!',
+        body: 'HIERRO ya puede avisarte con la app cerrada.'
+      })
+      return new Response(JSON.stringify({ status }), { headers })
+    }
+
     if (url.pathname === '/timer' || url.pathname === '/timer-cancel') {
       const stub = env.TIMERS.get(env.TIMERS.idFromName('global'))
       return stub.fetch(new Request(`https://do${url.pathname}`, {
@@ -152,7 +257,7 @@ export default {
           const target = h * 60 + m
           // ventana = intervalo del cron (5 min), y solo una vez al día
           if (nowMin >= target && nowMin < target + 5 && sub.lastSent !== today) {
-            const status = await sendPush(sub.subscription, env)
+            const status = await sendPush(sub.subscription, env, MSG_CREATINE)
             if (status === 404 || status === 410) {
               await env.SUBS.delete(name)
             } else {
@@ -210,7 +315,7 @@ export class TimerAlarms {
     let next = null
     for (const [k, v] of timers) {
       if (v.fireAt <= now + 1500) {
-        await sendPush(v.subscription, this.env)
+        await sendPush(v.subscription, this.env, MSG_TIMER)
         await this.state.storage.delete(k)
       } else {
         next = next === null ? v.fireAt : Math.min(next, v.fireAt)

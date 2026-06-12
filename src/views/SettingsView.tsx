@@ -4,7 +4,13 @@ import { currentBodyweight } from '../types'
 import { creatineStreak, fmtWeight, todayKey } from '../lib/stats'
 import { exportJSON, importJSON, resetData } from '../lib/storage'
 import { downloadCreatineICS, testNotification } from '../lib/ics'
-import { disablePush, enablePush, pushDiagnostics, syncPushHour } from '../lib/push'
+import {
+  disablePush,
+  enablePush,
+  pushDiagnostics,
+  syncPushHour,
+  testServerPush
+} from '../lib/push'
 import { NumberField, Segmented, Sheet } from '../components/ui'
 
 type Update = (fn: (d: AppData) => AppData) => void
@@ -245,6 +251,18 @@ export function SettingsView(props: {
               permiso. Además, el icono lleva un <strong>puntito rojo</strong> mientras
               la creatina del día esté pendiente.
             </p>
+            {settings.pushEnabled && (
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={() => {
+                  setNotifMsg('Enviando push de prueba…')
+                  void testServerPush().then(setNotifMsg)
+                }}
+              >
+                📡 Probar push del servidor (llega ya)
+              </button>
+            )}
             <button
               type="button"
               className="btn-ghost"

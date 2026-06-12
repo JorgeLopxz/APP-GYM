@@ -6,19 +6,31 @@ self.addEventListener('push', (event) => {
     (async () => {
       let title = '💊 Tómate la creatina'
       let body = 'Tu recordatorio diario de HIERRO.'
-      try {
-        const cache = await caches.open('hierro-push-meta')
-        const res = await cache.match('push-meta-timer')
-        if (res) {
-          const meta = await res.json()
-          if (meta.endsAt && Math.abs(Date.now() - meta.endsAt) < 5 * 60 * 1000) {
-            title = '⏱ ¡Descanso terminado!'
-            body = 'A por la siguiente serie 💪'
-            await cache.delete('push-meta-timer')
-          }
+      // el servidor manda el texto cifrado en el payload (Apple no entrega
+      // pushes vacíos a iOS); la marca en caché queda como plan B
+      if (event.data) {
+        try {
+          const d = event.data.json()
+          if (d.title) title = d.title
+          if (d.body) body = d.body
+        } catch (e) {
+          // payload ilegible: textos por defecto
         }
-      } catch (e) {
-        // sin marca: texto de creatina por defecto
+      } else {
+        try {
+          const cache = await caches.open('hierro-push-meta')
+          const res = await cache.match('push-meta-timer')
+          if (res) {
+            const meta = await res.json()
+            if (meta.endsAt && Math.abs(Date.now() - meta.endsAt) < 5 * 60 * 1000) {
+              title = '⏱ ¡Descanso terminado!'
+              body = 'A por la siguiente serie 💪'
+              await cache.delete('push-meta-timer')
+            }
+          }
+        } catch (e) {
+          // sin marca: texto de creatina por defecto
+        }
       }
       await self.registration.showNotification(title, {
         body,

@@ -131,6 +131,27 @@ export async function schedulePushTimer(endsAt: number): Promise<void> {
   await post('/timer', { subscription: sub.toJSON(), fireAt: endsAt })
 }
 
+/** Prueba end-to-end: el servidor envía un push REAL ahora mismo. */
+export async function testServerPush(): Promise<string> {
+  const sub = await getSubscription()
+  if (!sub) return 'No hay suscripción en este dispositivo: pulsa antes «Activar notificación push».'
+  try {
+    const res = await fetch(`${PUSH_SERVER}/test`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint: sub.endpoint })
+    })
+    const data = (await res.json()) as { status?: number; error?: string }
+    if (data.error) return `Servidor: ${data.error}. Desactiva y vuelve a activar el push.`
+    if (data.status === 201 || data.status === 200) {
+      return 'Apple aceptó el push (201) — debería sonarte AHORA MISMO. Si no llega, dime este número.'
+    }
+    return `Apple respondió ${data.status} — dime este número y lo cazo.`
+  } catch {
+    return 'No se pudo contactar con el servidor (¿sin conexión?).'
+  }
+}
+
 export async function cancelPushTimer(): Promise<void> {
   const sub = await getSubscription()
   if (!sub) return
