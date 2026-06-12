@@ -145,10 +145,11 @@ select:focus {
   align-items: center;
   gap: 2px;
   color: var(--text-faint);
-  font-size: 10.5px;
-  padding: 4px 10px;
+  font-size: 10px;
+  padding: 4px 2px;
   border-radius: 12px;
-  min-width: 56px;
+  flex: 1;
+  min-width: 0;
 }
 
 .tab .tab-icon {
@@ -821,19 +822,13 @@ select:focus {
   padding: 10px 0;
 }
 
-.body-skeleton circle,
-.body-skeleton rect,
-.body-skeleton path {
-  fill: #1b1b20;
-}
-
-.body-skeleton line {
-  stroke: #1b1b20;
+.body-sil {
+  fill: #1f1f25;
 }
 
 .body-muscle {
   stroke: #0a0a0c;
-  stroke-width: 1;
+  stroke-width: 0.8;
   transition: fill 0.5s var(--ease);
   cursor: pointer;
 }
@@ -1221,30 +1216,55 @@ button.exercise-name {
   color: var(--text-dim);
 }
 
-/* ---------- temporizador de descanso ---------- */
+/* ---------- temporizador de descanso (pestaña) ---------- */
 
-.rest-timer {
-  position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 86px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--metal);
-  color: #101014;
+.timer-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.timer-ring {
+  width: min(260px, 70vw);
+  height: auto;
+}
+
+.timer-text {
+  fill: var(--text);
+  font-size: 36px;
   font-weight: 800;
-  font-size: 15px;
   font-variant-numeric: tabular-nums;
-  padding: 11px 22px;
-  border-radius: 999px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
-  z-index: 60;
-  animation: viewIn 0.3s var(--ease);
 }
 
-.rest-timer:active {
-  transform: translateX(-50%) scale(0.95);
+.timer-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
 }
 
-.rest-timer.done {
-  background: var(--ok);
-  color: #08130d;
+.timer-btn {
+  min-width: 130px;
+  font-size: 16px;
+}
+
+.timer-presets {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ---------- confirmación de entreno ---------- */
+
+.confirm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 40dvh;
+  overflow-y: auto;
+}
+
+.confirm-line {
+  font-size: 14px;
+  color: var(--text-dim);
 }

@@ -22,7 +22,6 @@ import {
   prefillSets,
   prsBefore,
   sessionSetCount,
-  sessionVolume,
   todayKey
 } from '../lib/stats'
 import { youtubeId, youtubeSearchUrl } from '../lib/youtube'
@@ -45,18 +44,12 @@ function groupByRegion(exercises: ExerciseDef[]): [string, ExerciseDef[]][] {
 // Vista principal: selector de rutina o sesión activa
 // ---------------------------------------------------------------------------
 
-export function WorkoutView(props: {
-  data: AppData
-  update: Update
-  onSetDone: () => void
-}) {
-  const { data, update, onSetDone } = props
+export function WorkoutView(props: { data: AppData; update: Update }) {
+  const { data, update } = props
   const active = data.sessions.find((s) => !s.finished)
 
   if (active) {
-    return (
-      <ActiveSession data={data} session={active} update={update} onSetDone={onSetDone} />
-    )
+    return <ActiveSession data={data} session={active} update={update} />
   }
   return <RoutinePicker data={data} update={update} />
 }
@@ -67,6 +60,7 @@ export function WorkoutView(props: {
 
 function RoutinePicker({ data, update }: { data: AppData; update: Update }) {
   const [editing, setEditing] = useState<Routine | 'new' | null>(null)
+  const [confirming, setConfirming] = useState<Routine | null>(null)
 
   const lastDone = (routineId: string): string | null => {
     const done = data.sessions
@@ -113,7 +107,7 @@ function RoutinePicker({ data, update }: { data: AppData; update: Update }) {
           const last = lastDone(routine.id)
           return (
             <div key={routine.id} className="routine-card">
-              <button type="button" className="routine-main" onClick={() => start(routine)}>
+              <button type="button" className="routine-main" onClick={() => setConfirming(routine)}>
                 <span className="routine-name">{routine.name}</span>
                 <span className="routine-meta">
                   {routine.exerciseIds.length} ejercicios
@@ -142,6 +136,34 @@ function RoutinePicker({ data, update }: { data: AppData; update: Update }) {
           update={update}
           onClose={() => setEditing(null)}
         />
+      )}
+      {confirming && (
+        <Sheet open onClose={() => setConfirming(null)} title={`¿Empezar ${confirming.name}?`}>
+          <p className="sheet-hint">
+            Arranca pre-rellenado con tus marcas de la última vez:
+          </p>
+          <div className="confirm-list">
+            {confirming.exerciseIds.map((id) => {
+              const def = getExercise(data, id)
+              return def ? <p key={id} className="confirm-line">• {def.name}</p> : null
+            })}
+          </div>
+          <div className="sheet-actions">
+            <button type="button" className="btn-ghost" onClick={() => setConfirming(null)}>
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                start(confirming)
+                setConfirming(null)
+              }}
+            >
+              Empezar 🏋️
+            </button>
+          </div>
+        </Sheet>
       )}
     </div>
   )
@@ -191,6 +213,14 @@ function RoutineEditor(props: {
     onClose()
   }
 
+  const discard = () => {
+    const dirty =
+      name !== (routine?.name ?? '') ||
+      JSON.stringify(exerciseIds) !== JSON.stringify(routine?.exerciseIds ?? [])
+    if (dirty && !confirm('¿Descartar los cambios sin guardar?')) return
+    onClose()
+  }
+
   const remove = () => {
     if (!routine) return
     if (!confirm(`¿Borrar la rutina ${routine.name}? Tus entrenos pasados no se borran.`)) return
@@ -199,7 +229,7 @@ function RoutineEditor(props: {
   }
 
   return (
-    <Sheet open onClose={onClose} title={routine ? 'Editar rutina' : 'Nueva rutina'}>
+    <Sheet open onClose={discard} title={routine ? 'Editar rutina' : 'Nueva rutina'}>
       <input
         className="text-input"
         placeholder="Nombre (p. ej. PUSH)"
@@ -245,6 +275,9 @@ function RoutineEditor(props: {
             Borrar
           </button>
         )}
+        <button type="button" className="btn-ghost" onClick={discard}>
+          Descartar
+        </button>
         <button type="button" className="btn-primary" onClick={save}>
           Guardar
         </button>
@@ -349,6 +382,9 @@ function ExerciseCreator(props: {
         ))}
       </div>
       <div className="sheet-actions">
+        <button type="button" className="btn-ghost" onClick={onClose}>
+          Cancelar
+        </button>
         <button type="button" className="btn-primary" onClick={save}>
           Crear
         </button>
@@ -365,22 +401,33 @@ function ActiveSession(props: {
   data: AppData
   session: Session
   update: Update
-  onSetDone: () => void
 }) {
-  const { data, session, update, onSetDone } = props
+  const { data, session, update } = props
   const [adding, setAdding] = useState(false)
   const [finishing, setFinishing] = useState(false)
-  const [, tick] = useState(0)
 
+  // pantalla siempre encendida mientras entrenas (Wake Lock API)
   useEffect(() => {
-    const t = setInterval(() => tick((n) => n + 1), 30000)
-    return () => clearInterval(t)
+    let lock: { release: () => Promise<void> } | null = null
+    const acquire = () => {
+      const wl = (navigator as Navigator & { wakeLock?: { request: (t: string) => Promise<never> } }).wakeLock
+      wl?.request('screen').then(
+        (l) => {
+          lock = l as unknown as { release: () => Promise<void> }
+        },
+        () => {}
+      )
+    }
+    acquire()
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') acquire()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      lock?.release().catch(() => {})
+    }
   }, [])
-
-  const elapsedMin = Math.max(
-    0,
-    Math.round((Date.now() - new Date(session.date).getTime()) / 60000)
-  )
 
   const patchSession = (fn: (s: Session) => Session) => {
     update((d) => ({
@@ -400,8 +447,8 @@ function ActiveSession(props: {
         <div>
           <h1 className="view-title">{session.routineName}</h1>
           <p className="view-subtitle">
-            {elapsedMin} min · {sessionSetCount(session)} series ·{' '}
-            {fmtWeight(sessionVolume(data, session))} kg movidos
+            {sessionSetCount(session)} series ·{' '}
+            {session.exercises.filter((l) => l.sets.length > 0).length} ejercicios
           </p>
         </div>
         <button type="button" className="btn-primary" onClick={() => setFinishing(true)}>
@@ -418,7 +465,6 @@ function ActiveSession(props: {
           index={i}
           patchSession={patchSession}
           update={update}
-          onSetDone={onSetDone}
         />
       ))}
 
@@ -460,7 +506,6 @@ function ActiveSession(props: {
             patchSession((s) => ({
               ...s,
               finished: true,
-              durationMin: elapsedMin,
               exercises: s.exercises.filter((l) => l.sets.length > 0)
             }))
             setFinishing(false)
@@ -482,9 +527,8 @@ function ExerciseCard(props: {
   index: number
   patchSession: (fn: (s: Session) => Session) => void
   update: Update
-  onSetDone: () => void
 }) {
-  const { data, session, log, index, patchSession, update, onSetDone } = props
+  const { data, session, log, index, patchSession, update } = props
   const [showInfo, setShowInfo] = useState(false)
   const def = getExercise(data, log.exerciseId)
   const last = useMemo(
@@ -589,7 +633,6 @@ function ExerciseCard(props: {
           onRemove={() =>
             patchLog((l) => ({ ...l, sets: l.sets.filter((_, i) => i !== si) }))
           }
-          onDone={onSetDone}
         />
       ))}
 
@@ -610,9 +653,8 @@ function SetRow(props: {
   bodyweight?: boolean
   onChange: (s: SetEntry) => void
   onRemove: () => void
-  onDone: () => void
 }) {
-  const { set, index, bodyweight, onChange, onRemove, onDone } = props
+  const { set, index, bodyweight, onChange, onRemove } = props
 
   const tagValue = set.tag ?? ''
 
@@ -655,11 +697,7 @@ function SetRow(props: {
         <button
           type="button"
           className={`set-check ${set.done ? 'checked' : ''}`}
-          onClick={() => {
-            const done = !set.done
-            onChange({ ...set, done })
-            if (done) onDone()
-          }}
+          onClick={() => onChange({ ...set, done: !set.done })}
           aria-label="Serie hecha"
         >
           ✓
@@ -936,12 +974,12 @@ function FinishSheet(props: {
           <span className="stat-label">series</span>
         </div>
         <div className="stat">
-          <span className="stat-value">{fmtWeight(sessionVolume(data, session))}</span>
-          <span className="stat-label">kg movidos</span>
-        </div>
-        <div className="stat">
           <span className="stat-value">{session.exercises.filter((l) => l.sets.length > 0).length}</span>
           <span className="stat-label">ejercicios</span>
+        </div>
+        <div className="stat">
+          <span className="stat-value">{prs.length > 0 ? `🏆 ${prs.length}` : '—'}</span>
+          <span className="stat-label">récords</span>
         </div>
       </div>
       {prs.length > 0 && (

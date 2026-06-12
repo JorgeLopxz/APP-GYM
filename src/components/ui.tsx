@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { fmtWeight } from '../lib/stats'
 
 // ---------------------------------------------------------------------------
@@ -213,53 +213,3 @@ export function LineChart(props: {
   )
 }
 
-// ---------------------------------------------------------------------------
-// RestTimer: temporizador de descanso flotante
-// ---------------------------------------------------------------------------
-
-export function RestTimer(props: { endsAt: number; onDismiss: () => void }) {
-  const { endsAt, onDismiss } = props
-  const [now, setNow] = useState(Date.now())
-  const beeped = useRef(false)
-
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 250)
-    return () => clearInterval(t)
-  }, [])
-
-  const remaining = Math.max(0, Math.round((endsAt - now) / 1000))
-
-  useEffect(() => {
-    if (remaining === 0 && !beeped.current) {
-      beeped.current = true
-      try {
-        const ctx = new AudioContext()
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.connect(gain)
-        gain.connect(ctx.destination)
-        osc.frequency.value = 880
-        gain.gain.setValueAtTime(0.2, ctx.currentTime)
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6)
-        osc.start()
-        osc.stop(ctx.currentTime + 0.6)
-      } catch {
-        // sin audio: el cambio visual basta
-      }
-      navigator.vibrate?.(300)
-    }
-  }, [remaining])
-
-  const mm = Math.floor(remaining / 60)
-  const ss = String(remaining % 60).padStart(2, '0')
-
-  return (
-    <button
-      type="button"
-      className={`rest-timer ${remaining === 0 ? 'done' : ''}`}
-      onClick={onDismiss}
-    >
-      {remaining === 0 ? '¡Descanso terminado! ✓' : `⏱ ${mm}:${ss}`}
-    </button>
-  )
-}

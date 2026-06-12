@@ -209,24 +209,6 @@ export function SettingsView(props: {
       </section>
 
       <section className="settings-section">
-        <h2 className="settings-title">⏱ Descanso entre series</h2>
-        <div className="settings-row">
-          <span>Segundos</span>
-          <NumberField
-            value={settings.restSeconds}
-            step={15}
-            min={15}
-            onChange={(restSeconds) =>
-              update((d) => ({ ...d, settings: { ...d.settings, restSeconds } }))
-            }
-          />
-        </div>
-        <p className="hint-block">
-          Al marcar una serie como hecha (✓) arranca el temporizador automáticamente.
-        </p>
-      </section>
-
-      <section className="settings-section">
         <h2 className="settings-title">💾 Tus datos</h2>
         <p className="hint-block">
           Todo se guarda en tu móvil, no en internet. Haz una copia de vez en cuando por

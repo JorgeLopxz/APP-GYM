@@ -23,14 +23,20 @@ const OBJETIVO_FACTOR: Record<Objetivo, number> = {
   volumen: 1.1 // superávit ~10 %
 }
 
-/** Entrenos por semana (media de las últimas 4 semanas). */
+/**
+ * Entrenos por semana. Mira los últimos 28 días, pero si llevas menos tiempo
+ * registrando solo divide entre las semanas que de verdad existen (si no, una
+ * semana de datos parecería "1 entreno/semana" cuando haces 4).
+ */
 export function sessionsPerWeek(data: AppData): number {
-  const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - 28)
-  const count = data.sessions.filter(
-    (s) => s.finished && new Date(s.date) >= cutoff
-  ).length
-  return Math.round((count / 4) * 10) / 10
+  const finished = data.sessions.filter((s) => s.finished)
+  if (finished.length === 0) return 0
+  const cutoff = Date.now() - 28 * 86400000
+  const firstEver = Math.min(...finished.map((s) => new Date(s.date).getTime()))
+  const windowStart = Math.max(cutoff, firstEver)
+  const count = finished.filter((s) => new Date(s.date).getTime() >= windowStart).length
+  const weeks = Math.max(1, (Date.now() - windowStart) / (7 * 86400000))
+  return Math.round((count / weeks) * 10) / 10
 }
 
 /**

@@ -133,6 +133,48 @@ export function exerciseSeries(
   return points
 }
 
+export interface BestSet {
+  weight: number
+  reps: number
+  value: number
+}
+
+/**
+ * Mejores series de un ejercicio (+variante) CON contexto: el mejor peso con
+ * sus reps ("100×6"), las más reps con su peso ("80×12") y el mejor RM con la
+ * serie que lo produjo. Incluye el peso corporal en ejercicios bodyweight.
+ */
+export function bestSets(
+  data: AppData,
+  exerciseId: string,
+  variant: string | undefined
+): { byWeight: BestSet | null; byReps: BestSet | null; byE1rm: BestSet | null } {
+  const base = exerciseBase(data, getExercise(data, exerciseId))
+  let byWeight: BestSet | null = null
+  let byReps: BestSet | null = null
+  let byE1rm: BestSet | null = null
+  for (const session of finishedSessions(data)) {
+    for (const log of session.exercises) {
+      if (log.exerciseId !== exerciseId) continue
+      if (variant !== undefined && (log.variant ?? '') !== variant) continue
+      for (const set of log.sets) {
+        const w = set.weight + base
+        const rm = e1rm(w, set.reps)
+        if (!byWeight || w > byWeight.weight || (w === byWeight.weight && set.reps > byWeight.reps)) {
+          byWeight = { weight: w, reps: set.reps, value: w }
+        }
+        if (!byReps || set.reps > byReps.reps || (set.reps === byReps.reps && w > byReps.weight)) {
+          byReps = { weight: w, reps: set.reps, value: set.reps }
+        }
+        if (!byE1rm || rm > byE1rm.value) {
+          byE1rm = { weight: w, reps: set.reps, value: rm }
+        }
+      }
+    }
+  }
+  return { byWeight, byReps, byE1rm }
+}
+
 export interface PRs {
   maxWeight: number
   maxE1rm: number

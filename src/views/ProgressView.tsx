@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { AppData, Objetivo } from '../types'
 import { currentBodyweight } from '../types'
-import { exerciseSeries, fmtWeight, getExercise, todayKey } from '../lib/stats'
+import { bestSets, exerciseSeries, fmtWeight, getExercise, todayKey } from '../lib/stats'
 import { estimateCalories, OBJETIVO_LABEL } from '../lib/nutrition'
 import { LineChart, NumberField, Segmented } from '../components/ui'
 import { ProfileSheet } from './SettingsView'
@@ -35,19 +35,17 @@ export function ProgressView({ data, update }: { data: AppData; update: Update }
 // Progreso por ejercicio
 // ---------------------------------------------------------------------------
 
-type Metric = 'maxWeight' | 'maxE1rm' | 'volume' | 'maxReps'
+type Metric = 'maxWeight' | 'maxE1rm' | 'maxReps'
 
 const METRIC_LABEL: Record<Metric, string> = {
   maxWeight: 'Peso máx',
   maxE1rm: 'RM est.',
-  volume: 'Volumen',
   maxReps: 'Reps'
 }
 
 const METRIC_UNIT: Record<Metric, string> = {
   maxWeight: 'kg',
   maxE1rm: 'kg',
-  volume: 'kg',
   maxReps: 'reps'
 }
 
@@ -89,16 +87,15 @@ function ExerciseProgress({ data }: { data: AppData }) {
     value: p[chartMetric]
   }))
 
-  const best = {
-    maxWeight: points.length ? Math.max(...points.map((p) => p.maxWeight)) : 0,
-    maxE1rm: points.length ? Math.max(...points.map((p) => p.maxE1rm)) : 0,
-    maxReps: points.length ? Math.max(...points.map((p) => p.maxReps)) : 0
-  }
+  const bests = bestSets(data, effectiveId, variantValue)
 
   const first = chartPoints[0]?.value ?? 0
   const lastVal = chartPoints[chartPoints.length - 1]?.value ?? 0
   const delta = lastVal - first
-  const relative = bw && best.maxE1rm > 0 ? best.maxE1rm / bw : null
+  const relative = bw && bests.byE1rm ? bests.byE1rm.value / bw : null
+
+  const fmtBest = (b: { weight: number; reps: number } | null) =>
+    b ? `${fmtWeight(b.weight)}×${b.reps}` : '—'
 
   return (
     <>
@@ -132,8 +129,8 @@ function ExerciseProgress({ data }: { data: AppData }) {
         value={chartMetric}
         onChange={(m) => setMetric(m)}
         options={(def.bodyweight && !bw
-          ? (['maxReps', 'maxE1rm', 'volume'] as Metric[])
-          : (['maxWeight', 'maxE1rm', 'volume'] as Metric[])
+          ? (['maxReps', 'maxE1rm'] as Metric[])
+          : (['maxWeight', 'maxE1rm', 'maxReps'] as Metric[])
         ).map((m) => ({
           value: m,
           label: def.bodyweight && m === 'maxWeight' ? 'Peso total' : METRIC_LABEL[m]
@@ -150,18 +147,20 @@ function ExerciseProgress({ data }: { data: AppData }) {
 
       <div className="stat-grid">
         <div className="stat-card">
-          <span className="stat-value">{fmtWeight(best.maxWeight)} kg</span>
+          <span className="stat-value">{fmtBest(bests.byWeight)}</span>
           <span className="stat-label">{def.bodyweight ? 'peso total máx' : 'mejor peso'}</span>
         </div>
         <div className="stat-card">
-          <span className="stat-value">
-            {fmtWeight(Math.round(best.maxE1rm * 10) / 10)} kg
-          </span>
-          <span className="stat-label">RM estimado</span>
+          <span className="stat-value">{fmtBest(bests.byReps)}</span>
+          <span className="stat-label">más reps</span>
         </div>
         <div className="stat-card">
-          <span className="stat-value">{best.maxReps}</span>
-          <span className="stat-label">más reps</span>
+          <span className="stat-value">
+            {bests.byE1rm ? `${fmtWeight(Math.round(bests.byE1rm.value * 10) / 10)} kg` : '—'}
+          </span>
+          <span className="stat-label">
+            RM estimado{bests.byE1rm ? ` (con ${fmtBest(bests.byE1rm)})` : ''}
+          </span>
         </div>
         {relative ? (
           <div className="stat-card">

@@ -1,12 +1,6 @@
 import { useState } from 'react'
 import type { AppData } from '../types'
-import {
-  fmtSet,
-  fmtWeight,
-  getExercise,
-  sessionSetCount,
-  sessionVolume
-} from '../lib/stats'
+import { fmtSet, getExercise, sessionSetCount } from '../lib/stats'
 
 type Update = (fn: (d: AppData) => AppData) => void
 
@@ -60,8 +54,7 @@ export function HistoryView({ data, update }: { data: AppData; update: Update })
               </div>
               <div className="history-meta">
                 <span>{sessionSetCount(session)} series</span>
-                <span>{fmtWeight(sessionVolume(data, session))} kg</span>
-                {session.durationMin ? <span>{session.durationMin} min</span> : null}
+                <span>{session.exercises.length} ejercicios</span>
               </div>
             </button>
             {open && (
