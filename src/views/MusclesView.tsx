@@ -43,7 +43,12 @@ export function MusclesView({ data }: { data: AppData }) {
         </button>
       </div>
 
-      <BodyMap heat={heat} selected={selected} onSelect={setSelected} />
+      <BodyMap
+        heat={heat}
+        selected={selected}
+        onSelect={setSelected}
+        sexo={data.profile.sexo}
+      />
 
       {selected && (
         <div className="muscle-detail">

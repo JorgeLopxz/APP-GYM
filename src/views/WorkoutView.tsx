@@ -97,11 +97,15 @@ function RoutinePicker({ data, update }: { data: AppData; update: Update }) {
     update((d) => ({ ...d, sessions: [...d.sessions, session] }))
   }
 
+  const nombre = data.profile.nombre?.trim().split(/\s+/)[0]
+
   return (
     <div className="view">
       <CreatineBanner data={data} update={update} />
-      <h1 className="view-title">Entreno</h1>
-      <p className="view-subtitle">Elige tu rutina de hoy</p>
+      <h1 className="view-title">{nombre ? `Hola, ${nombre}` : 'Entreno'}</h1>
+      <p className="view-subtitle">
+        {nombre ? '¿Qué toca hoy?' : 'Elige tu rutina de hoy'}
+      </p>
       <div className="routine-list">
         {data.routines.map((routine) => {
           const last = lastDone(routine.id)

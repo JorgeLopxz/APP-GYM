@@ -3,7 +3,8 @@ import body from './bodymap.json'
 
 /**
  * Mapa anatómico generado por scripts/gen-bodymap.mjs (lado izquierdo dibujado
- * a mano, derecho espejado matemáticamente). Para retocar formas, edita el
+ * a mano, derecho espejado matemáticamente; el cuerpo femenino se deriva del
+ * masculino con una transformación morfológica). Para retocar formas, edita el
  * script y ejecuta `npm run bodymap`.
  */
 interface BodyShape {
@@ -11,9 +12,13 @@ interface BodyShape {
   d: string
 }
 
-const SIL = body.sil as string[]
-const FRONT = body.front as BodyShape[]
-const BACK = body.back as BodyShape[]
+interface BodyVariant {
+  sil: string[]
+  front: BodyShape[]
+  back: BodyShape[]
+}
+
+const BODIES = body as { male: BodyVariant; female: BodyVariant }
 
 // Escala de calor: casi blanco (sin trabajar) → rojo clarito (poco) → rojo
 // intenso (mucho). Cuanto más se entrena un músculo, más fuerte el rojo.
@@ -46,8 +51,12 @@ export function BodyMap(props: {
   heat: Partial<Record<MuscleId, number>>
   selected: MuscleId | null
   onSelect: (m: MuscleId | null) => void
+  /** sexo del perfil: 'F' muestra el cuerpo femenino */
+  sexo?: 'M' | 'F'
 }) {
-  const { heat, selected, onSelect } = props
+  const { heat, selected, onSelect, sexo } = props
+  const variant = sexo === 'F' ? BODIES.female : BODIES.male
+  const { sil: SIL, front: FRONT, back: BACK } = variant
 
   const renderShapes = (shapes: BodyShape[]) =>
     shapes.map((shape, i) => {

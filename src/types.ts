@@ -111,6 +111,8 @@ export interface WeightEntry {
 export type Objetivo = 'definicion' | 'recomp' | 'volumen'
 
 export interface Profile {
+  /** Nombre de quien usa la app (cada móvil tiene su copia con sus datos) */
+  nombre?: string
   edad?: number
   sexo?: 'M' | 'F'
   alturaCm?: number

@@ -19,6 +19,7 @@ export function ProfileSheet(props: {
 }) {
   const { data, update, onClose } = props
   const p = data.profile
+  const [nombre, setNombre] = useState(p.nombre ?? '')
   const [edad, setEdad] = useState(p.edad ?? 20)
   const [sexo, setSexo] = useState<'M' | 'F'>(p.sexo ?? 'M')
   const [altura, setAltura] = useState(p.alturaCm ?? 175)
@@ -32,6 +33,7 @@ export function ProfileSheet(props: {
         ...d,
         profile: {
           ...d.profile,
+          nombre: nombre.trim() || undefined,
           edad,
           sexo,
           alturaCm: altura,
@@ -53,10 +55,18 @@ export function ProfileSheet(props: {
   return (
     <Sheet open onClose={skip} title="Cuéntame sobre ti 💪">
       <p className="sheet-hint">
-        Con tu peso corporal las dominadas cuentan los kilos de verdad (tu cuerpo +
-        lastre) y el progreso se mide también en relación a lo que pesas.
+        Tu nombre identifica esta copia de la app (cada móvil guarda sus propios
+        datos). Con tu peso corporal las dominadas cuentan los kilos de verdad y el
+        progreso se mide también en relación a lo que pesas. Si eres mujer, el mapa
+        muscular muestra un cuerpo femenino.
       </p>
       <div className="profile-grid">
+        <input
+          className="text-input"
+          placeholder="¿Cómo te llamas?"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+        />
         <div className="settings-row">
           <span>Edad</span>
           <NumberField value={edad} step={1} min={10} onChange={setEdad} />
@@ -117,10 +127,10 @@ export function SettingsView(props: {
         <h2 className="settings-title">👤 Perfil</h2>
         <p className="hint-block">
           {profile.edad
-            ? `${profile.edad} años · ${profile.alturaCm ?? '—'} cm · ${
+            ? `${profile.nombre ? profile.nombre + ' · ' : ''}${profile.edad} años · ${profile.alturaCm ?? '—'} cm · ${
                 bw ? `${fmtWeight(bw)} kg` : 'sin peso registrado'
               }`
-            : 'Sin datos. Con tu edad, altura y peso la app afina cálculos como las dominadas con peso real o tus calorías.'}
+            : 'Sin datos. Con tu nombre la app te saluda; con edad, altura y peso afina cálculos como las dominadas con peso real o tus calorías.'}
         </p>
         <button type="button" className="btn-ghost" onClick={() => setEditingProfile(true)}>
           ✏️ {profile.edad ? 'Editar perfil' : 'Completar perfil'}

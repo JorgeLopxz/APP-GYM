@@ -30,9 +30,60 @@ function mirror(d) {
   return out.join(' ').replace(/([MLQCSTZ]) /g, '$1')
 }
 
+/**
+ * Morfología femenina: escala cada coordenada x hacia/desde el eje central
+ * según la altura y — hombros y torso más estrechos, cadera más ancha,
+ * piernas que afinan. Los brazos usan un factor constante para no despegarse.
+ */
+const F_CURVE = [
+  [0, 0.93],
+  [60, 0.91],
+  [90, 0.88],
+  [130, 0.92],
+  [165, 0.96],
+  [195, 1.06],
+  [240, 1.07],
+  [300, 1.0],
+  [350, 0.97],
+  [470, 0.96]
+]
+
+function fFactor(y) {
+  for (let i = 1; i < F_CURVE.length; i++) {
+    const [y0, f0] = F_CURVE[i - 1]
+    const [y1, f1] = F_CURVE[i]
+    if (y <= y1) return f0 + ((f1 - f0) * (y - y0)) / (y1 - y0)
+  }
+  return F_CURVE[F_CURVE.length - 1][1]
+}
+
+/** Aplica la morfología femenina a un path (factor constante opcional). */
+function feminize(d, constant = null) {
+  const tokens = d.match(/[A-Za-z]|-?\d*\.?\d+/g)
+  const out = []
+  let i = 0
+  while (i < tokens.length) {
+    const t = tokens[i]
+    if (/^[A-Za-z]$/.test(t)) {
+      out.push(t)
+      i++
+      continue
+    }
+    const x = parseFloat(tokens[i])
+    const y = parseFloat(tokens[i + 1])
+    const f = constant ?? fFactor(y)
+    out.push(`${Math.round((CX + (x - CX) * f) * 10) / 10},${y}`)
+    i += 2
+  }
+  return out.join(' ').replace(/([MLQCSTZ]) /g, '$1')
+}
+
 /** L = forma solo izquierda (se añade su espejo), C = forma central (única). */
 const L = (muscle, d) => ({ side: 'L', muscle, d })
 const C = (muscle, d) => ({ side: 'C', muscle, d })
+
+/** Músculos de brazo: factor constante al feminizar (van pegados al brazo). */
+const ARM_MUSCLES = new Set(['biceps', 'triceps', 'antebrazo'])
 
 const expand = (shapes) =>
   shapes.flatMap((s) =>
@@ -130,18 +181,47 @@ const BACK = [
 ]
 
 // ---------------------------------------------------------------------------
+// Cuerpo femenino: morfología aplicada al masculino + pecho redondeado
+// ---------------------------------------------------------------------------
+
+// índices de SIL_LEFT que son brazo/mano (factor constante)
+const SIL_ARM_IDX = new Set([3, 4])
+
+const feminizeShapes = (shapes) =>
+  shapes.map((s) => ({
+    ...s,
+    d: feminize(s.d, ARM_MUSCLES.has(s.muscle) ? 0.92 : null)
+  }))
+
+const FRONT_F = feminizeShapes(
+  FRONT.map((s) =>
+    // pecho esternal redondeado (forma de seno) en vez del pectoral cuadrado
+    s.muscle === 'pecho_inferior'
+      ? { ...s, d: 'M78,95 Q88,90 99,89 L99,121 Q93,134 83,129 Q69,114 74,100 Z' }
+      : s
+  )
+)
+const BACK_F = feminizeShapes(BACK)
+const SIL_LEFT_F = SIL_LEFT.map((d, i) => feminize(d, SIL_ARM_IDX.has(i) ? 0.92 : null))
+
+// ---------------------------------------------------------------------------
 // Salida
 // ---------------------------------------------------------------------------
 
+const buildBody = (sil, front, back) => ({
+  sil: [...sil, ...sil.map(mirror)],
+  front: expand(front),
+  back: expand(back)
+})
+
 const data = {
-  sil: [...SIL_LEFT, ...SIL_LEFT.map(mirror)],
-  front: expand(FRONT),
-  back: expand(BACK)
+  male: buildBody(SIL_LEFT, FRONT, BACK),
+  female: buildBody(SIL_LEFT_F, FRONT_F, BACK_F)
 }
 
 writeFileSync('src/components/bodymap.json', JSON.stringify(data, null, 1))
 console.log(
-  `✓ bodymap.json — sil: ${data.sil.length}, front: ${data.front.length}, back: ${data.back.length}`
+  `✓ bodymap.json — male: ${data.male.front.length}+${data.male.back.length}, female: ${data.female.front.length}+${data.female.back.length}`
 )
 
 // ---------------------------------------------------------------------------
@@ -174,13 +254,17 @@ const muscles = (shapes) =>
         `<path d="${s.d}" fill="${heat(demoHeat(s.muscle))}" stroke="#1a1a1f" stroke-width="0.8"/>`
     )
     .join('\n')
-const sil = data.sil.map((d) => `<path d="${d}" fill="#cfcfd8"/>`).join('\n')
+const silPaths = (body) => body.sil.map((d) => `<path d="${d}" fill="#cfcfd8"/>`).join('\n')
 
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 470">
-<rect width="400" height="470" fill="#0a0a0c"/>
-<g>${sil}${muscles(data.front)}</g>
-<g transform="translate(200,0)">${sil}${muscles(data.back)}</g>
+const bodyRow = (body, dy) =>
+  `<g transform="translate(0,${dy})">${silPaths(body)}${muscles(body.front)}</g>
+   <g transform="translate(200,${dy})">${silPaths(body)}${muscles(body.back)}</g>`
+
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 940">
+<rect width="400" height="940" fill="#0a0a0c"/>
+${bodyRow(data.male, 0)}
+${bodyRow(data.female, 470)}
 </svg>`
 
-await sharp(Buffer.from(svg)).resize(900).png().toFile('bodymap-preview.png')
-console.log('✓ bodymap-preview.png')
+await sharp(Buffer.from(svg)).resize(760).png().toFile('bodymap-preview.png')
+console.log('✓ bodymap-preview.png (hombre arriba, mujer abajo)')
