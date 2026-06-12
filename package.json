@@ -8,7 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "icons": "node scripts/icons.mjs",
-    "bodymap": "node scripts/gen-bodymap.mjs",
+    "bodymap": "node scripts/fetch-realbody.mjs",
     "deploy": "npm run build && gh-pages -d dist"
   },
   "dependencies": {

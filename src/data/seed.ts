@@ -1,5 +1,5 @@
 import type { AppData, ExerciseDef, Routine, Session, SetEntry } from '../types'
-import { CATALOG_EXERCISES } from './catalog'
+import { catalogExercisesWithVideos } from './catalog'
 
 // ---------------------------------------------------------------------------
 // Catálogo de ejercicios (con variantes y músculos implicados)
@@ -431,8 +431,8 @@ export function seedExercisesWithVideos(): ExerciseDef[] {
 
 export function buildSeedData(): AppData {
   return {
-    version: 3,
-    exercises: [...seedExercisesWithVideos(), ...CATALOG_EXERCISES],
+    version: 4,
+    exercises: [...seedExercisesWithVideos(), ...catalogExercisesWithVideos()],
     routines: SEED_ROUTINES,
     sessions: buildSeedSessions(),
     settings: {

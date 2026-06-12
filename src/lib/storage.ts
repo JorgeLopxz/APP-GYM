@@ -1,8 +1,8 @@
 import type { AppData, ExerciseDef, MuscleId } from '../types'
-import { buildSeedData, seedExercisesWithVideos } from '../data/seed'
-import { CATALOG_EXERCISES } from '../data/catalog'
+import { buildSeedData, seedExercisesWithVideos, SEED_VIDEOS } from '../data/seed'
+import { CATALOG_EXERCISES, CATALOG_VIDEOS } from '../data/catalog'
 
-const CURRENT_VERSION = 3
+const CURRENT_VERSION = 4
 
 const KEY = 'hierro-data-v1'
 
@@ -49,6 +49,18 @@ function migrate(parsed: AppData & { profile?: AppData['profile'] }): AppData {
         ...data.exercises,
         ...CATALOG_EXERCISES.filter((e) => !existing.has(e.id))
       ]
+    }
+  }
+  if (data.version === 3) {
+    // v3 → v4: vídeo de técnica precargado en TODOS los ejercicios que no
+    // tengan uno propio (los puestos por el usuario se respetan)
+    const allVideos = { ...SEED_VIDEOS, ...CATALOG_VIDEOS }
+    data = {
+      ...data,
+      version: 4,
+      exercises: data.exercises.map((e) =>
+        !e.videoUrl && allVideos[e.id] ? { ...e, videoUrl: allVideos[e.id] } : e
+      )
     }
   }
   return data

@@ -2,14 +2,20 @@ import { useMemo, useState } from 'react'
 import type { AppData, MuscleId } from '../types'
 import { MUSCLE_NAMES } from '../types'
 import { muscleWeek, muscleWeeklyAverage, weekLabel } from '../lib/stats'
-import { BodyMap, heatColor } from '../components/BodyMap'
+import {
+  BodyMap,
+  heatColor,
+  REGION_MUSCLES,
+  REGION_NAMES,
+  regionForMuscle
+} from '../components/BodyMap'
 
 /** Series semanales a partir de las cuales un músculo se pinta al máximo. */
 const FULL_SETS = 12
 
 export function MusclesView({ data }: { data: AppData }) {
   const [offset, setOffset] = useState(0)
-  const [selected, setSelected] = useState<MuscleId | null>(null)
+  const [selected, setSelected] = useState<string | null>(null)
 
   const week = useMemo(() => muscleWeek(data, offset), [data, offset])
 
@@ -23,6 +29,12 @@ export function MusclesView({ data }: { data: AppData }) {
 
   const untouched = (Object.keys(MUSCLE_NAMES) as MuscleId[]).filter(
     (m) => !(m in week.sets)
+  )
+
+  const selectedMuscles = selected ? REGION_MUSCLES[selected] ?? [] : []
+  const selectedTotal = selectedMuscles.reduce(
+    (acc, m) => acc + (week.sets[m] ?? 0),
+    0
   )
 
   return (
@@ -53,42 +65,51 @@ export function MusclesView({ data }: { data: AppData }) {
       {selected && (
         <div className="muscle-detail">
           <p className="muscle-detail-title">
-            {MUSCLE_NAMES[selected]} — {fmtSets(week.sets[selected] ?? 0)} series
+            {REGION_NAMES[selected.split(':')[1]] ?? selected} —{' '}
+            {fmtSets(selectedTotal)} series
           </p>
-          {week.sources[selected] ? (
-            [...week.sources[selected]!.entries()].map(([name, sets]) => (
-              <p key={name} className="muscle-detail-line">
-                {name}: {fmtSets(sets)} series
+          {selectedMuscles.map((m) => {
+            const sets = week.sets[m] ?? 0
+            const sources = week.sources[m]
+            return (
+              <p key={m} className="muscle-detail-line">
+                <strong>{MUSCLE_NAMES[m]}</strong> · {fmtSets(sets)} series
+                {sources
+                  ? ` — ${[...sources.entries()]
+                      .map(([name, n]) => `${name} (${fmtSets(n)})`)
+                      .join(', ')}`
+                  : ''}
               </p>
-            ))
-          ) : (
-            <p className="muscle-detail-line">Sin trabajo esta semana.</p>
-          )}
+            )
+          })}
         </div>
       )}
 
       <div className="muscle-list">
-        {ranked.map(([m, sets]) => (
-          <button
-            type="button"
-            key={m}
-            className={`muscle-row ${selected === m ? 'selected' : ''}`}
-            onClick={() => setSelected(selected === m ? null : m)}
-          >
-            <span className="muscle-dot" style={{ background: heatColor(Math.min(1, sets / FULL_SETS)) }} />
-            <span className="muscle-name">{MUSCLE_NAMES[m]}</span>
-            <span className="muscle-bar">
-              <span
-                className="muscle-bar-fill"
-                style={{
-                  width: `${Math.min(100, (sets / FULL_SETS) * 100)}%`,
-                  background: heatColor(Math.min(1, sets / FULL_SETS))
-                }}
-              />
-            </span>
-            <span className="muscle-sets">{fmtSets(sets)}</span>
-          </button>
-        ))}
+        {ranked.map(([m, sets]) => {
+          const region = regionForMuscle(m)
+          return (
+            <button
+              type="button"
+              key={m}
+              className={`muscle-row ${selected !== null && selected === region ? 'selected' : ''}`}
+              onClick={() => setSelected(selected === region ? null : region)}
+            >
+              <span className="muscle-dot" style={{ background: heatColor(Math.min(1, sets / FULL_SETS)) }} />
+              <span className="muscle-name">{MUSCLE_NAMES[m]}</span>
+              <span className="muscle-bar">
+                <span
+                  className="muscle-bar-fill"
+                  style={{
+                    width: `${Math.min(100, (sets / FULL_SETS) * 100)}%`,
+                    background: heatColor(Math.min(1, sets / FULL_SETS))
+                  }}
+                />
+              </span>
+              <span className="muscle-sets">{fmtSets(sets)}</span>
+            </button>
+          )
+        })}
         {ranked.length === 0 && (
           <p className="view-subtitle">Sin entrenos esta semana todavía.</p>
         )}

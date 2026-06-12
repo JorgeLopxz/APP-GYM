@@ -4,3 +4,4 @@ dev-dist
 *.log
 .DS_Store
 bodymap-preview.png
+realbody-preview.png

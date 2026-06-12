@@ -836,26 +836,30 @@ select:focus {
   padding: 10px 0;
 }
 
-.body-sil {
+.body-neutral {
   fill: #cfcfd8;
 }
 
+.body-outline {
+  fill: none;
+  stroke: #84848e;
+  stroke-width: 2;
+  pointer-events: none;
+}
+
 .body-muscle {
-  stroke: #1a1a1f;
-  stroke-width: 0.8;
   transition: fill 0.5s var(--ease);
   cursor: pointer;
 }
 
 .body-muscle.selected {
   stroke: #0a0a0c;
-  stroke-width: 2;
+  stroke-width: 5;
 }
 
 .bodymap-label {
   fill: var(--text-faint);
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.25em;
   font-weight: 600;
 }
 

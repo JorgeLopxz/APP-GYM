@@ -431,6 +431,77 @@ export const CATALOG_EXERCISES: ExerciseDef[] = [
 ]
 
 // ---------------------------------------------------------------------------
+// Vídeos de técnica verificados contra YouTube (oEmbed) para el catálogo
+// ---------------------------------------------------------------------------
+
+export const CATALOG_VIDEOS: Record<string, string> = {
+  'press-banca-barra': 'https://www.youtube.com/watch?v=GeLq8cMODLc',
+  'press-plano-mancuernas': 'https://www.youtube.com/watch?v=W-qU8CF-WeU',
+  'press-declinado': 'https://www.youtube.com/watch?v=V6jmxAiA1zQ',
+  'press-multipower': 'https://www.youtube.com/watch?v=C8mAB81wZLw',
+  'aperturas-mancuernas': 'https://www.youtube.com/watch?v=kgt1Ik1yXpk',
+  'fondos-paralelas': 'https://www.youtube.com/watch?v=OgjaUueRiII',
+  flexiones: 'https://www.youtube.com/watch?v=5HL5WY0WVJQ',
+  'pullover-mancuerna': 'https://www.youtube.com/watch?v=5XO5KyDUAbE',
+  'remo-barra': 'https://www.youtube.com/watch?v=3uiWjik2yEQ',
+  'remo-mancuerna': 'https://www.youtube.com/watch?v=IKoEsubNp9E',
+  'remo-maquina': 'https://www.youtube.com/watch?v=VWyhefUKTp4',
+  'dominadas-supinas': 'https://www.youtube.com/watch?v=SG_gvhrRokw',
+  'dominadas-asistidas': 'https://www.youtube.com/watch?v=lgE47t3dr2Q',
+  'jalon-cerrado': 'https://www.youtube.com/watch?v=kFviCHFLlrk',
+  'peso-muerto': 'https://www.youtube.com/watch?v=7KL8SgCP4KQ',
+  'rack-pull': 'https://www.youtube.com/watch?v=hVySiRANg-g',
+  encogimientos: 'https://www.youtube.com/watch?v=lsWCVukYaPA',
+  hiperextensiones: 'https://www.youtube.com/watch?v=ye-dpRzXaOg',
+  'press-militar': 'https://www.youtube.com/watch?v=WREUHExSxDc',
+  'elevaciones-frontales': 'https://www.youtube.com/watch?v=g58tMyz5Pro',
+  pajaros: 'https://www.youtube.com/watch?v=RG_41P2hP0s',
+  'remo-menton': 'https://www.youtube.com/watch?v=bB-U7g5vrAQ',
+  'curl-inverso': 'https://www.youtube.com/watch?v=OO6UEVoZ7EM',
+  'curl-muneca': 'https://www.youtube.com/watch?v=H194guwZGTo',
+  'paseo-granjero': 'https://www.youtube.com/watch?v=fG6rLchLpuU',
+  'curl-barra': 'https://www.youtube.com/watch?v=uDLZNOqv3EA',
+  'curl-alterno': 'https://www.youtube.com/watch?v=wG7xgzNIjHI',
+  'curl-inclinado': 'https://www.youtube.com/watch?v=ZY19YNmm7tQ',
+  'curl-polea': 'https://www.youtube.com/watch?v=vpIQHsHU82Q',
+  'curl-bayesian': 'https://www.youtube.com/watch?v=6zrTd3FCgDk',
+  'curl-concentrado': 'https://www.youtube.com/watch?v=WdbkH_k5DWs',
+  'curl-arana': 'https://www.youtube.com/watch?v=XitoKCUTqVg',
+  'press-frances': 'https://www.youtube.com/watch?v=uHFj6nD8_84',
+  'extension-cuerda': 'https://www.youtube.com/watch?v=8Y5OdjN0Ac0',
+  'press-cerrado': 'https://www.youtube.com/watch?v=lTZkcejjFl0',
+  'fondos-banco': 'https://www.youtube.com/watch?v=V1K9BFx9OeM',
+  'patada-triceps': 'https://www.youtube.com/watch?v=BhXYRgN3kg8',
+  sentadilla: 'https://www.youtube.com/watch?v=OySgsMhs2pk',
+  'sentadilla-frontal': 'https://www.youtube.com/watch?v=v_nvYjpX-iY',
+  prensa: 'https://www.youtube.com/watch?v=hl-EJUQ2yuc',
+  zancadas: 'https://www.youtube.com/watch?v=FtNBlVNKrs0',
+  'sentadilla-bulgara': 'https://www.youtube.com/watch?v=IdilLr9nyuQ',
+  'hip-thrust': 'https://www.youtube.com/watch?v=8RcEpMQ93Y8',
+  'patada-gluteo': 'https://www.youtube.com/watch?v=cZ_PxaP6MKY',
+  'aduccion-maquina': 'https://www.youtube.com/watch?v=wyPbVJS7oYw',
+  'peso-muerto-sumo': 'https://www.youtube.com/watch?v=6ktoPBJasHA',
+  'buenos-dias': 'https://www.youtube.com/watch?v=3QTVbkT30E0',
+  'gemelo-sentado': 'https://www.youtube.com/watch?v=6KKDFgOKZY0',
+  'gemelo-prensa': 'https://www.youtube.com/watch?v=MHOOxYDnlis',
+  'crunch-polea': 'https://www.youtube.com/watch?v=nKdVI-LXKzs',
+  'crunch-maquina': 'https://www.youtube.com/watch?v=dJqB4oA4sdA',
+  crunch: 'https://www.youtube.com/watch?v=hl9Yu7UZqHU',
+  'elevaciones-piernas': 'https://www.youtube.com/watch?v=yJW8Gsovjfo',
+  plancha: 'https://www.youtube.com/watch?v=d0atctiI7Vw',
+  'rueda-abdominal': 'https://www.youtube.com/watch?v=b01FmYynI2o',
+  'giro-ruso': 'https://www.youtube.com/watch?v=hdSyLWfRJHc',
+  'press-pallof': 'https://www.youtube.com/watch?v=c-byXbLkWzY',
+  'lenador-polea': 'https://www.youtube.com/watch?v=JeUcK5zsPQI'
+}
+
+export function catalogExercisesWithVideos(): ExerciseDef[] {
+  return CATALOG_EXERCISES.map((e) =>
+    CATALOG_VIDEOS[e.id] ? { ...e, videoUrl: CATALOG_VIDEOS[e.id] } : e
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Regiones para agrupar los selectores de ejercicios
 // ---------------------------------------------------------------------------
 

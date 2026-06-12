@@ -47,6 +47,10 @@ npm run icons    # regenera los iconos PNG desde assets/icon.svg
 Stack: React 18 + TypeScript + Vite + vite-plugin-pwa. Sin backend: los datos
 viven en `localStorage` del dispositivo.
 
+Los cuerpos anatómicos del mapa muscular provienen de
+[react-native-body-highlighter](https://github.com/HichamELBSI/react-native-body-highlighter)
+(MIT, © 2022 ELABBASSI Hicham), convertidos con `npm run bodymap`.
+
 ## Instalar en el móvil
 
 **iPhone (Safari):** abre la URL → botón **Compartir** → **«Añadir a pantalla
