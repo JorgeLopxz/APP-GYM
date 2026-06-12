@@ -20,6 +20,25 @@ function vapidKeyBytes(): ArrayBuffer {
   return buf
 }
 
+/** Estado del dispositivo para diagnosticar por qué no llega el push. */
+export function pushDiagnostics(): {
+  standalone: boolean
+  supported: boolean
+  permission: string
+} {
+  const nav = navigator as Navigator & { standalone?: boolean }
+  const standalone =
+    (typeof window !== 'undefined' &&
+      window.matchMedia?.('(display-mode: standalone)')?.matches) ||
+    nav.standalone === true
+  return {
+    standalone,
+    supported: pushSupported(),
+    permission:
+      typeof Notification !== 'undefined' ? Notification.permission : 'sin API'
+  }
+}
+
 export function pushSupported(): boolean {
   return (
     'serviceWorker' in navigator &&
@@ -56,9 +75,12 @@ export async function enablePush(hour: string): Promise<string> {
   if (!pushSupported()) {
     return 'Este navegador no soporta push. En iPhone: instala HIERRO en la pantalla de inicio (iOS 16.4+) y actívalo desde la app instalada.'
   }
+  const before = Notification.permission
   const perm = await Notification.requestPermission()
   if (perm !== 'granted') {
-    return 'Permiso denegado. Actívalo en Ajustes de iOS → HIERRO → Notificaciones y vuelve a intentarlo.'
+    return before === 'denied'
+      ? 'iOS NO pregunta porque las notificaciones ya estaban bloqueadas para HIERRO. Ve a Ajustes de iOS → Notificaciones → HIERRO → Permitir, y vuelve a pulsar este botón.'
+      : 'Permiso no concedido. Vuelve a pulsar y acepta el aviso.'
   }
   try {
     const reg = await navigator.serviceWorker.ready

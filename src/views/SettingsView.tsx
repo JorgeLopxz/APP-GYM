@@ -4,7 +4,7 @@ import { currentBodyweight } from '../types'
 import { creatineStreak, fmtWeight, todayKey } from '../lib/stats'
 import { exportJSON, importJSON, resetData } from '../lib/storage'
 import { downloadCreatineICS, testNotification } from '../lib/ics'
-import { disablePush, enablePush, syncPushHour } from '../lib/push'
+import { disablePush, enablePush, pushDiagnostics, syncPushHour } from '../lib/push'
 import { NumberField, Segmented, Sheet } from '../components/ui'
 
 type Update = (fn: (d: AppData) => AppData) => void
@@ -255,6 +255,7 @@ export function SettingsView(props: {
               🔔 Probar notificaciones de la app
             </button>
             {notifMsg && <p className="hint-block">{notifMsg}</p>}
+            <PushDiagnostics />
           </>
         )}
       </section>
@@ -312,7 +313,28 @@ export function SettingsView(props: {
         </ol>
       </section>
 
-      <p className="version-line">HIERRO v0.1 — hecho a medida para Jorge 🏋️</p>
+      <p className="version-line">HIERRO v0.9 — hecho a medida para Jorge 🏋️</p>
     </div>
+  )
+}
+
+/** Chivato para depurar el push: di exactamente qué pone aquí si algo falla. */
+function PushDiagnostics() {
+  const d = pushDiagnostics()
+  return (
+    <p className="hint-block">
+      🩺 Diagnóstico · app instalada:{' '}
+      <strong>{d.standalone ? 'sí' : 'NO — abre HIERRO desde su icono, no desde Safari'}</strong>{' '}
+      · push soportado: <strong>{d.supported ? 'sí' : 'no'}</strong> · permiso
+      actual:{' '}
+      <strong>
+        {d.permission === 'granted'
+          ? 'concedido'
+          : d.permission === 'denied'
+            ? 'BLOQUEADO (Ajustes iOS → Notificaciones → HIERRO)'
+            : 'sin pedir todavía'}
+      </strong>{' '}
+      · versión: v0.9
+    </p>
   )
 }
