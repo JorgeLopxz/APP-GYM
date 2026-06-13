@@ -279,9 +279,17 @@ export function buildSeedData(): AppData {
   // catálogo completo, con historial y perfil vacíos. Así, al instalar la app
   // (o tras borrar los datos), cada persona empieza de cero y la personaliza.
   return {
-    version: 6,
+    version: 7,
     exercises: [...seedExercisesWithVideos(), ...catalogExercisesWithVideos()],
     routines: SEED_ROUTINES,
+    programs: [
+      {
+        id: 'prog-default',
+        name: 'PPL + Pecho/Espalda',
+        dayIds: SEED_ROUTINES.map((r) => r.id),
+        daysPerWeek: SEED_ROUTINES.length
+      }
+    ],
     sessions: [],
     settings: {
       creatineEnabled: true,

@@ -6,7 +6,7 @@ import {
   catalogExercisesWithVideos
 } from '../data/catalog'
 
-const CURRENT_VERSION = 6
+const CURRENT_VERSION = 7
 
 const KEY = 'hierro-data-v1'
 
@@ -89,6 +89,27 @@ function migrate(parsed: AppData & { profile?: AppData['profile'] }): AppData {
       exercises: data.exercises.map((e) =>
         canon.has(e.id) ? { ...e, variants: canon.get(e.id)! } : e
       )
+    }
+  }
+  if (data.version === 6 || !Array.isArray(data.programs)) {
+    // v6 → v7: las rutinas-día existentes se agrupan en un programa semanal
+    const dayIds = data.routines.map((r) => r.id)
+    data = {
+      ...data,
+      version: 7,
+      programs:
+        Array.isArray(data.programs) && data.programs.length > 0
+          ? data.programs
+          : dayIds.length > 0
+            ? [
+                {
+                  id: 'prog-default',
+                  name: 'Mi rutina semanal',
+                  dayIds,
+                  daysPerWeek: dayIds.length
+                }
+              ]
+            : []
     }
   }
   return data

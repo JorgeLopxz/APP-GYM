@@ -4,14 +4,17 @@ import type {
   ExerciseDef,
   ExerciseLog,
   MuscleId,
+  Program,
   Routine,
   RoutineItem,
   Session,
   SetEntry,
-  SetTag
+  SetTag,
+  TrainingGoal
 } from '../types'
-import { MUSCLE_NAMES } from '../types'
+import { GOAL_LABEL, MUSCLE_NAMES } from '../types'
 import { uid } from '../lib/storage'
+import { generateProgram, type Experience, type GenInput } from '../lib/generator'
 import {
   e1rm,
   fmtDate,
@@ -54,26 +57,133 @@ function getRoutineItems(data: AppData, routine: Routine): RoutineItem[] {
 }
 
 // ---------------------------------------------------------------------------
-// Vista principal: selector de rutina o sesión activa
+// Vista principal: programas semanales → días → sesión activa
 // ---------------------------------------------------------------------------
 
 export function WorkoutView(props: { data: AppData; update: Update }) {
   const { data, update } = props
+  const [programId, setProgramId] = useState<string | null>(null)
   const active = data.sessions.find((s) => !s.finished)
 
   if (active) {
     return <ActiveSession data={data} session={active} update={update} />
   }
-  return <RoutinePicker data={data} update={update} />
+  const program = data.programs.find((p) => p.id === programId)
+  if (program) {
+    return (
+      <ProgramDetail
+        data={data}
+        program={program}
+        update={update}
+        onBack={() => setProgramId(null)}
+      />
+    )
+  }
+  return <ProgramPicker data={data} update={update} onOpen={setProgramId} />
 }
 
 // ---------------------------------------------------------------------------
-// Selector de rutinas + editor
+// Nivel 1: selector de programas semanales
 // ---------------------------------------------------------------------------
 
-function RoutinePicker({ data, update }: { data: AppData; update: Update }) {
+function ProgramPicker(props: {
+  data: AppData
+  update: Update
+  onOpen: (id: string) => void
+}) {
+  const { data, update, onOpen } = props
+  const [creating, setCreating] = useState<false | 'choose' | 'manual' | 'ai'>(false)
+  const nombre = data.profile.nombre?.trim().split(/\s+/)[0]
+
+  return (
+    <div className="view">
+      <CreatineBanner data={data} update={update} />
+      <h1 className="view-title">{nombre ? `Hola, ${nombre}` : 'Entreno'}</h1>
+      <p className="view-subtitle">Tus rutinas semanales</p>
+      <div className="routine-list">
+        {data.programs.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            className="program-card"
+            onClick={() => onOpen(p.id)}
+          >
+            <div className="program-text">
+              <span className="program-name">{p.name}</span>
+              <span className="program-meta">
+                {p.dayIds.length} {p.dayIds.length === 1 ? 'día' : 'días'}
+                {p.ai ? ' · ✨ IA' : ''}
+              </span>
+            </div>
+            <span className="program-arrow">›</span>
+          </button>
+        ))}
+        {data.programs.length === 0 && (
+          <p className="view-subtitle">Aún no tienes rutinas. Crea una abajo 👇</p>
+        )}
+      </div>
+      <button type="button" className="btn-primary big" onClick={() => setCreating('choose')}>
+        + Crear rutina semanal
+      </button>
+
+      {creating === 'choose' && (
+        <Sheet open onClose={() => setCreating(false)} title="Nueva rutina semanal">
+          <p className="sheet-hint">¿Cómo quieres crearla?</p>
+          <button type="button" className="big-choice" onClick={() => setCreating('ai')}>
+            <span className="big-choice-emoji">✨</span>
+            <span>
+              <strong>Con el asistente</strong>
+              <small>Responde unas preguntas y te la genero a medida</small>
+            </span>
+          </button>
+          <button type="button" className="big-choice" onClick={() => setCreating('manual')}>
+            <span className="big-choice-emoji">✏️</span>
+            <span>
+              <strong>A mano</strong>
+              <small>La montas tú, día a día</small>
+            </span>
+          </button>
+        </Sheet>
+      )}
+      {creating === 'manual' && (
+        <ProgramEditor
+          data={data}
+          program={null}
+          update={update}
+          onClose={() => setCreating(false)}
+          onCreated={onOpen}
+        />
+      )}
+      {creating === 'ai' && (
+        <AssistantSheet
+          data={data}
+          update={update}
+          onClose={() => setCreating(false)}
+          onCreated={onOpen}
+        />
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Nivel 2: días de un programa (elegir el entreno de hoy)
+// ---------------------------------------------------------------------------
+
+function ProgramDetail(props: {
+  data: AppData
+  program: Program
+  update: Update
+  onBack: () => void
+}) {
+  const { data, program, update, onBack } = props
   const [editing, setEditing] = useState<Routine | 'new' | null>(null)
   const [confirming, setConfirming] = useState<Routine | null>(null)
+  const [editingProgram, setEditingProgram] = useState(false)
+
+  const days = program.dayIds
+    .map((id) => data.routines.find((r) => r.id === id))
+    .filter((r): r is Routine => !!r)
 
   const lastDone = (routineId: string): string | null => {
     const done = data.sessions
@@ -89,9 +199,8 @@ function RoutinePicker({ data, update }: { data: AppData; update: Update }) {
       routineId: routine.id,
       routineName: routine.name,
       finished: false,
-      // cada ejercicio arranca pre-rellenado: 1) tu última vez con esa variante,
-      // 2) las series objetivo que definiste en la rutina, 3) tu última vez con
-      // cualquier variante. Solo marcas ✓ o corriges lo que cambie.
+      // pre-relleno: 1) tu última vez con esa variante, 2) series objetivo de
+      // la rutina, 3) tu última vez con cualquier variante. Solo marcas ✓.
       exercises: getRoutineItems(data, routine)
         .map((item) => {
           const def = getExercise(data, item.exerciseId)
@@ -105,28 +214,34 @@ function RoutinePicker({ data, update }: { data: AppData; update: Update }) {
             const lastAny = lastLogAny(data, item.exerciseId)
             if (lastAny) sets = prefillSets(lastAny.sets)
           }
-          return {
-            exerciseId: item.exerciseId,
-            variant: item.variant,
-            sets
-          } as ExerciseLog
+          return { exerciseId: item.exerciseId, variant: item.variant, sets } as ExerciseLog
         })
         .filter((l): l is ExerciseLog => l !== null)
     }
     update((d) => ({ ...d, sessions: [...d.sessions, session] }))
   }
 
-  const nombre = data.profile.nombre?.trim().split(/\s+/)[0]
-
   return (
     <div className="view">
-      <CreatineBanner data={data} update={update} />
-      <h1 className="view-title">{nombre ? `Hola, ${nombre}` : 'Entreno'}</h1>
-      <p className="view-subtitle">
-        {nombre ? '¿Qué toca hoy?' : 'Elige tu rutina de hoy'}
-      </p>
+      <button type="button" className="back-link" onClick={onBack}>
+        ‹ Rutinas
+      </button>
+      <div className="session-header">
+        <div>
+          <h1 className="view-title">{program.name}</h1>
+          <p className="view-subtitle">Elige el día de hoy</p>
+        </div>
+        <button
+          type="button"
+          className="routine-edit standalone"
+          onClick={() => setEditingProgram(true)}
+          aria-label="Editar programa"
+        >
+          ✎
+        </button>
+      </div>
       <div className="routine-list">
-        {data.routines.map((routine) => {
+        {days.map((routine) => {
           const last = lastDone(routine.id)
           return (
             <div key={routine.id} className="routine-card">
@@ -148,10 +263,19 @@ function RoutinePicker({ data, update }: { data: AppData; update: Update }) {
             </div>
           )
         })}
+        {days.length === 0 && (
+          <p className="view-subtitle">Este programa no tiene días. Edítalo para añadir.</p>
+        )}
       </div>
-      <button type="button" className="btn-ghost" onClick={() => setEditing('new')}>
-        + Nueva rutina
-      </button>
+
+      {editingProgram && (
+        <ProgramEditor
+          data={data}
+          program={program}
+          update={update}
+          onClose={() => setEditingProgram(false)}
+        />
+      )}
       {editing && (
         <RoutineEditor
           data={data}
@@ -207,8 +331,10 @@ function RoutineEditor(props: {
   routine: Routine | null
   update: Update
   onClose: () => void
+  /** Devuelve el id de la rutina creada/editada (para encadenar en programas). */
+  onSaved?: (routineId: string) => void
 }) {
-  const { data, routine, update, onClose } = props
+  const { data, routine, update, onClose, onSaved } = props
   const initialItems = routine ? getRoutineItems(data, routine) : []
   const [name, setName] = useState(routine?.name ?? '')
   const [items, setItems] = useState<RoutineItem[]>(initialItems)
@@ -261,14 +387,17 @@ function RoutineEditor(props: {
             : r
         )
       }))
+      onSaved?.(routine.id)
     } else {
+      const newId = uid()
       update((d) => ({
         ...d,
         routines: [
           ...d.routines,
-          { id: uid(), name: trimmed, items: cleanItems, exerciseIds }
+          { id: newId, name: trimmed, items: cleanItems, exerciseIds }
         ]
       }))
+      onSaved?.(newId)
     }
     onClose()
   }
@@ -536,6 +665,256 @@ function TargetSetsEditor(props: {
         + Añadir serie objetivo
       </button>
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Editor de programa semanal (a mano): nombre + días (rutinas)
+// ---------------------------------------------------------------------------
+
+function ProgramEditor(props: {
+  data: AppData
+  program: Program | null
+  update: Update
+  onClose: () => void
+  onCreated?: (id: string) => void
+}) {
+  const { data, program, update, onClose, onCreated } = props
+  const [name, setName] = useState(program?.name ?? '')
+  const [dayIds, setDayIds] = useState<string[]>(program?.dayIds ?? [])
+  const [editingDay, setEditingDay] = useState<Routine | 'new' | null>(null)
+  const [picking, setPicking] = useState(false)
+
+  const days = dayIds
+    .map((id) => data.routines.find((r) => r.id === id))
+    .filter((r): r is Routine => !!r)
+  const otras = data.routines.filter((r) => !dayIds.includes(r.id))
+
+  const move = (idx: number, dir: -1 | 1) =>
+    setDayIds((prev) => {
+      const j = idx + dir
+      if (j < 0 || j >= prev.length) return prev
+      const c = [...prev]
+      ;[c[idx], c[j]] = [c[j], c[idx]]
+      return c
+    })
+
+  const save = () => {
+    const trimmed = name.trim() || 'Rutina semanal'
+    if (program) {
+      update((d) => ({
+        ...d,
+        programs: d.programs.map((p) =>
+          p.id === program.id ? { ...p, name: trimmed, dayIds } : p
+        )
+      }))
+    } else {
+      const id = uid()
+      update((d) => ({
+        ...d,
+        programs: [
+          ...d.programs,
+          { id, name: trimmed, dayIds, daysPerWeek: dayIds.length }
+        ]
+      }))
+      onCreated?.(id)
+    }
+    onClose()
+  }
+
+  const removeProgram = () => {
+    if (!program) return
+    if (!confirm(`¿Borrar la rutina semanal "${program.name}"? Los días y entrenos no se borran.`)) return
+    update((d) => ({ ...d, programs: d.programs.filter((p) => p.id !== program.id) }))
+    onClose()
+  }
+
+  return (
+    <Sheet
+      open
+      onClose={onClose}
+      title={program ? 'Editar rutina semanal' : 'Nueva rutina semanal'}
+    >
+      <input
+        className="text-input"
+        placeholder="Nombre (p. ej. PPL + Torso)"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+
+      <div className="routine-section-head">Días ({days.length})</div>
+      {days.length === 0 ? (
+        <p className="sheet-hint">Añade los días de tu semana (PUSH, PULL…).</p>
+      ) : (
+        <div className="selected-list">
+          {days.map((r, idx) => (
+            <div key={r.id} className="selected-item">
+              <div className="selected-row">
+                <div className="reorder">
+                  <button type="button" className="reorder-btn" disabled={idx === 0} onClick={() => move(idx, -1)}>
+                    ▲
+                  </button>
+                  <button type="button" className="reorder-btn" disabled={idx === days.length - 1} onClick={() => move(idx, 1)}>
+                    ▼
+                  </button>
+                </div>
+                <span className="selected-name">
+                  {r.name}
+                  <small className="day-meta"> · {getRoutineItems(data, r).length} ej.</small>
+                </span>
+                <button type="button" className="icon-btn subtle" onClick={() => setEditingDay(r)} aria-label="Editar día">
+                  ✎
+                </button>
+                <button
+                  type="button"
+                  className="icon-btn"
+                  onClick={() => setDayIds((prev) => prev.filter((x) => x !== r.id))}
+                  aria-label="Quitar día"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button type="button" className="btn-ghost" onClick={() => setEditingDay('new')}>
+        + Crear día nuevo
+      </button>
+      {otras.length > 0 && (
+        <button type="button" className="btn-ghost" onClick={() => setPicking((v) => !v)}>
+          {picking ? '✓ Listo' : '+ Añadir un día que ya tengo'}
+        </button>
+      )}
+      {picking && (
+        <div className="exercise-pick-list">
+          {otras.map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              className="pick-row"
+              onClick={() => setDayIds((prev) => [...prev, r.id])}
+            >
+              <span className="pick-main">{r.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="sheet-actions">
+        {program && (
+          <button type="button" className="btn-danger" onClick={removeProgram}>
+            Borrar
+          </button>
+        )}
+        <button type="button" className="btn-primary" onClick={save}>
+          Guardar
+        </button>
+      </div>
+
+      {editingDay && (
+        <RoutineEditor
+          data={data}
+          routine={editingDay === 'new' ? null : editingDay}
+          update={update}
+          onClose={() => setEditingDay(null)}
+          onSaved={(id) => setDayIds((prev) => (prev.includes(id) ? prev : [...prev, id]))}
+        />
+      )}
+    </Sheet>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Asistente: cuestionario → genera el programa
+// ---------------------------------------------------------------------------
+
+function AssistantSheet(props: {
+  data: AppData
+  update: Update
+  onClose: () => void
+  onCreated: (id: string) => void
+}) {
+  const { data, update, onClose, onCreated } = props
+  const [goal, setGoal] = useState<TrainingGoal>('hipertrofia')
+  const [days, setDays] = useState(4)
+  const [experience, setExperience] = useState<Experience>('intermedio')
+
+  const generate = () => {
+    const validIds = new Set(data.exercises.map((e) => e.id))
+    const input: GenInput = { goal, days, experience }
+    const { program, routines } = generateProgram(input, validIds)
+    update((d) => ({
+      ...d,
+      routines: [...d.routines, ...routines],
+      programs: [...d.programs, program]
+    }))
+    onClose()
+    onCreated(program.id)
+  }
+
+  return (
+    <Sheet open onClose={onClose} title="✨ Asistente de rutinas">
+      <p className="sheet-hint">Responde y te genero el programa completo al momento.</p>
+
+      <div className="routine-section-head">Tu objetivo</div>
+      <div className="chip-grid">
+        {(Object.keys(GOAL_LABEL) as TrainingGoal[]).map((g) => (
+          <button
+            key={g}
+            type="button"
+            className={`chip ${goal === g ? 'active' : ''}`}
+            onClick={() => setGoal(g)}
+          >
+            {GOAL_LABEL[g]}
+          </button>
+        ))}
+      </div>
+
+      <div className="routine-section-head">Días por semana</div>
+      <div className="chip-grid">
+        {[2, 3, 4, 5, 6].map((n) => (
+          <button
+            key={n}
+            type="button"
+            className={`chip ${days === n ? 'active' : ''}`}
+            onClick={() => setDays(n)}
+          >
+            {n} días
+          </button>
+        ))}
+      </div>
+
+      <div className="routine-section-head">Experiencia</div>
+      <div className="chip-grid">
+        {(['principiante', 'intermedio', 'avanzado'] as Experience[]).map((e) => (
+          <button
+            key={e}
+            type="button"
+            className={`chip ${experience === e ? 'active' : ''}`}
+            onClick={() => setExperience(e)}
+          >
+            {e.charAt(0).toUpperCase() + e.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      <p className="hint-block">
+        Te montaré un {days <= 2 ? 'Full Body' : days === 3 ? 'PPL' : days === 4 ? 'Upper/Lower' : days === 5 ? 'PPL + Torso' : 'PPL ×2'} de{' '}
+        {days} días con series y repeticiones según tu objetivo. Los pesos los pones tú
+        la primera vez; luego manda tu historial.
+      </p>
+
+      <div className="sheet-actions">
+        <button type="button" className="btn-ghost" onClick={onClose}>
+          Cancelar
+        </button>
+        <button type="button" className="btn-primary" onClick={generate}>
+          Generar rutina ✨
+        </button>
+      </div>
+    </Sheet>
   )
 }
 

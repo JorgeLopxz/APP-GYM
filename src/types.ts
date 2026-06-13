@@ -106,6 +106,27 @@ export interface Routine {
   items?: RoutineItem[]
 }
 
+export type TrainingGoal = 'hipertrofia' | 'fuerza' | 'perdida' | 'mantenimiento'
+
+export const GOAL_LABEL: Record<TrainingGoal, string> = {
+  hipertrofia: 'Hipertrofia (músculo)',
+  fuerza: 'Fuerza',
+  perdida: 'Pérdida de grasa',
+  mantenimiento: 'Mantenimiento'
+}
+
+/** Programa semanal: agrupa varias rutinas de día (PUSH, PULL…). */
+export interface Program {
+  id: string
+  name: string
+  /** ids de las rutinas-día (en data.routines) que componen la semana */
+  dayIds: string[]
+  goal?: TrainingGoal
+  daysPerWeek?: number
+  /** generado por el asistente */
+  ai?: boolean
+}
+
 export interface Settings {
   creatineEnabled: boolean
   creatineHour: string
@@ -141,6 +162,8 @@ export interface AppData {
   version: number
   exercises: ExerciseDef[]
   routines: Routine[]
+  /** Programas semanales que agrupan rutinas-día */
+  programs: Program[]
   sessions: Session[]
   settings: Settings
   profile: Profile
