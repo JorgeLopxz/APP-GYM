@@ -167,6 +167,110 @@ const MSG_CREATINE = { title: '💊 Tómate la creatina', body: 'Recordatorio de
 const MSG_TIMER = { title: '⏱️🔔 ¡DESCANSO TERMINADO!', body: '¡A por la siguiente serie! 💪', kind: 'timer' }
 
 // ---------------------------------------------------------------------------
+// Generador de rutinas con Gemini (la clave vive como secret del worker)
+// ---------------------------------------------------------------------------
+
+const GOAL_TEXT = {
+  hipertrofia: 'hipertrofia (ganar músculo), 8-12 reps',
+  fuerza: 'fuerza, 4-6 reps',
+  perdida: 'pérdida de grasa, 12-15 reps con poco descanso',
+  mantenimiento: 'mantenimiento, 8-12 reps'
+}
+
+const ROUTINE_SCHEMA = {
+  type: 'object',
+  properties: {
+    name: { type: 'string' },
+    days: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          exercises: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                exerciseId: { type: 'string' },
+                variant: { type: 'string' },
+                sets: { type: 'integer' },
+                reps: { type: 'integer' }
+              },
+              required: ['exerciseId', 'sets', 'reps']
+            }
+          }
+        },
+        required: ['name', 'exercises']
+      }
+    }
+  },
+  required: ['name', 'days']
+}
+
+async function generateRoutine(body, env, headers) {
+  const { goal, days, experience, notes, catalog } = body
+  if (!Array.isArray(catalog) || catalog.length === 0 || !days) {
+    return new Response(JSON.stringify({ error: 'faltan datos' }), { status: 400, headers })
+  }
+  const key = clean(env.GEMINI_KEY || '')
+  if (!key) {
+    return new Response(JSON.stringify({ error: 'sin clave de IA configurada' }), { status: 503, headers })
+  }
+
+  const perDay = experience === 'principiante' ? '4' : experience === 'avanzado' ? '6' : '5'
+  const list = catalog.map((c) => `${c.id} = ${c.name} [${c.muscles}]`).join('\n')
+  const prompt = `Eres un entrenador personal experto. Diseña una rutina semanal de ${days} días de entreno para un usuario de nivel ${experience} con objetivo ${GOAL_TEXT[goal] || goal}.
+${notes ? `Petición concreta del usuario: ${notes}\n` : ''}
+Reglas:
+- Usa SOLO ejercicios de la lista de abajo, con su id EXACTO.
+- ${perDay} ejercicios por día aprox., empezando por los compuestos.
+- Reparte los grupos musculares de forma equilibrada e inteligente a lo largo de la semana (p. ej. PPL, Upper/Lower o Full Body según los días).
+- Para ejercicios con variante, usa una etiqueta corta y coherente.
+- Series y repeticiones acordes al objetivo.
+- El nombre del programa, breve y descriptivo (incluye el split y los días).
+
+Lista de ejercicios disponibles (id = nombre [músculos]):
+${list}`
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            responseSchema: ROUTINE_SCHEMA,
+            temperature: 0.8
+          }
+        })
+      }
+    )
+    if (!res.ok) {
+      return new Response(
+        JSON.stringify({ error: `Gemini respondió ${res.status}` }),
+        { status: 502, headers }
+      )
+    }
+    const data = await res.json()
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!text) {
+      return new Response(JSON.stringify({ error: 'Gemini no devolvió rutina' }), { status: 502, headers })
+    }
+    const program = JSON.parse(text)
+    return new Response(JSON.stringify({ program }), { headers })
+  } catch (e) {
+    return new Response(
+      JSON.stringify({ error: 'Error generando: ' + String(e && e.message ? e.message : e) }),
+      { status: 500, headers }
+    )
+  }
+}
+
+// ---------------------------------------------------------------------------
 // HTTP API
 // ---------------------------------------------------------------------------
 
@@ -256,6 +360,10 @@ export default {
         kind: 'test'
       })
       return new Response(JSON.stringify(result), { headers })
+    }
+
+    if (url.pathname === '/generate-routine') {
+      return generateRoutine(body, env, headers)
     }
 
     if (url.pathname === '/timer' || url.pathname === '/timer-cancel') {

@@ -15,6 +15,7 @@ import type {
 import { GOAL_LABEL, MUSCLE_NAMES } from '../types'
 import { uid } from '../lib/storage'
 import { generateProgram, type Experience, type GenInput } from '../lib/generator'
+import { generateProgramAI } from '../lib/ai'
 import {
   e1rm,
   fmtDate,
@@ -840,11 +841,12 @@ function AssistantSheet(props: {
   const [goal, setGoal] = useState<TrainingGoal>('hipertrofia')
   const [days, setDays] = useState(4)
   const [experience, setExperience] = useState<Experience>('intermedio')
+  const [useAI, setUseAI] = useState(true)
+  const [notes, setNotes] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [status, setStatus] = useState<string | null>(null)
 
-  const generate = () => {
-    const validIds = new Set(data.exercises.map((e) => e.id))
-    const input: GenInput = { goal, days, experience }
-    const { program, routines } = generateProgram(input, validIds)
+  const apply = (program: Program, routines: Routine[]) => {
     update((d) => ({
       ...d,
       routines: [...d.routines, ...routines],
@@ -854,9 +856,39 @@ function AssistantSheet(props: {
     onCreated(program.id)
   }
 
+  const generate = async () => {
+    if (useAI) {
+      setBusy(true)
+      setStatus('Generando con IA… (unos segundos)')
+      try {
+        const { program, routines } = await generateProgramAI(data, {
+          goal,
+          days,
+          experience,
+          notes
+        })
+        apply(program, routines)
+        return
+      } catch (e) {
+        // respaldo: el generador integrado nunca falla
+        setStatus('La IA no respondió, uso el generador integrado…')
+        const validIds = new Set(data.exercises.map((ex) => ex.id))
+        const { program, routines } = generateProgram({ goal, days, experience }, validIds)
+        apply(program, routines)
+        return
+      } finally {
+        setBusy(false)
+      }
+    }
+    const validIds = new Set(data.exercises.map((ex) => ex.id))
+    const input: GenInput = { goal, days, experience }
+    const { program, routines } = generateProgram(input, validIds)
+    apply(program, routines)
+  }
+
   return (
-    <Sheet open onClose={onClose} title="✨ Asistente de rutinas">
-      <p className="sheet-hint">Responde y te genero el programa completo al momento.</p>
+    <Sheet open onClose={busy ? () => {} : onClose} title="✨ Asistente de rutinas">
+      <p className="sheet-hint">Responde y te genero el programa completo.</p>
 
       <div className="routine-section-head">Tu objetivo</div>
       <div className="chip-grid">
@@ -900,18 +932,37 @@ function AssistantSheet(props: {
         ))}
       </div>
 
-      <p className="hint-block">
-        Te montaré un {days <= 2 ? 'Full Body' : days === 3 ? 'PPL' : days === 4 ? 'Upper/Lower' : days === 5 ? 'PPL + Torso' : 'PPL ×2'} de{' '}
-        {days} días con series y repeticiones según tu objetivo. Los pesos los pones tú
-        la primera vez; luego manda tu historial.
-      </p>
+      <label className="check-row">
+        <input type="checkbox" checked={useAI} onChange={(e) => setUseAI(e.target.checked)} />
+        Usar IA avanzada (Gemini) — más personalizada
+      </label>
+      {useAI && (
+        <textarea
+          className="text-input"
+          rows={2}
+          placeholder="¿Algo que tener en cuenta? P. ej. molestia en hombro, énfasis en glúteo, solo mancuernas… (opcional)"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+        />
+      )}
+
+      {status ? (
+        <p className="hint-block">{status}</p>
+      ) : (
+        <p className="hint-block">
+          {useAI
+            ? 'La IA reparte los grupos musculares y elige los ejercicios según tu objetivo. Necesita conexión; si falla, uso el generador integrado.'
+            : `Generador integrado: un ${days <= 2 ? 'Full Body' : days === 3 ? 'PPL' : days === 4 ? 'Upper/Lower' : days === 5 ? 'PPL + Torso' : 'PPL ×2'} de ${days} días, al instante y sin conexión.`}{' '}
+          Los pesos los pones tú la primera vez; luego manda tu historial.
+        </p>
+      )}
 
       <div className="sheet-actions">
-        <button type="button" className="btn-ghost" onClick={onClose}>
+        <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>
           Cancelar
         </button>
-        <button type="button" className="btn-primary" onClick={generate}>
-          Generar rutina ✨
+        <button type="button" className="btn-primary" onClick={() => void generate()} disabled={busy}>
+          {busy ? 'Generando…' : 'Generar rutina ✨'}
         </button>
       </div>
     </Sheet>
