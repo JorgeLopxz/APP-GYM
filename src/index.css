@@ -2,6 +2,27 @@
    HIERRO — negro / gris / plata, transiciones suaves
    =========================================================================== */
 
+/* brillo superior sutil (glossy) en las superficies — al final para aplicar
+   sobre los box-shadow base; se añade explícitamente donde hace falta */
+.routine-card,
+.program-card,
+.exercise-card,
+.settings-section,
+.stat-card,
+.stat,
+.history-card,
+.chart,
+.calendar,
+.bodymap,
+.selected-item,
+.creatine-banner,
+.muscle-row,
+.segmented,
+.numfield-btn,
+.btn-ghost {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
 :root {
   --bg: #0a0a0c;
   --bg-elev: #131316;
@@ -19,7 +40,17 @@
   --radius: 16px;
   --radius-sm: 10px;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --metal: linear-gradient(135deg, #e9e9f1 0%, #a9a9b6 45%, #8b8b97 55%, #d9d9e3 100%);
+  --metal: linear-gradient(
+    135deg,
+    #fafaff 0%,
+    #d2d2dc 26%,
+    #9a9aa6 50%,
+    #7c7c88 58%,
+    #c2c2cc 80%,
+    #eaeaf2 100%
+  );
+  --sheen: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --sheen-strong: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 * {
@@ -36,6 +67,13 @@ html {
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
+  background-image: radial-gradient(
+    130% 55% at 50% -8%,
+    #1c1e25 0%,
+    rgba(20, 22, 28, 0.5) 42%,
+    rgba(0, 0, 0, 0) 70%
+  );
+  background-attachment: fixed;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
@@ -91,6 +129,14 @@ select:focus {
   animation: viewIn 0.3s var(--ease);
 }
 
+.content.slide-next {
+  animation: slideNext 0.28s var(--ease);
+}
+
+.content.slide-prev {
+  animation: slidePrev 0.28s var(--ease);
+}
+
 @keyframes viewIn {
   from {
     opacity: 0;
@@ -99,6 +145,28 @@ select:focus {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slideNext {
+  from {
+    opacity: 0;
+    transform: translateX(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slidePrev {
+  from {
+    opacity: 0;
+    transform: translateX(-26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -177,7 +245,7 @@ select:focus {
   font-weight: 700;
   padding: 12px 20px;
   border-radius: var(--radius-sm);
-  box-shadow: 0 2px 14px rgba(212, 212, 222, 0.18);
+  box-shadow: var(--sheen-strong), 0 3px 16px rgba(212, 212, 222, 0.22);
 }
 
 .btn-primary:disabled {

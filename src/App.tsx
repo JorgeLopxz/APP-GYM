@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type TouchEvent as RTouchEvent } from 'react'
 import type { AppData } from './types'
 import {
   loadData,
@@ -95,9 +95,52 @@ export default function App() {
 
   const timerActive = timer.endsAt !== null || timer.pausedRemaining !== null
 
+  // ---- deslizar horizontal para cambiar de pestaña (estilo iOS) ----
+  const [dir, setDir] = useState<1 | -1>(1)
+  const swipe = useRef<{ x: number; y: number; t: number } | null>(null)
+
+  const goTab = (next: Tab, direction: 1 | -1) => {
+    if (next === tab) return
+    setDir(direction)
+    setTab(next)
+  }
+  const shiftTab = (delta: 1 | -1) => {
+    const i = TABS.findIndex((t) => t.id === tab)
+    const j = i + delta
+    if (j < 0 || j >= TABS.length) return
+    goTab(TABS[j].id, delta)
+  }
+
+  const onTouchStart = (e: RTouchEvent) => {
+    const t = e.target as HTMLElement
+    // no interceptar gestos sobre controles que ya usan el dedo
+    if (t.closest('input, textarea, select, iframe, .sheet, .timer-ring')) {
+      swipe.current = null
+      return
+    }
+    const touch = e.touches[0]
+    swipe.current = { x: touch.clientX, y: touch.clientY, t: Date.now() }
+  }
+  const onTouchEnd = (e: RTouchEvent) => {
+    const s = swipe.current
+    swipe.current = null
+    if (!s) return
+    const touch = e.changedTouches[0]
+    const dx = touch.clientX - s.x
+    const dy = touch.clientY - s.y
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.8 && Date.now() - s.t < 700) {
+      shiftTab(dx < 0 ? 1 : -1)
+    }
+  }
+
   return (
     <div className="app">
-      <main className="content" key={tab}>
+      <main
+        className={`content ${dir === 1 ? 'slide-next' : 'slide-prev'}`}
+        key={tab}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
         {tab === 'entreno' && <WorkoutView data={data} update={update} />}
         {tab === 'timer' && (
           <TimerView data={data} update={update} timer={timer} setTimer={setTimer} />
