@@ -32,9 +32,10 @@ async function vapidHeaders(endpoint, env) {
   const payload = b64url(
     enc.encode(JSON.stringify({ aud, exp, sub: env.VAPID_SUBJECT }))
   )
+  // strip BOM/espacios: PowerShell añade un BOM invisible al subir el secret
   const key = await crypto.subtle.importKey(
     'jwk',
-    JSON.parse(env.VAPID_PRIVATE_JWK),
+    JSON.parse(env.VAPID_PRIVATE_JWK.replace(/^﻿/, '').trim()),
     { name: 'ECDSA', namedCurve: 'P-256' },
     false,
     ['sign']
@@ -57,7 +58,9 @@ async function vapidHeaders(endpoint, env) {
 // ---------------------------------------------------------------------------
 
 function b64uToBytes(s) {
-  const b64 = s.replace(/-/g, '+').replace(/_/g, '/')
+  let b64 = s.replace(/-/g, '+').replace(/_/g, '/')
+  // workerd es estricto con el padding de atob
+  while (b64.length % 4 !== 0) b64 += '='
   const raw = atob(b64)
   return Uint8Array.from(raw, (c) => c.charCodeAt(0))
 }
@@ -128,8 +131,8 @@ async function encryptPayload(subscription, plaintext) {
   return concatBytes(header, ciphertext)
 }
 
-/** Envía un push con payload cifrado. Devuelve el status (404/410 = muerta). */
-async function sendPush(subscription, env, payload) {
+/** Envía un push con payload cifrado. Devuelve { status, error? }. */
+async function sendPushDetailed(subscription, env, payload) {
   try {
     const headers = await vapidHeaders(subscription.endpoint, env)
     const body = await encryptPayload(subscription, JSON.stringify(payload))
@@ -142,10 +145,14 @@ async function sendPush(subscription, env, payload) {
       },
       body
     })
-    return res.status
-  } catch {
-    return 0
+    return { status: res.status }
+  } catch (e) {
+    return { status: 0, error: String(e && e.message ? e.message : e) }
   }
+}
+
+async function sendPush(subscription, env, payload) {
+  return (await sendPushDetailed(subscription, env, payload)).status
 }
 
 const MSG_CREATINE = { title: '💊 Tómate la creatina', body: 'Tu recordatorio diario de HIERRO.' }
@@ -212,11 +219,11 @@ export default {
       if (!raw) {
         return new Response(JSON.stringify({ error: 'suscripción no registrada' }), { status: 404, headers })
       }
-      const status = await sendPush(JSON.parse(raw).subscription, env, {
+      const result = await sendPushDetailed(JSON.parse(raw).subscription, env, {
         title: '✅ ¡El push funciona!',
         body: 'HIERRO ya puede avisarte con la app cerrada.'
       })
-      return new Response(JSON.stringify({ status }), { headers })
+      return new Response(JSON.stringify(result), { headers })
     }
 
     if (url.pathname === '/timer' || url.pathname === '/timer-cancel') {
