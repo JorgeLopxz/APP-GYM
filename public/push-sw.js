@@ -6,36 +6,33 @@ self.addEventListener('push', (event) => {
     (async () => {
       let title = '💊 Tómate la creatina'
       let body = 'Tu recordatorio diario de HIERRO.'
+      let kind = 'creatine'
       // el servidor manda el texto cifrado en el payload (Apple no entrega
-      // pushes vacíos a iOS); la marca en caché queda como plan B
+      // pushes vacíos a iOS)
       if (event.data) {
         try {
           const d = event.data.json()
           if (d.title) title = d.title
           if (d.body) body = d.body
+          if (d.kind) kind = d.kind
         } catch (e) {
           // payload ilegible: textos por defecto
         }
-      } else {
-        try {
-          const cache = await caches.open('hierro-push-meta')
-          const res = await cache.match('push-meta-timer')
-          if (res) {
-            const meta = await res.json()
-            if (meta.endsAt && Math.abs(Date.now() - meta.endsAt) < 5 * 60 * 1000) {
-              title = '⏱ ¡Descanso terminado!'
-              body = 'A por la siguiente serie 💪'
-              await cache.delete('push-meta-timer')
-            }
-          }
-        } catch (e) {
-          // sin marca: texto de creatina por defecto
-        }
       }
+      // patrón de vibración fuerte para el timer (Android lo respeta; iOS usa
+      // el sonido del sistema). tag distinto por tipo para no apilarse.
+      const isTimer = kind === 'timer'
       await self.registration.showNotification(title, {
         body,
         icon: 'icon-192.png',
-        badge: 'icon-192.png'
+        badge: 'icon-192.png',
+        tag: kind,
+        renotify: true,
+        requireInteraction: isTimer,
+        vibrate: isTimer
+          ? [300, 120, 300, 120, 300, 120, 600]
+          : [200, 100, 200],
+        data: { kind }
       })
     })()
   )

@@ -10,6 +10,7 @@ import {
 } from './lib/storage'
 import { todayKey } from './lib/stats'
 import { notifyTimerDone, timerBeep, updateCreatineBadge } from './lib/notify'
+import { markCreatineTakenOnServer } from './lib/push'
 import { WorkoutView } from './views/WorkoutView'
 import { ProgressView } from './views/ProgressView'
 import { MusclesView } from './views/MusclesView'
@@ -78,6 +79,17 @@ export default function App() {
     document.addEventListener('visibilitychange', refresh)
     return () => document.removeEventListener('visibilitychange', refresh)
   }, [data.settings.creatineEnabled, data.settings.creatineTaken])
+
+  // al marcar la creatina de hoy, dile al servidor que pare de insistir
+  const lastTakenSync = useRef<string>('')
+  useEffect(() => {
+    if (!data.settings.pushEnabled) return
+    const today = todayKey()
+    if (data.settings.creatineTaken.includes(today) && lastTakenSync.current !== today) {
+      lastTakenSync.current = today
+      void markCreatineTakenOnServer(today)
+    }
+  }, [data.settings.pushEnabled, data.settings.creatineTaken])
 
   const update = (fn: (d: AppData) => AppData) => setData(fn)
 

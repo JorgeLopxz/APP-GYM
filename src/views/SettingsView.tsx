@@ -245,11 +245,12 @@ export function SettingsView(props: {
               📅 Alternativa: aviso por Calendario de iOS
             </button>
             <p className="hint-block">
-              El push lo envía nuestro servidor: te llega a las {settings.creatineHour}{' '}
-              con la app cerrada o el móvil bloqueado, como cualquier app. Requiere
-              tener HIERRO instalada en la pantalla de inicio (iOS 16.4+) y aceptar el
-              permiso. Además, el icono lleva un <strong>puntito rojo</strong> mientras
-              la creatina del día esté pendiente.
+              El push lo envía nuestro servidor con la app cerrada o el móvil
+              bloqueado, como cualquier app. Empieza a las {settings.creatineHour} y{' '}
+              <strong>repite cada hora hasta que marques «tomada»</strong>. Requiere
+              HIERRO instalada en la pantalla de inicio (iOS 16.4+) y aceptar el
+              permiso. El icono lleva además un <strong>puntito rojo</strong> mientras
+              esté pendiente.
             </p>
             {settings.pushEnabled && (
               <button

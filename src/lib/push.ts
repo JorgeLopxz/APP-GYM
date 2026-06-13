@@ -117,6 +117,13 @@ export async function syncPushHour(hour: string): Promise<void> {
   })
 }
 
+/** Avisa al servidor de que la creatina de hoy ya está tomada (deja de insistir). */
+export async function markCreatineTakenOnServer(day: string): Promise<void> {
+  const sub = await getSubscription()
+  if (!sub) return
+  await post('/creatine-taken', { endpoint: sub.endpoint, day })
+}
+
 /** Programa el push exacto de fin de descanso (si hay suscripción). */
 export async function schedulePushTimer(endsAt: number): Promise<void> {
   const sub = await getSubscription()

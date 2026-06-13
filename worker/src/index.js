@@ -163,8 +163,8 @@ async function sendPush(subscription, env, payload) {
   return (await sendPushDetailed(subscription, env, payload)).status
 }
 
-const MSG_CREATINE = { title: '💊 Tómate la creatina', body: 'Tu recordatorio diario de HIERRO.' }
-const MSG_TIMER = { title: '⏱ ¡Descanso terminado!', body: 'A por la siguiente serie 💪' }
+const MSG_CREATINE = { title: '💊 Tómate la creatina', body: 'Recordatorio de HIERRO. Marca «tomada» para dejar de avisar.', kind: 'creatine' }
+const MSG_TIMER = { title: '⏱️🔔 ¡DESCANSO TERMINADO!', body: '¡A por la siguiente serie! 💪', kind: 'timer' }
 
 // ---------------------------------------------------------------------------
 // HTTP API
@@ -206,15 +206,38 @@ export default {
       if (!subscription?.endpoint || !/^\d{2}:\d{2}$/.test(hour ?? '')) {
         return new Response(JSON.stringify({ error: 'datos inválidos' }), { status: 400, headers })
       }
+      // preserva el estado de "tomada" si ya existía esta suscripción
+      const existing = await env.SUBS.get(await subKey(subscription.endpoint))
+      const prev = existing ? JSON.parse(existing) : {}
       await env.SUBS.put(
         await subKey(subscription.endpoint),
-        JSON.stringify({ subscription, hour, tz: tz || 'Europe/Madrid', lastSent: '' })
+        JSON.stringify({
+          subscription,
+          hour,
+          tz: tz || 'Europe/Madrid',
+          takenDay: prev.takenDay ?? '',
+          lastNag: prev.lastNag ?? ''
+        })
       )
       return new Response(JSON.stringify({ ok: true }), { headers })
     }
 
     if (url.pathname === '/unsubscribe') {
       if (body.endpoint) await env.SUBS.delete(await subKey(body.endpoint))
+      return new Response(JSON.stringify({ ok: true }), { headers })
+    }
+
+    if (url.pathname === '/creatine-taken') {
+      // la app avisa de que ya se tomó la creatina hoy: deja de insistir
+      if (body.endpoint) {
+        const k = await subKey(body.endpoint)
+        const raw = await env.SUBS.get(k)
+        if (raw) {
+          const sub = JSON.parse(raw)
+          sub.takenDay = body.day || ''
+          await env.SUBS.put(k, JSON.stringify(sub))
+        }
+      }
       return new Response(JSON.stringify({ ok: true }), { headers })
     }
 
@@ -229,7 +252,8 @@ export default {
       }
       const result = await sendPushDetailed(JSON.parse(raw).subscription, env, {
         title: '✅ ¡El push funciona!',
-        body: 'HIERRO ya puede avisarte con la app cerrada.'
+        body: 'HIERRO ya puede avisarte con la app cerrada.',
+        kind: 'test'
       })
       return new Response(JSON.stringify(result), { headers })
     }
@@ -270,13 +294,20 @@ export default {
           const nowMin = parseInt(parts.hour, 10) * 60 + parseInt(parts.minute, 10)
           const [h, m] = sub.hour.split(':').map(Number)
           const target = h * 60 + m
-          // ventana = intervalo del cron (5 min), y solo una vez al día
-          if (nowMin >= target && nowMin < target + 5 && sub.lastSent !== today) {
+
+          // ya tomada hoy → no insistir
+          if (sub.takenDay === today) continue
+          // aún no es la hora de empezar
+          if (nowMin < target) continue
+          // insiste cada hora desde la hora elegida (clave = today + hora actual)
+          const nagKey = `${today}#${parts.hour}`
+          const onTheHour = nowMin < target + 5 || parseInt(parts.minute, 10) < 5
+          if (onTheHour && sub.lastNag !== nagKey) {
             const status = await sendPush(sub.subscription, env, MSG_CREATINE)
             if (status === 404 || status === 410) {
               await env.SUBS.delete(name)
             } else {
-              sub.lastSent = today
+              sub.lastNag = nagKey
               await env.SUBS.put(name, JSON.stringify(sub))
             }
           }
