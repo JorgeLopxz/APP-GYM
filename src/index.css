@@ -2,6 +2,15 @@
    HIERRO — negro / gris / plata, transiciones suaves
    =========================================================================== */
 
+/* Oswald (atlética/cartel de gimnasio), autoalojada para funcionar offline */
+@font-face {
+  font-family: 'Oswald';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/APP-GYM/fonts/oswald.woff2') format('woff2');
+}
+
 /* brillo superior sutil (glossy) en las superficies — al final para aplicar
    sobre los box-shadow base; se añade explícitamente donde hace falta */
 .routine-card,
@@ -51,6 +60,37 @@
   );
   --sheen: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --sheen-strong: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --font-head: 'Oswald', 'Arial Narrow', -apple-system, sans-serif;
+}
+
+/* tipografía atlética en títulos y textos destacados */
+.view-title,
+.program-name,
+.routine-name,
+.settings-title,
+.sheet-title,
+.sheet-handle ~ .sheet-title,
+.stat-value,
+.chart-info-value,
+.exercise-name,
+.history-routine,
+.pr-title,
+.week-label,
+.routine-section-head,
+.big-choice strong,
+.streak,
+.timer-text {
+  font-family: var(--font-head);
+  letter-spacing: 0.02em;
+}
+
+.view-title,
+.program-name,
+.routine-name,
+.history-routine,
+.pr-title {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 * {
