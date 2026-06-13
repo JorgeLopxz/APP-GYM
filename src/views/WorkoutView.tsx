@@ -5,6 +5,7 @@ import type {
   ExerciseLog,
   MuscleId,
   Routine,
+  RoutineItem,
   Session,
   SetEntry,
   SetTag
@@ -38,6 +39,18 @@ function groupByRegion(exercises: ExerciseDef[]): [string, ExerciseDef[]][] {
         ExerciseDef[]
       ]
   ).filter(([, list]) => list.length > 0)
+}
+
+/** Items de una rutina (deriva de exerciseIds las rutinas antiguas sin items). */
+function getRoutineItems(data: AppData, routine: Routine): RoutineItem[] {
+  if (routine.items && routine.items.length > 0) return routine.items
+  return routine.exerciseIds.map((id) => {
+    const def = getExercise(data, id)
+    return {
+      exerciseId: id,
+      variant: def && def.variants.length > 0 ? def.variants[0] : undefined
+    }
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -76,20 +89,26 @@ function RoutinePicker({ data, update }: { data: AppData; update: Update }) {
       routineId: routine.id,
       routineName: routine.name,
       finished: false,
-      // cada ejercicio arranca pre-rellenado con las series de la última vez:
-      // solo tienes que ir marcando ✓ o corregir el campo que cambie
-      exercises: routine.exerciseIds
-        .map((exId) => {
-          const def = getExercise(data, exId)
+      // cada ejercicio arranca pre-rellenado: 1) tu última vez con esa variante,
+      // 2) las series objetivo que definiste en la rutina, 3) tu última vez con
+      // cualquier variante. Solo marcas ✓ o corriges lo que cambie.
+      exercises: getRoutineItems(data, routine)
+        .map((item) => {
+          const def = getExercise(data, item.exerciseId)
           if (!def) return null
-          const last = lastLogAny(data, exId)
-          const variant =
-            last?.variant ??
-            (def.variants.length > 0 ? def.variants[0] : undefined)
+          const lastSame = lastLog(data, item.exerciseId, item.variant)
+          let sets: SetEntry[] = []
+          if (lastSame) sets = prefillSets(lastSame.sets)
+          else if (item.targetSets && item.targetSets.length > 0)
+            sets = prefillSets(item.targetSets)
+          else {
+            const lastAny = lastLogAny(data, item.exerciseId)
+            if (lastAny) sets = prefillSets(lastAny.sets)
+          }
           return {
-            exerciseId: exId,
-            variant,
-            sets: last ? prefillSets(last.sets) : []
+            exerciseId: item.exerciseId,
+            variant: item.variant,
+            sets
           } as ExerciseLog
         })
         .filter((l): l is ExerciseLog => l !== null)
@@ -114,8 +133,8 @@ function RoutinePicker({ data, update }: { data: AppData; update: Update }) {
               <button type="button" className="routine-main" onClick={() => setConfirming(routine)}>
                 <span className="routine-name">{routine.name}</span>
                 <span className="routine-meta">
-                  {routine.exerciseIds.length} ejercicios
-                  {last ? ` · última vez ${fmtDate(last)}` : ' · nunca registrada'}
+                  {getRoutineItems(data, routine).length} ejercicios
+                  {last ? ` · última vez ${fmtDate(last)}` : ' · aún sin estrenar'}
                 </span>
               </button>
               <button
@@ -144,12 +163,18 @@ function RoutinePicker({ data, update }: { data: AppData; update: Update }) {
       {confirming && (
         <Sheet open onClose={() => setConfirming(null)} title={`¿Empezar ${confirming.name}?`}>
           <p className="sheet-hint">
-            Arranca pre-rellenado con tus marcas de la última vez:
+            Arranca con tus marcas de la última vez. Solo tienes que ir marcando ✓ o
+            corregir lo que cambie:
           </p>
           <div className="confirm-list">
-            {confirming.exerciseIds.map((id) => {
-              const def = getExercise(data, id)
-              return def ? <p key={id} className="confirm-line">• {def.name}</p> : null
+            {getRoutineItems(data, confirming).map((item, i) => {
+              const def = getExercise(data, item.exerciseId)
+              return def ? (
+                <p key={i} className="confirm-line">
+                  • {def.name}
+                  {item.variant ? ` · ${item.variant}` : ''}
+                </p>
+              ) : null
             })}
           </div>
           <div className="sheet-actions">
@@ -184,35 +209,65 @@ function RoutineEditor(props: {
   onClose: () => void
 }) {
   const { data, routine, update, onClose } = props
+  const initialItems = routine ? getRoutineItems(data, routine) : []
   const [name, setName] = useState(routine?.name ?? '')
-  const [exerciseIds, setExerciseIds] = useState<string[]>(routine?.exerciseIds ?? [])
+  const [items, setItems] = useState<RoutineItem[]>(initialItems)
   const [creating, setCreating] = useState(false)
   const [query, setQuery] = useState('')
   const [infoFor, setInfoFor] = useState<ExerciseDef | null>(null)
-
-  const toggle = (id: string) => {
-    setExerciseIds((ids) =>
-      ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]
-    )
-  }
+  const [adding, setAdding] = useState(initialItems.length === 0)
+  const [expanded, setExpanded] = useState<number | null>(null)
 
   const visible = data.exercises.filter((e) =>
     e.name.toLowerCase().includes(query.toLowerCase())
   )
+  const countOf = (id: string) => items.filter((i) => i.exerciseId === id).length
+
+  const addExercise = (ex: ExerciseDef) => {
+    setItems((prev) => [
+      ...prev,
+      { exerciseId: ex.id, variant: ex.variants[0] }
+    ])
+  }
+  const patchItem = (idx: number, patch: Partial<RoutineItem>) =>
+    setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)))
+  const moveItem = (idx: number, dir: -1 | 1) =>
+    setItems((prev) => {
+      const j = idx + dir
+      if (j < 0 || j >= prev.length) return prev
+      const copy = [...prev]
+      ;[copy[idx], copy[j]] = [copy[j], copy[idx]]
+      return copy
+    })
+  const removeItem = (idx: number) =>
+    setItems((prev) => prev.filter((_, i) => i !== idx))
 
   const save = () => {
     const trimmed = name.trim() || 'Rutina'
+    // limpia series objetivo vacías
+    const cleanItems = items.map((it) => ({
+      ...it,
+      variant: it.variant?.trim() || undefined,
+      targetSets:
+        it.targetSets && it.targetSets.length > 0 ? it.targetSets : undefined
+    }))
+    const exerciseIds = cleanItems.map((i) => i.exerciseId)
     if (routine) {
       update((d) => ({
         ...d,
         routines: d.routines.map((r) =>
-          r.id === routine.id ? { ...r, name: trimmed, exerciseIds } : r
+          r.id === routine.id
+            ? { ...r, name: trimmed, items: cleanItems, exerciseIds }
+            : r
         )
       }))
     } else {
       update((d) => ({
         ...d,
-        routines: [...d.routines, { id: uid(), name: trimmed, exerciseIds }]
+        routines: [
+          ...d.routines,
+          { id: uid(), name: trimmed, items: cleanItems, exerciseIds }
+        ]
       }))
     }
     onClose()
@@ -221,7 +276,7 @@ function RoutineEditor(props: {
   const discard = () => {
     const dirty =
       name !== (routine?.name ?? '') ||
-      JSON.stringify(exerciseIds) !== JSON.stringify(routine?.exerciseIds ?? [])
+      JSON.stringify(items) !== JSON.stringify(initialItems)
     if (dirty && !confirm('¿Descartar los cambios sin guardar?')) return
     onClose()
   }
@@ -241,44 +296,153 @@ function RoutineEditor(props: {
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
-      <p className="sheet-hint">
-        Toca para añadir o quitar ejercicios. El orden es el orden en que los toques.
-      </p>
-      <input
-        className="text-input"
-        placeholder="Buscar ejercicio…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      <div className="exercise-pick-list">
-        {groupByRegion(visible).map(([region, list]) => (
-          <div key={region}>
-            <div className="pick-region">{region}</div>
-            {list.map((ex) => {
-              const idx = exerciseIds.indexOf(ex.id)
-              return (
-                <div key={ex.id} className={`pick-row ${idx >= 0 ? 'picked' : ''}`}>
-                  <button type="button" className="pick-main" onClick={() => toggle(ex.id)}>
-                    <span>{ex.name}</span>
-                    {idx >= 0 && <span className="pick-order">{idx + 1}</span>}
-                  </button>
+
+      {/* ---- Ejercicios seleccionados ---- */}
+      <div className="routine-section-head">
+        <span>Ejercicios de la rutina ({items.length})</span>
+      </div>
+      {items.length === 0 ? (
+        <p className="sheet-hint">Aún no has añadido ninguno. Pulsa «Añadir ejercicios».</p>
+      ) : (
+        <div className="selected-list">
+          {items.map((item, idx) => {
+            const def = getExercise(data, item.exerciseId)
+            if (!def) return null
+            const open = expanded === idx
+            return (
+              <div key={idx} className="selected-item">
+                <div className="selected-row">
+                  <div className="reorder">
+                    <button
+                      type="button"
+                      className="reorder-btn"
+                      disabled={idx === 0}
+                      onClick={() => moveItem(idx, -1)}
+                      aria-label="Subir"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      className="reorder-btn"
+                      disabled={idx === items.length - 1}
+                      onClick={() => moveItem(idx, 1)}
+                      aria-label="Bajar"
+                    >
+                      ▼
+                    </button>
+                  </div>
+                  <span className="selected-name">{def.name}</span>
                   <button
                     type="button"
-                    className="pick-video"
-                    onClick={() => setInfoFor(ex)}
-                    aria-label={`Ver técnica de ${ex.name}`}
+                    className="icon-btn subtle"
+                    onClick={() => setInfoFor(def)}
+                    aria-label="Ver técnica"
                   >
                     🎬
                   </button>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    onClick={() => removeItem(idx)}
+                    aria-label="Quitar"
+                  >
+                    ✕
+                  </button>
                 </div>
-              )
-            })}
-          </div>
-        ))}
-      </div>
-      <button type="button" className="btn-ghost" onClick={() => setCreating(true)}>
-        + Crear ejercicio nuevo
+
+                {/* variante: chips rápidas + texto libre */}
+                <div className="variant-edit">
+                  {def.variants.length > 0 && (
+                    <div className="variant-chips">
+                      {def.variants.map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          className={`chip ${item.variant === v ? 'active' : ''}`}
+                          onClick={() => patchItem(idx, { variant: v })}
+                        >
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <input
+                    className="text-input small"
+                    placeholder="Variante o nota (p. ej. Tras nuca) — opcional"
+                    value={item.variant ?? ''}
+                    onChange={(e) => patchItem(idx, { variant: e.target.value })}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className="target-toggle"
+                  onClick={() => setExpanded(open ? null : idx)}
+                >
+                  {open ? '▾' : '▸'} Series objetivo
+                  {item.targetSets && item.targetSets.length > 0
+                    ? ` (${item.targetSets.length})`
+                    : ''}
+                </button>
+                {open && (
+                  <TargetSetsEditor
+                    bodyweight={def.bodyweight}
+                    sets={item.targetSets ?? []}
+                    onChange={(targetSets) => patchItem(idx, { targetSets })}
+                  />
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      <button type="button" className="btn-ghost" onClick={() => setAdding((a) => !a)}>
+        {adding ? '✓ Listo de añadir' : '+ Añadir ejercicios'}
       </button>
+
+      {/* ---- Lista para añadir ---- */}
+      {adding && (
+        <>
+          <input
+            className="text-input"
+            placeholder="Buscar ejercicio…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <div className="exercise-pick-list">
+            {groupByRegion(visible).map(([region, list]) => (
+              <div key={region}>
+                <div className="pick-region">{region}</div>
+                {list.map((ex) => {
+                  const n = countOf(ex.id)
+                  return (
+                    <div key={ex.id} className={`pick-row ${n > 0 ? 'picked' : ''}`}>
+                      <button type="button" className="pick-main" onClick={() => addExercise(ex)}>
+                        <span>{ex.name}</span>
+                        {n > 0 && <span className="pick-order">{n}</span>}
+                      </button>
+                      <button
+                        type="button"
+                        className="pick-video"
+                        onClick={() => setInfoFor(ex)}
+                        aria-label={`Ver técnica de ${ex.name}`}
+                      >
+                        🎬
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+          <button type="button" className="btn-ghost" onClick={() => setCreating(true)}>
+            + Crear ejercicio nuevo
+          </button>
+        </>
+      )}
+
       <div className="sheet-actions">
         {routine && (
           <button type="button" className="btn-danger" onClick={remove}>
@@ -296,7 +460,11 @@ function RoutineEditor(props: {
         <ExerciseCreator
           update={update}
           onCreated={(id) => {
-            setExerciseIds((ids) => [...ids, id])
+            const def = data.exercises.find((e) => e.id === id)
+            setItems((prev) => [
+              ...prev,
+              { exerciseId: id, variant: def?.variants[0] }
+            ])
             setCreating(false)
           }}
           onClose={() => setCreating(false)}
@@ -311,6 +479,63 @@ function RoutineEditor(props: {
         />
       )}
     </Sheet>
+  )
+}
+
+/** Editor de series objetivo (peso × reps) de un ejercicio dentro de la rutina. */
+function TargetSetsEditor(props: {
+  bodyweight?: boolean
+  sets: SetEntry[]
+  onChange: (sets: SetEntry[]) => void
+}) {
+  const { bodyweight, sets, onChange } = props
+  const addSet = () => {
+    const prev = sets[sets.length - 1]
+    onChange([
+      ...sets,
+      { weight: prev?.weight ?? (bodyweight ? 0 : 20), reps: prev?.reps ?? 10 }
+    ])
+  }
+  return (
+    <div className="target-sets">
+      <p className="sheet-hint">
+        Lo que sueles hacer (de tu libreta u otra app). Aparecerá pre-rellenado al
+        empezar, hasta que tengas historial propio.
+      </p>
+      {sets.map((set, si) => (
+        <div key={si} className="target-row">
+          <span className="set-num">{si + 1}</span>
+          <NumberField
+            label={bodyweight ? 'lastre' : 'kg'}
+            value={set.weight}
+            step={2.5}
+            onChange={(weight) =>
+              onChange(sets.map((s, i) => (i === si ? { ...s, weight } : s)))
+            }
+          />
+          <span className="set-x">×</span>
+          <NumberField
+            label="reps"
+            value={set.reps}
+            step={1}
+            onChange={(reps) =>
+              onChange(sets.map((s, i) => (i === si ? { ...s, reps } : s)))
+            }
+          />
+          <button
+            type="button"
+            className="icon-btn subtle"
+            onClick={() => onChange(sets.filter((_, i) => i !== si))}
+            aria-label="Quitar serie"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+      <button type="button" className="btn-add-set" onClick={addSet}>
+        + Añadir serie objetivo
+      </button>
+    </div>
   )
 }
 
@@ -361,7 +586,7 @@ function ExerciseCreator(props: {
       />
       <input
         className="text-input"
-        placeholder="Variantes separadas por coma (opcional)"
+        placeholder="Variantes, p. ej. inclinado, plano (opcional)"
         value={variants}
         onChange={(e) => setVariants(e.target.value)}
       />

@@ -89,10 +89,21 @@ export interface Session {
   durationMin?: number
 }
 
+export interface RoutineItem {
+  exerciseId: string
+  /** Variante elegida para esta rutina (texto libre: "Polea", "Tras nuca"…) */
+  variant?: string
+  /** Series objetivo predefinidas (peso × reps) para pre-rellenar el entreno */
+  targetSets?: SetEntry[]
+}
+
 export interface Routine {
   id: string
   name: string
+  /** Lista plana de ids (compatibilidad). Se mantiene en sync con items. */
   exerciseIds: string[]
+  /** Fuente de verdad nueva: ejercicios con variante y series objetivo. */
+  items?: RoutineItem[]
 }
 
 export interface Settings {
