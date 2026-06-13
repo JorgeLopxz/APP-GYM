@@ -1,4 +1,4 @@
-import type { AppData, ExerciseDef, Routine, Session, SetEntry } from '../types'
+import type { AppData, ExerciseDef, Routine } from '../types'
 import { catalogExercisesWithVideos } from './catalog'
 
 // ---------------------------------------------------------------------------
@@ -267,164 +267,6 @@ export const SEED_ROUTINES: Routine[] = [
   }
 ]
 
-// ---------------------------------------------------------------------------
-// Sesiones iniciales: tus apuntes del bloc de notas, tal cual, con fecha de
-// la última semana. Sirven de referencia ("última vez") para tu próximo entreno.
-// ---------------------------------------------------------------------------
-
-const s = (weight: number, reps: number, extra?: Partial<SetEntry>): SetEntry => ({
-  weight,
-  reps,
-  done: true,
-  ...extra
-})
-
-// Fechas FIJAS (la semana real de los apuntes): re-fecharlas en cada
-// instalación fabricaría un historial falso que contamina récords y calorías
-const SEED_DATES = {
-  pechoEspalda: '2026-06-05T18:30:00',
-  push: '2026-06-08T18:30:00',
-  pull: '2026-06-09T18:30:00',
-  leg: '2026-06-10T18:30:00'
-}
-
-export function buildSeedSessions(): Session[] {
-  return [
-    {
-      id: 'seed-pecho-espalda',
-      date: SEED_DATES.pechoEspalda,
-      routineId: 'pecho-espalda',
-      routineName: 'PECHO · ESPALDA',
-      finished: true,
-      durationMin: 70,
-      exercises: [
-        {
-          exerciseId: 'press-inclinado-mancuernas',
-          sets: [s(26, 12), s(30, 5), s(26, 9)]
-        },
-        { exerciseId: 'contractora', sets: [s(40, 12), s(40, 13)] },
-        { exerciseId: 'cruce-poleas', sets: [s(12, 15), s(12, 11), s(12, 9)] },
-        { exerciseId: 'jalon-abierto', sets: [s(70, 11), s(75, 8), s(65, 9)] },
-        { exerciseId: 'remo-gironda', sets: [s(50, 9), s(50, 11), s(50, 8)] },
-        { exerciseId: 'pull-over', sets: [s(21, 7)] }
-      ]
-    },
-    {
-      id: 'seed-push',
-      date: SEED_DATES.push,
-      routineId: 'push',
-      routineName: 'PUSH',
-      finished: true,
-      durationMin: 75,
-      exercises: [
-        { exerciseId: 'press-inclinado', sets: [s(90, 12), s(100, 6), s(80, 9)] },
-        {
-          exerciseId: 'press-plano',
-          variant: 'Hammer',
-          sets: [s(60, 12), s(60, 8), s(60, 7)]
-        },
-        {
-          exerciseId: 'press-plano',
-          variant: 'Technogym',
-          sets: [s(80, 7), s(80, 7, { tag: 'dropset', dropWeight: 60, dropReps: 5 })]
-        },
-        { exerciseId: 'cruce-poleas', sets: [s(12, 14), s(15, 8), s(15, 7)] },
-        { exerciseId: 'contractora', sets: [s(45, 11), s(50, 10), s(50, 7)] },
-        {
-          exerciseId: 'elevaciones-laterales',
-          variant: 'Libre',
-          sets: [s(12, 11), s(12, 10), s(12, 9, { tag: 'dropset', dropWeight: 8, dropReps: 6 })]
-        },
-        {
-          exerciseId: 'elevaciones-laterales',
-          variant: 'Polea',
-          sets: [s(10.5, 12), s(9, 11), s(9, 11)]
-        },
-        {
-          exerciseId: 'face-pull',
-          variant: 'Polea',
-          sets: [s(30, 12), s(35, 11), s(35, 9)]
-        },
-        {
-          exerciseId: 'face-pull',
-          variant: 'Unilateral',
-          sets: [s(12, 12), s(15, 10), s(15, 9)]
-        },
-        {
-          exerciseId: 'extension-triceps',
-          sets: [s(36, 12), s(39, 8), s(39, 7, { tag: 'dropset', dropWeight: 30, dropReps: 5 })]
-        },
-        {
-          exerciseId: 'extension-triceps-cabeza',
-          sets: [s(16.5, 10), s(16.5, 11), s(15, 9)]
-        }
-      ]
-    },
-    {
-      id: 'seed-pull',
-      date: SEED_DATES.pull,
-      routineId: 'pull',
-      routineName: 'PULL',
-      finished: true,
-      durationMin: 70,
-      exercises: [
-        {
-          exerciseId: 'pull-ups',
-          sets: [s(0, 11), s(0, 7), s(0, 6, { tag: 'negativas', negReps: 3 })]
-        },
-        { exerciseId: 'remo-t', sets: [s(55, 11), s(60, 8), s(50, 9)] },
-        { exerciseId: 'jalon', sets: [s(70, 10), s(70, 9)] },
-        { exerciseId: 'contractora-invertida', sets: [s(80, 11), s(80, 8)] },
-        { exerciseId: 'pull-over', sets: [s(24, 11), s(24, 9)] },
-        { exerciseId: 'predicador', sets: [s(40, 8), s(40, 5), s(30, 6)] },
-        {
-          exerciseId: 'curl-martillo',
-          variant: 'Máquina',
-          sets: [s(24, 11), s(27, 7), s(24, 6, { tag: 'dropset', dropWeight: 18, dropReps: 5 })]
-        },
-        {
-          exerciseId: 'curl-martillo',
-          variant: 'Libre',
-          sets: [s(17.5, 11), s(17.5, 9)]
-        },
-        {
-          exerciseId: 'curl-martillo',
-          variant: 'Unilateral',
-          sets: [s(12, 8), s(12, 8)]
-        }
-      ]
-    },
-    {
-      id: 'seed-leg',
-      date: SEED_DATES.leg,
-      routineId: 'leg',
-      routineName: 'LEG',
-      finished: true,
-      durationMin: 65,
-      exercises: [
-        {
-          exerciseId: 'curl-femoral',
-          variant: 'Sentado',
-          sets: [s(55, 14), s(60, 9), s(50, 11)]
-        },
-        {
-          exerciseId: 'curl-femoral',
-          variant: 'Tumbado',
-          sets: [s(50, 11), s(50, 9), s(45, 7)]
-        },
-        { exerciseId: 'hakka', sets: [s(60, 10), s(80, 5), s(60, 7)] },
-        { exerciseId: 'peso-muerto-rumano', sets: [s(80, 11), s(100, 7), s(100, 5)] },
-        {
-          exerciseId: 'extension-cuadriceps',
-          sets: [s(100, 14), s(110, 10), s(110, 6, { tag: 'dropset', dropWeight: 80, dropReps: 6 })]
-        },
-        { exerciseId: 'abduccion-gluteo', sets: [s(65, 18), s(70, 14), s(70, 10)] },
-        { exerciseId: 'gemelo', sets: [s(120, 19), s(120, 10)] }
-      ]
-    }
-  ]
-}
-
 export function seedExercisesWithVideos(): ExerciseDef[] {
   return SEED_EXERCISES.map((e) =>
     SEED_VIDEOS[e.id] ? { ...e, videoUrl: SEED_VIDEOS[e.id] } : e
@@ -432,11 +274,14 @@ export function seedExercisesWithVideos(): ExerciseDef[] {
 }
 
 export function buildSeedData(): AppData {
+  // Contenido de fábrica para CUALQUIER usuario: rutinas-plantilla y el
+  // catálogo completo, con historial y perfil vacíos. Así, al instalar la app
+  // (o tras borrar los datos), cada persona empieza de cero y la personaliza.
   return {
     version: 5,
     exercises: [...seedExercisesWithVideos(), ...catalogExercisesWithVideos()],
     routines: SEED_ROUTINES,
-    sessions: buildSeedSessions(),
+    sessions: [],
     settings: {
       creatineEnabled: true,
       creatineHour: '09:00',

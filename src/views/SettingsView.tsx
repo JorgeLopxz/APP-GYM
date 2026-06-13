@@ -3,7 +3,7 @@ import type { AppData } from '../types'
 import { currentBodyweight } from '../types'
 import { creatineStreak, fmtWeight, todayKey } from '../lib/stats'
 import { exportJSON, importJSON, resetData } from '../lib/storage'
-import { downloadCreatineICS, testNotification } from '../lib/ics'
+import { downloadCreatineICS } from '../lib/ics'
 import {
   disablePush,
   enablePush,
@@ -123,6 +123,7 @@ export function SettingsView(props: {
   const fileRef = useRef<HTMLInputElement>(null)
   const [notifMsg, setNotifMsg] = useState<string | null>(null)
   const [editingProfile, setEditingProfile] = useState(false)
+  const [busy, setBusy] = useState(false)
 
   const today = todayKey()
   const takenToday = settings.creatineTaken.includes(today)
@@ -140,7 +141,7 @@ export function SettingsView(props: {
             ? `${profile.nombre ? profile.nombre + ' · ' : ''}${profile.edad} años · ${profile.alturaCm ?? '—'} cm · ${
                 bw ? `${fmtWeight(bw)} kg` : 'sin peso registrado'
               }`
-            : 'Sin datos. Con tu nombre la app te saluda; con edad, altura y peso afina cálculos como las dominadas con peso real o tus calorías.'}
+            : 'Aún sin datos. Con tu nombre te saludamos al entrar; con edad, altura y peso afinamos las dominadas con peso real y la estimación de calorías.'}
         </p>
         <button type="button" className="btn-ghost" onClick={() => setEditingProfile(true)}>
           ✏️ {profile.edad ? 'Editar perfil' : 'Completar perfil'}
@@ -210,74 +211,67 @@ export function SettingsView(props: {
             <button
               type="button"
               className={settings.pushEnabled ? 'btn-ghost' : 'btn-primary'}
+              disabled={busy}
               onClick={() => {
                 if (settings.pushEnabled) {
+                  setBusy(true)
                   void disablePush().then(() => {
                     update((d) => ({
                       ...d,
                       settings: { ...d.settings, pushEnabled: false }
                     }))
-                    setNotifMsg('Push desactivado en este dispositivo.')
+                    setNotifMsg('Avisos desactivados en este móvil.')
+                    setBusy(false)
                   })
                 } else {
+                  setBusy(true)
+                  setNotifMsg('Activando…')
                   void enablePush(settings.creatineHour).then((result) => {
                     if (result === 'ok') {
                       update((d) => ({
                         ...d,
                         settings: { ...d.settings, pushEnabled: true }
                       }))
-                      setNotifMsg(
-                        `Push activado ✓ — te llegará a las ${settings.creatineHour} aunque la app esté cerrada, como un WhatsApp. El fin del temporizador también avisará por push.`
+                      // confirmación automática: te llega un push ahora mismo
+                      void testServerPush().then((r) =>
+                        setNotifMsg(
+                          r.includes('201') || r.includes('AHORA')
+                            ? '¡Activado! Te acabamos de enviar un aviso de prueba — debería sonarte ya. ✓'
+                            : 'Activado, pero el aviso de prueba no salió: ' + r
+                        )
                       )
                     } else {
                       setNotifMsg(result)
                     }
+                    setBusy(false)
                   })
                 }
               }}
             >
               {settings.pushEnabled
-                ? '🔕 Desactivar notificación push'
-                : '🔔 Activar notificación push diaria (sin calendario)'}
+                ? '🔕 Desactivar avisos'
+                : '🔔 Activar avisos en el móvil'}
             </button>
+            <p className="hint-block">
+              Lo envía nuestro servidor aunque tengas la app cerrada o el móvil
+              bloqueado. Empieza a las {settings.creatineHour} y{' '}
+              <strong>repite cada hora hasta que marques «tomada»</strong>. El icono
+              lleva un <strong>puntito rojo</strong> mientras quede pendiente.
+            </p>
+            <p className="hint-block">
+              Necesita HIERRO instalada en la pantalla de inicio (iOS 16.4+) y aceptar
+              el permiso. ¿Prefieres no usar avisos del servidor? Puedes añadir el
+              recordatorio a tu calendario:
+            </p>
             <button
               type="button"
               className="btn-ghost"
               onClick={() => downloadCreatineICS(settings.creatineHour)}
             >
-              📅 Alternativa: aviso por Calendario de iOS
-            </button>
-            <p className="hint-block">
-              El push lo envía nuestro servidor con la app cerrada o el móvil
-              bloqueado, como cualquier app. Empieza a las {settings.creatineHour} y{' '}
-              <strong>repite cada hora hasta que marques «tomada»</strong>. Requiere
-              HIERRO instalada en la pantalla de inicio (iOS 16.4+) y aceptar el
-              permiso. El icono lleva además un <strong>puntito rojo</strong> mientras
-              esté pendiente.
-            </p>
-            {settings.pushEnabled && (
-              <button
-                type="button"
-                className="btn-ghost"
-                onClick={() => {
-                  setNotifMsg('Enviando push de prueba…')
-                  void testServerPush().then(setNotifMsg)
-                }}
-              >
-                📡 Probar push del servidor (llega ya)
-              </button>
-            )}
-            <button
-              type="button"
-              className="btn-ghost"
-              onClick={() => {
-                void testNotification().then(setNotifMsg)
-              }}
-            >
-              🔔 Probar notificaciones de la app
+              📅 Añadir al calendario del móvil
             </button>
             {notifMsg && <p className="hint-block">{notifMsg}</p>}
-            <PushDiagnostics />
+            {!settings.pushEnabled && <PushDiagnostics />}
           </>
         )}
       </section>
@@ -285,8 +279,8 @@ export function SettingsView(props: {
       <section className="settings-section">
         <h2 className="settings-title">💾 Tus datos</h2>
         <p className="hint-block">
-          Todo se guarda en tu móvil, no en internet. Haz una copia de vez en cuando por
-          si cambias de dispositivo.
+          Todo se guarda solo en este móvil, nada se sube a la nube. Haz una copia de
+          vez en cuando por si cambias de dispositivo.
         </p>
         <button type="button" className="btn-ghost" onClick={() => exportJSON(data)}>
           ⬇️ Exportar copia de seguridad
@@ -316,12 +310,16 @@ export function SettingsView(props: {
           type="button"
           className="btn-danger-ghost"
           onClick={() => {
-            if (confirm('¿Borrar TODOS los datos y volver al estado inicial?')) {
-              replace(resetData())
+            if (
+              confirm(
+                '¿Borrar TODOS tus datos y empezar de cero? Esto vacía tu historial, rutinas y perfil en este móvil.'
+              )
+            ) {
+              void disablePush().finally(() => replace(resetData()))
             }
           }}
         >
-          🗑 Restablecer la app
+          🗑 Borrar todo y empezar de cero
         </button>
       </section>
 
@@ -342,23 +340,18 @@ export function SettingsView(props: {
   )
 }
 
-/** Chivato para depurar el push: di exactamente qué pone aquí si algo falla. */
+/** Estado del push, visible solo si aún no está activado (ayuda a configurarlo). */
 function PushDiagnostics() {
   const d = pushDiagnostics()
   return (
     <p className="hint-block">
-      🩺 Diagnóstico · app instalada:{' '}
-      <strong>{d.standalone ? 'sí' : 'NO — abre HIERRO desde su icono, no desde Safari'}</strong>{' '}
-      · push soportado: <strong>{d.supported ? 'sí' : 'no'}</strong> · permiso
-      actual:{' '}
-      <strong>
-        {d.permission === 'granted'
-          ? 'concedido'
-          : d.permission === 'denied'
-            ? 'BLOQUEADO (Ajustes iOS → Notificaciones → HIERRO)'
-            : 'sin pedir todavía'}
-      </strong>{' '}
-      · versión: {APP_VERSION}
+      Estado: {d.standalone ? 'app instalada ✓' : 'ábrela desde su icono, no desde Safari'}
+      {' · '}
+      {d.permission === 'denied'
+        ? 'permiso bloqueado (Ajustes de iOS → Notificaciones → HIERRO)'
+        : d.permission === 'granted'
+          ? 'permiso concedido ✓'
+          : 'permiso sin pedir'}
     </p>
   )
 }

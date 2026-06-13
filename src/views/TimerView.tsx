@@ -149,9 +149,8 @@ export function TimerView(props: {
       </div>
 
       <p className="hint-block">
-        Suena un triple bip al llegar a cero (y notificación si diste permiso en
-        Ajustes). Con la pantalla bloqueada, iOS congela las apps web: el tiempo
-        sigue siendo exacto, pero el aviso sonará al volver a la app.
+        Al llegar a cero suena un triple bip. Con los avisos activados (en Ajustes)
+        te llega también una notificación aunque tengas el móvil bloqueado.
       </p>
     </div>
   )

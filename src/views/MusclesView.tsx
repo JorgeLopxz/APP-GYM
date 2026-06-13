@@ -185,8 +185,8 @@ function WeakPoints({ data }: { data: AppData }) {
       <h2 className="settings-title">💡 Puntos débiles</h2>
       <p className="hint-block">
         Media de las últimas {weeks === 1 ? 'semana' : `${weeks} semanas`}. Por debajo
-        de ~6 series semanales un músculo apenas crece; estos son los tuyos más
-        olvidados y ejercicios para atacarlos:
+        de ~6 series semanales un músculo apenas crece — estos son los tuyos más flojos,
+        con ejercicios para darles caña:
       </p>
       {weakest.map(({ muscle, sets }) => {
         const suggestions = data.exercises

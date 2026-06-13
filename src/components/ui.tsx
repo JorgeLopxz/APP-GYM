@@ -70,6 +70,14 @@ export function Sheet(props: {
   return (
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className="sheet-close"
+          onClick={onClose}
+          aria-label="Cerrar"
+        >
+          ✕
+        </button>
         <div className="sheet-handle" />
         {title && <h3 className="sheet-title">{title}</h3>}
         <div className="sheet-body">{children}</div>

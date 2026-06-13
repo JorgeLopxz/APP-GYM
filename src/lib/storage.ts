@@ -139,6 +139,7 @@ export function importJSON(file: File): Promise<AppData> {
 
 export function resetData(): AppData {
   localStorage.removeItem(KEY)
+  localStorage.removeItem(TIMER_KEY)
   return loadData()
 }
 

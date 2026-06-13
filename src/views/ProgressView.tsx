@@ -179,9 +179,9 @@ function ExerciseProgress({ data }: { data: AppData }) {
       </div>
 
       <p className="hint-block">
-        El <strong>RM estimado</strong> (fórmula de Epley) convierte cada serie en su
-        equivalente a 1 repetición máxima. Así puedes comparar sesiones aunque cambies
-        de rango de repeticiones: 80×7 y 90×3 se miden en la misma escala.
+        El <strong>RM estimado</strong> traduce cada serie a su equivalente a 1
+        repetición máxima, así comparas sesiones aunque cambies de reps: 80×7 y 90×3
+        quedan en la misma escala.
       </p>
     </>
   )
@@ -284,7 +284,7 @@ function BodyProgress({ data, update }: { data: AppData; update: Update }) {
           </div>
           <p className="hint-block">
             Estimación con Mifflin-St Jeor y tu frecuencia real de entreno (no es
-            consejo médico). La báscula manda: si en 2-3 semanas no te mueves hacia tu
+            consejo médico). La báscula manda: si en 2–3 semanas no te mueves hacia tu
             objetivo, ajusta ±150 kcal.
           </p>
         </div>
