@@ -1,8 +1,12 @@
 import type { AppData, ExerciseDef, MuscleId } from '../types'
 import { buildSeedData, seedExercisesWithVideos, SEED_VIDEOS } from '../data/seed'
-import { CATALOG_EXERCISES, CATALOG_VIDEOS } from '../data/catalog'
+import {
+  CATALOG_EXERCISES,
+  CATALOG_VIDEOS,
+  catalogExercisesWithVideos
+} from '../data/catalog'
 
-const CURRENT_VERSION = 4
+const CURRENT_VERSION = 5
 
 const KEY = 'hierro-data-v1'
 
@@ -62,6 +66,13 @@ function migrate(parsed: AppData & { profile?: AppData['profile'] }): AppData {
         !e.videoUrl && allVideos[e.id] ? { ...e, videoUrl: allVideos[e.id] } : e
       )
     }
+  }
+  if (data.version === 4) {
+    // v4 → v5: amplía el catálogo con los 36 ejercicios nuevos (con vídeo),
+    // sin duplicar ni tocar los del usuario
+    const existing = new Set(data.exercises.map((e) => e.id))
+    const nuevos = catalogExercisesWithVideos().filter((e) => !existing.has(e.id))
+    data = { ...data, version: 5, exercises: [...data.exercises, ...nuevos] }
   }
   return data
 }

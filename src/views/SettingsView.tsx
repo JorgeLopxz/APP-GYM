@@ -15,6 +15,9 @@ import { NumberField, Segmented, Sheet } from '../components/ui'
 
 type Update = (fn: (d: AppData) => AppData) => void
 
+/** Versión visible de la app. Súbela en cada release. */
+export const APP_VERSION = 'v0.11'
+
 // ---------------------------------------------------------------------------
 // Perfil corporal: la app pide tus métricas para afinar los cálculos
 // ---------------------------------------------------------------------------
@@ -332,7 +335,9 @@ export function SettingsView(props: {
         </ol>
       </section>
 
-      <p className="version-line">HIERRO v0.9 — hecho a medida para Jorge 🏋️</p>
+      <p className="version-line">
+        HIERRO {APP_VERSION} — hecho a medida para Jorge 🏋️
+      </p>
     </div>
   )
 }
@@ -353,7 +358,7 @@ function PushDiagnostics() {
             ? 'BLOQUEADO (Ajustes iOS → Notificaciones → HIERRO)'
             : 'sin pedir todavía'}
       </strong>{' '}
-      · versión: v0.9
+      · versión: {APP_VERSION}
     </p>
   )
 }

@@ -427,6 +427,276 @@ export const CATALOG_EXERCISES: ExerciseDef[] = [
     variants: [],
     primary: ['oblicuos'],
     secondary: ['abs']
+  },
+
+  // ===== AMPLIACIÓN v2 =====
+  // ----- PECHO -----
+  {
+    id: 'press-inclinado-barra',
+    name: 'Press inclinado con barra',
+    variants: [],
+    primary: ['pecho_superior', 'deltoide_anterior'],
+    secondary: ['triceps']
+  },
+  {
+    id: 'floor-press',
+    name: 'Press en el suelo',
+    variants: ['Barra', 'Mancuernas'],
+    primary: ['pecho_inferior', 'triceps'],
+    secondary: ['deltoide_anterior']
+  },
+  {
+    id: 'svend-press',
+    name: 'Svend press',
+    variants: [],
+    primary: ['pecho_inferior'],
+    secondary: ['pecho_superior']
+  },
+  // ----- ESPALDA -----
+  {
+    id: 'remo-pendlay',
+    name: 'Remo Pendlay',
+    variants: [],
+    primary: ['espalda_alta', 'dorsal'],
+    secondary: ['biceps', 'lumbar']
+  },
+  {
+    id: 'jalon-supino',
+    name: 'Jalón supino',
+    variants: [],
+    primary: ['dorsal', 'biceps'],
+    secondary: []
+  },
+  {
+    id: 'remo-yates',
+    name: 'Remo Yates',
+    variants: [],
+    primary: ['dorsal', 'espalda_alta'],
+    secondary: ['biceps']
+  },
+  {
+    id: 'pullover-maquina',
+    name: 'Pull-over en máquina',
+    variants: [],
+    primary: ['dorsal'],
+    secondary: ['serrato']
+  },
+  {
+    id: 'remo-invertido',
+    name: 'Remo invertido (australiano)',
+    variants: [],
+    primary: ['dorsal', 'espalda_alta'],
+    secondary: ['biceps'],
+    bodyweight: true
+  },
+  // ----- HOMBRO -----
+  {
+    id: 'press-arnold',
+    name: 'Press Arnold',
+    variants: [],
+    primary: ['deltoide_anterior', 'deltoide_lateral'],
+    secondary: ['triceps']
+  },
+  {
+    id: 'elevacion-lateral-tumbado',
+    name: 'Elevación lateral tumbado',
+    variants: [],
+    primary: ['deltoide_lateral'],
+    secondary: []
+  },
+  {
+    id: 'press-landmine',
+    name: 'Press landmine',
+    variants: [],
+    primary: ['deltoide_anterior', 'pecho_superior'],
+    secondary: ['triceps']
+  },
+  {
+    id: 'y-raise',
+    name: 'Y-raise',
+    variants: [],
+    primary: ['deltoide_posterior', 'espalda_alta'],
+    secondary: ['trapecio']
+  },
+  // ----- BÍCEPS -----
+  {
+    id: 'curl-21',
+    name: 'Curl 21s',
+    variants: [],
+    primary: ['biceps'],
+    secondary: []
+  },
+  {
+    id: 'curl-polea-alta',
+    name: 'Curl en polea alta',
+    variants: [],
+    primary: ['biceps'],
+    secondary: []
+  },
+  {
+    id: 'curl-banco-scott-maquina',
+    name: 'Curl en máquina (Scott)',
+    variants: [],
+    primary: ['biceps'],
+    secondary: []
+  },
+  {
+    id: 'curl-martillo-cuerda',
+    name: 'Curl martillo en polea con cuerda',
+    variants: [],
+    primary: ['biceps', 'antebrazo'],
+    secondary: []
+  },
+  // ----- TRÍCEPS -----
+  {
+    id: 'extension-triceps-unilateral',
+    name: 'Extensión de tríceps unilateral en polea',
+    variants: [],
+    primary: ['triceps'],
+    secondary: []
+  },
+  {
+    id: 'press-tate',
+    name: 'Press Tate',
+    variants: [],
+    primary: ['triceps'],
+    secondary: []
+  },
+  {
+    id: 'fondos-maquina',
+    name: 'Fondos en máquina',
+    variants: [],
+    primary: ['triceps', 'pecho_inferior'],
+    secondary: ['deltoide_anterior']
+  },
+  // ----- TRAPECIO -----
+  {
+    id: 'encogimiento-polea',
+    name: 'Encogimiento en polea',
+    variants: [],
+    primary: ['trapecio'],
+    secondary: ['antebrazo']
+  },
+  // ----- PIERNA -----
+  {
+    id: 'sentadilla-goblet',
+    name: 'Sentadilla goblet',
+    variants: [],
+    primary: ['cuadriceps', 'gluteo'],
+    secondary: ['aductor']
+  },
+  {
+    id: 'peso-muerto-rigido',
+    name: 'Peso muerto a piernas rígidas',
+    variants: [],
+    primary: ['isquios', 'gluteo'],
+    secondary: ['lumbar']
+  },
+  {
+    id: 'step-up',
+    name: 'Subida al cajón (step-up)',
+    variants: [],
+    primary: ['cuadriceps', 'gluteo'],
+    secondary: ['isquios']
+  },
+  {
+    id: 'hip-thrust-unilateral',
+    name: 'Hip thrust a una pierna',
+    variants: [],
+    primary: ['gluteo'],
+    secondary: ['isquios']
+  },
+  {
+    id: 'prensa-unilateral',
+    name: 'Prensa a una pierna',
+    variants: [],
+    primary: ['cuadriceps', 'gluteo'],
+    secondary: ['isquios', 'aductor']
+  },
+  {
+    id: 'sentadilla-sissy',
+    name: 'Sentadilla sissy',
+    variants: [],
+    primary: ['cuadriceps'],
+    secondary: [],
+    bodyweight: true
+  },
+  {
+    id: 'abductores-maquina',
+    name: 'Abductores en máquina',
+    variants: [],
+    primary: ['abductor', 'gluteo'],
+    secondary: []
+  },
+  {
+    id: 'zancada-reversa',
+    name: 'Zancada inversa',
+    variants: [],
+    primary: ['cuadriceps', 'gluteo'],
+    secondary: ['isquios']
+  },
+  {
+    id: 'curl-femoral-unilateral',
+    name: 'Curl femoral unilateral',
+    variants: [],
+    primary: ['isquios'],
+    secondary: ['gemelo']
+  },
+  {
+    id: 'extension-cuadriceps-unilateral',
+    name: 'Extensión de cuádriceps unilateral',
+    variants: [],
+    primary: ['cuadriceps'],
+    secondary: []
+  },
+  // ----- CORE -----
+  {
+    id: 'elevacion-piernas-tumbado',
+    name: 'Elevación de piernas tumbado',
+    variants: [],
+    primary: ['abs'],
+    secondary: ['oblicuos'],
+    bodyweight: true
+  },
+  {
+    id: 'plancha-lateral',
+    name: 'Plancha lateral (segundos)',
+    variants: [],
+    primary: ['oblicuos', 'abs'],
+    secondary: [],
+    bodyweight: true
+  },
+  {
+    id: 'bicicleta-abdominal',
+    name: 'Bicicleta abdominal',
+    variants: [],
+    primary: ['abs', 'oblicuos'],
+    secondary: [],
+    bodyweight: true
+  },
+  {
+    id: 'mountain-climbers',
+    name: 'Escaladores (mountain climbers)',
+    variants: [],
+    primary: ['abs', 'oblicuos'],
+    secondary: ['cuadriceps'],
+    bodyweight: true
+  },
+  {
+    id: 'dragon-flag',
+    name: 'Dragon flag',
+    variants: [],
+    primary: ['abs'],
+    secondary: ['oblicuos'],
+    bodyweight: true
+  },
+  {
+    id: 'press-pike',
+    name: 'Flexión pike',
+    variants: [],
+    primary: ['deltoide_anterior'],
+    secondary: ['triceps', 'pecho_superior'],
+    bodyweight: true
   }
 ]
 
@@ -492,7 +762,45 @@ export const CATALOG_VIDEOS: Record<string, string> = {
   'rueda-abdominal': 'https://www.youtube.com/watch?v=b01FmYynI2o',
   'giro-ruso': 'https://www.youtube.com/watch?v=hdSyLWfRJHc',
   'press-pallof': 'https://www.youtube.com/watch?v=c-byXbLkWzY',
-  'lenador-polea': 'https://www.youtube.com/watch?v=JeUcK5zsPQI'
+  'lenador-polea': 'https://www.youtube.com/watch?v=JeUcK5zsPQI',
+
+  // ===== AMPLIACIÓN v2 (verificados vía oEmbed) =====
+  'press-inclinado-barra': 'https://www.youtube.com/watch?v=JR2Ct-AuQwc',
+  'floor-press': 'https://www.youtube.com/watch?v=EVAsE0sX5f0',
+  'svend-press': 'https://www.youtube.com/watch?v=o8XHhCGgr6U',
+  'remo-pendlay': 'https://www.youtube.com/watch?v=E_DbV5sblwk',
+  'jalon-supino': 'https://www.youtube.com/watch?v=Pnq0YrmShsA',
+  'remo-yates': 'https://www.youtube.com/watch?v=khYnACeVeUM',
+  'pullover-maquina': 'https://www.youtube.com/watch?v=1TzycULDGik',
+  'remo-invertido': 'https://www.youtube.com/watch?v=tE22yTUcRHA',
+  'press-arnold': 'https://www.youtube.com/watch?v=l5tNUbpusCA',
+  'elevacion-lateral-tumbado': 'https://www.youtube.com/watch?v=ltiJ8MN-tfo',
+  'press-landmine': 'https://www.youtube.com/watch?v=mVF9ZGbt9rQ',
+  'y-raise': 'https://www.youtube.com/watch?v=B-55t_OcHKA',
+  'curl-21': 'https://www.youtube.com/watch?v=0AzOIeoJaRw',
+  'curl-polea-alta': 'https://www.youtube.com/watch?v=nQNNT6tYcPw',
+  'curl-banco-scott-maquina': 'https://www.youtube.com/watch?v=GgM96o7piKQ',
+  'extension-triceps-unilateral': 'https://www.youtube.com/watch?v=pP82JKzveME',
+  'press-tate': 'https://www.youtube.com/watch?v=e_3pU2cKZrA',
+  'fondos-maquina': 'https://www.youtube.com/watch?v=8V25cDaBtJk',
+  'encogimiento-polea': 'https://www.youtube.com/watch?v=mqTvt5xLFIY',
+  'curl-martillo-cuerda': 'https://www.youtube.com/watch?v=jSwKckhYAOA',
+  'press-pike': 'https://www.youtube.com/watch?v=xMvv9gFxCBM',
+  'sentadilla-goblet': 'https://www.youtube.com/watch?v=5HHITKuLxUs',
+  'peso-muerto-rigido': 'https://www.youtube.com/watch?v=ZdB9kzyz-Lc',
+  'step-up': 'https://www.youtube.com/watch?v=DbEqoeGwFfE',
+  'hip-thrust-unilateral': 'https://www.youtube.com/watch?v=ip6oZWQDkOU',
+  'prensa-unilateral': 'https://www.youtube.com/watch?v=YbW1c1FWY_g',
+  'sentadilla-sissy': 'https://www.youtube.com/watch?v=kgVPBt4d3ok',
+  'abductores-maquina': 'https://www.youtube.com/watch?v=2vCRMi-lgJ4',
+  'zancada-reversa': 'https://www.youtube.com/watch?v=kC1-fxLUt0g',
+  'curl-femoral-unilateral': 'https://www.youtube.com/watch?v=tQZkJ9GZZRI',
+  'extension-cuadriceps-unilateral': 'https://www.youtube.com/watch?v=r7ZMTzfiICA',
+  'elevacion-piernas-tumbado': 'https://www.youtube.com/watch?v=oxJj5FoBycQ',
+  'plancha-lateral': 'https://www.youtube.com/watch?v=kyOeSuh7LLo',
+  'bicicleta-abdominal': 'https://www.youtube.com/watch?v=dYxamPVcKvk',
+  'mountain-climbers': 'https://www.youtube.com/watch?v=mHg0OEUnLhw',
+  'dragon-flag': 'https://www.youtube.com/watch?v=8d0sQcw9xik'
 }
 
 export function catalogExercisesWithVideos(): ExerciseDef[] {

@@ -433,7 +433,7 @@ export function seedExercisesWithVideos(): ExerciseDef[] {
 
 export function buildSeedData(): AppData {
   return {
-    version: 4,
+    version: 5,
     exercises: [...seedExercisesWithVideos(), ...catalogExercisesWithVideos()],
     routines: SEED_ROUTINES,
     sessions: buildSeedSessions(),
