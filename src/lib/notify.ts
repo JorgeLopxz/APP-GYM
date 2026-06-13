@@ -53,8 +53,8 @@ export async function notifyTimerDone(): Promise<void> {
     const reg = await navigator.serviceWorker?.getRegistration()
     await reg?.showNotification('⏱ ¡Descanso terminado!', {
       body: 'A por la siguiente serie 💪',
-      icon: 'icon-192.png',
-      badge: 'icon-192.png'
+      icon: 'icon-192.v2.png',
+      badge: 'icon-192.v2.png'
     })
   } catch {
     // sin permiso o sin SW: el bip ya hizo el trabajo

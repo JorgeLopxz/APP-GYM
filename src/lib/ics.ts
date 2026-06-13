@@ -58,7 +58,7 @@ export async function testNotification(): Promise<string> {
     if (reg) {
       await reg.showNotification('HIERRO 🏋️', {
         body: 'Las notificaciones funcionan. ¡A entrenar!',
-        icon: 'icon-192.png'
+        icon: 'icon-192.v2.png'
       })
       return 'Notificación enviada ✓'
     }

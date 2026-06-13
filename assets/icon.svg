@@ -5,75 +5,58 @@
       <stop offset="0.55" stop-color="#101115"/>
       <stop offset="1" stop-color="#070809"/>
     </linearGradient>
-    <radialGradient id="vign" cx="0.5" cy="0.36" r="0.75">
-      <stop offset="0" stop-color="#2a2d34" stop-opacity="0.9"/>
-      <stop offset="0.55" stop-color="#15171b" stop-opacity="0.4"/>
-      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    <!-- acero pulido reluciente: foco de luz arriba-izquierda -->
+    <radialGradient id="plate" cx="0.36" cy="0.30" r="0.95">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.18" stop-color="#eef0f4"/>
+      <stop offset="0.42" stop-color="#c2c7cf"/>
+      <stop offset="0.62" stop-color="#9197a1"/>
+      <stop offset="0.82" stop-color="#6b707a"/>
+      <stop offset="1" stop-color="#aeb4bd"/>
     </radialGradient>
-    <!-- acero pulido con biselado: luz arriba-izq, sombra abajo-der -->
-    <linearGradient id="steel" x1="0.1" y1="0" x2="0.85" y2="1">
-      <stop offset="0" stop-color="#fbfbfe"/>
-      <stop offset="0.28" stop-color="#cfd3da"/>
-      <stop offset="0.5" stop-color="#9aa0aa"/>
-      <stop offset="0.72" stop-color="#6f747e"/>
-      <stop offset="1" stop-color="#aeb3bd"/>
-    </linearGradient>
-    <linearGradient id="topedge" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+    <radialGradient id="hub" cx="0.4" cy="0.34" r="0.9">
+      <stop offset="0" stop-color="#dfe2e8"/>
+      <stop offset="0.5" stop-color="#8d929c"/>
+      <stop offset="1" stop-color="#5b5f68"/>
+    </radialGradient>
+    <radialGradient id="gloss" cx="0.36" cy="0.28" r="0.5">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.85"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.12"/>
       <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
-    </linearGradient>
-    <linearGradient id="gloss" x1="0" y1="0" x2="0.5" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
-      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.06"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
-    </linearGradient>
-    <clipPath id="hclip">
-      <path d="M150,128 H214 V226 H298 V128 H362 V384 H298 V286 H214 V384 H150 Z"/>
-    </clipPath>
+    </radialGradient>
   </defs>
 
-  <!-- fondo -->
   <rect width="512" height="512" rx="116" fill="url(#bg)"/>
-  <rect width="512" height="512" rx="116" fill="url(#vign)"/>
 
-  <!-- sombra proyectada de la H -->
-  <path d="M150,128 H214 V226 H298 V128 H362 V384 H298 V286 H214 V384 H150 Z"
-        fill="#000000" opacity="0.45" transform="translate(6,9)"/>
+  <!-- sombra del disco -->
+  <ellipse cx="256" cy="272" rx="198" ry="198" fill="#000000" opacity="0.45"/>
 
-  <!-- viga en I / H de acero -->
-  <g clip-path="url(#hclip)">
-    <rect x="140" y="118" width="240" height="288" fill="url(#steel)"/>
-    <!-- vetas de acero cepillado -->
-    <g stroke="#ffffff" stroke-opacity="0.06" stroke-width="1">
-      <line x1="140" y1="150" x2="380" y2="150"/>
-      <line x1="140" y1="178" x2="380" y2="178"/>
-      <line x1="140" y1="206" x2="380" y2="206"/>
-      <line x1="140" y1="300" x2="380" y2="300"/>
-      <line x1="140" y1="330" x2="380" y2="330"/>
-      <line x1="140" y1="360" x2="380" y2="360"/>
-    </g>
-    <!-- brillo glossy diagonal en la mitad superior -->
-    <path d="M140,118 H380 V250 L140,300 Z" fill="url(#gloss)"/>
-  </g>
+  <!-- cuerpo del disco -->
+  <circle cx="256" cy="256" r="198" fill="url(#plate)"/>
+  <!-- ranuras concentricas -->
+  <circle cx="256" cy="256" r="198" fill="none" stroke="#4c505a" stroke-width="2" opacity="0.6"/>
+  <circle cx="256" cy="256" r="176" fill="none" stroke="#5a5f69" stroke-width="3" opacity="0.55"/>
+  <circle cx="256" cy="256" r="120" fill="none" stroke="#5a5f69" stroke-width="3" opacity="0.5"/>
 
-  <!-- bisel: borde superior brillante y contorno -->
-  <path d="M150,128 H214 V226 H298 V128 H362 V384 H298 V286 H214 V384 H150 Z"
-        fill="none" stroke="url(#topedge)" stroke-width="3" opacity="0.8"/>
-  <path d="M150,128 H214 V226 H298 V128 H362 V384 H298 V286 H214 V384 H150 Z"
-        fill="none" stroke="#05060a" stroke-opacity="0.55" stroke-width="1.5"/>
+  <!-- serigrafia: HIERRO arriba, Fe 26 abajo -->
+  <text x="256" y="158" text-anchor="middle" fill="#16181c"
+        font-family="'Arial Narrow', Arial, sans-serif" font-size="50" font-weight="700"
+        letter-spacing="3">HIERRO</text>
+  <text x="256" y="382" text-anchor="middle" fill="#26292f"
+        font-family="'Arial Narrow', Arial, sans-serif" font-size="26" font-weight="700"
+        letter-spacing="4">Fe · 26</text>
 
-  <!-- remaches de viga -->
-  <g fill="#e9ebef" stroke="#5c616b" stroke-width="1.2">
-    <circle cx="182" cy="150" r="6"/>
-    <circle cx="182" cy="362" r="6"/>
-    <circle cx="330" cy="150" r="6"/>
-    <circle cx="330" cy="362" r="6"/>
-    <circle cx="256" cy="256" r="6"/>
-  </g>
+  <!-- cubo central + agujero de la barra -->
+  <circle cx="256" cy="256" r="64" fill="url(#hub)" stroke="#3d4149" stroke-width="2"/>
+  <circle cx="256" cy="256" r="38" fill="#0c0d10"/>
+  <circle cx="256" cy="256" r="38" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="2"/>
 
-  <!-- subrayado plata y wordmark -->
-  <rect x="150" y="408" width="212" height="5" rx="2.5" fill="url(#steel)"/>
-  <text x="256" y="446" text-anchor="middle"
-        font-family="-apple-system, 'Segoe UI', sans-serif"
-        font-size="34" font-weight="800" letter-spacing="10" fill="#c9cdd4">HIERRO</text>
+  <!-- huecos de agarre -->
+  <circle cx="346" cy="300" r="12" fill="#0e1013" opacity="0.85"/>
+  <circle cx="166" cy="300" r="12" fill="#0e1013" opacity="0.85"/>
+  <circle cx="256" cy="346" r="12" fill="#0e1013" opacity="0.85"/>
+
+  <!-- brillo especular -->
+  <circle cx="256" cy="256" r="198" fill="url(#gloss)"/>
+  <path d="M120,150 A198,198 0 0 1 360,108 A150,150 0 0 0 150,210 Z" fill="#ffffff" opacity="0.22"/>
 </svg>

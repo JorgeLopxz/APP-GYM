@@ -6,12 +6,15 @@ import { fileURLToPath } from 'node:url'
 const SRC = fileURLToPath(new URL('../assets/icon.svg', import.meta.url))
 mkdirSync('public', { recursive: true })
 
+// sufijo de versión: al cambiar el logo, súbelo (v2, v3…) para que iOS, que
+// cachea el icono de la PWA por nombre de archivo, baje el nuevo.
+const V = 'v2'
 const jobs = [
-  { out: 'public/icon-192.png', size: 192, pad: 0 },
-  { out: 'public/icon-512.png', size: 512, pad: 0 },
+  { out: `public/icon-192.${V}.png`, size: 192, pad: 0 },
+  { out: `public/icon-512.${V}.png`, size: 512, pad: 0 },
   // maskable: el contenido al 80% centrado sobre fondo, para el recorte de Android
-  { out: 'public/icon-maskable-512.png', size: 512, pad: 52 },
-  { out: 'public/apple-touch-icon.png', size: 180, pad: 0 }
+  { out: `public/icon-maskable-512.${V}.png`, size: 512, pad: 52 },
+  { out: `public/apple-touch-icon.${V}.png`, size: 180, pad: 0 }
 ]
 
 for (const { out, size, pad } of jobs) {

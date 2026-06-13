@@ -24,8 +24,8 @@ self.addEventListener('push', (event) => {
       const isTimer = kind === 'timer'
       await self.registration.showNotification(title, {
         body,
-        icon: 'icon-192.png',
-        badge: 'icon-192.png',
+        icon: 'icon-192.v2.png',
+        badge: 'icon-192.v2.png',
         tag: kind,
         renotify: true,
         requireInteraction: isTimer,
