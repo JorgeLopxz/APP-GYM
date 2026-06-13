@@ -24,18 +24,26 @@ function b64url(buf) {
     .replace(/=+$/, '')
 }
 
+// PowerShell añade un BOM (U+FEFF) y a veces \r\n al subir los secrets por
+// pipe. Eso corrompe la clave pública y el subject que Apple valida → 403.
+// Quitamos cualquier carácter de control/BOM/espacio de los bordes.
+function clean(s) {
+  return String(s).replace(/^[﻿\s]+/, '').replace(/[﻿\s]+$/, '')
+}
+
 async function vapidHeaders(endpoint, env) {
   const aud = new URL(endpoint).origin
   const exp = Math.floor(Date.now() / 1000) + 12 * 3600
   const enc = new TextEncoder()
+  const subject = clean(env.VAPID_SUBJECT)
+  const publicKey = clean(env.VAPID_PUBLIC)
   const header = b64url(enc.encode(JSON.stringify({ typ: 'JWT', alg: 'ES256' })))
   const payload = b64url(
-    enc.encode(JSON.stringify({ aud, exp, sub: env.VAPID_SUBJECT }))
+    enc.encode(JSON.stringify({ aud, exp, sub: subject }))
   )
-  // strip BOM/espacios: PowerShell añade un BOM invisible al subir el secret
   const key = await crypto.subtle.importKey(
     'jwk',
-    JSON.parse(env.VAPID_PRIVATE_JWK.replace(/^﻿/, '').trim()),
+    JSON.parse(clean(env.VAPID_PRIVATE_JWK)),
     { name: 'ECDSA', namedCurve: 'P-256' },
     false,
     ['sign']
@@ -46,7 +54,7 @@ async function vapidHeaders(endpoint, env) {
     enc.encode(`${header}.${payload}`)
   )
   return {
-    Authorization: `vapid t=${header}.${payload}.${b64url(sig)}, k=${env.VAPID_PUBLIC}`,
+    Authorization: `vapid t=${header}.${payload}.${b64url(sig)}, k=${publicKey}`,
     TTL: '86400',
     Urgency: 'high'
   }
