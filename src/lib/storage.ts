@@ -6,7 +6,7 @@ import {
   catalogExercisesWithVideos
 } from '../data/catalog'
 
-const CURRENT_VERSION = 5
+const CURRENT_VERSION = 6
 
 const KEY = 'hierro-data-v1'
 
@@ -73,6 +73,23 @@ function migrate(parsed: AppData & { profile?: AppData['profile'] }): AppData {
     const existing = new Set(data.exercises.map((e) => e.id))
     const nuevos = catalogExercisesWithVideos().filter((e) => !existing.has(e.id))
     data = { ...data, version: 5, exercises: [...data.exercises, ...nuevos] }
+  }
+  if (data.version === 5) {
+    // v5 → v6: variantes completas (máquina, multipower, unilateral…) en los
+    // ejercicios de serie/catálogo. Respeta los creados por el usuario.
+    const canon = new Map(
+      [...seedExercisesWithVideos(), ...catalogExercisesWithVideos()].map((e) => [
+        e.id,
+        e.variants
+      ])
+    )
+    data = {
+      ...data,
+      version: 6,
+      exercises: data.exercises.map((e) =>
+        canon.has(e.id) ? { ...e, variants: canon.get(e.id)! } : e
+      )
+    }
   }
   return data
 }

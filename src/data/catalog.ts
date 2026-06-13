@@ -803,10 +803,96 @@ export const CATALOG_VIDEOS: Record<string, string> = {
   'dragon-flag': 'https://www.youtube.com/watch?v=8d0sQcw9xik'
 }
 
+// ---------------------------------------------------------------------------
+// Variantes por ejercicio (equipo, agarre, postura, unilateral…). Mapa único
+// que se aplica a TODOS los ejercicios de serie y de catálogo, y a los datos
+// ya guardados vía migración. Editable: solo añade ids con sus variantes.
+// ---------------------------------------------------------------------------
+
+export const VARIANTS_OVERRIDE: Record<string, string[]> = {
+  // ----- PECHO -----
+  'press-inclinado': ['Máquina', 'Multipower', 'Mancuernas', 'Barra'],
+  'press-plano': ['Hammer', 'Technogym', 'Barra', 'Mancuernas', 'Multipower'],
+  'press-inclinado-mancuernas': ['Inclinado bajo', 'Inclinado alto'],
+  'press-inclinado-barra': ['Libre', 'Multipower'],
+  'press-banca-barra': ['Libre', 'Multipower'],
+  'press-plano-mancuernas': ['Banco plano', 'Banco neutro'],
+  'press-declinado': ['Barra', 'Mancuernas', 'Máquina', 'Multipower'],
+  'press-multipower': ['Plano', 'Inclinado', 'Declinado'],
+  'aperturas-mancuernas': ['Plano', 'Inclinado', 'Declinado'],
+  'cruce-poleas': ['Polea alta', 'Polea media', 'Polea baja'],
+  contractora: ['Máquina', 'Polea'],
+  'fondos-paralelas': ['Paralelas', 'Máquina asistida', 'Lastrado'],
+  'pullover-mancuerna': ['Mancuerna', 'Barra'],
+  // ----- ESPALDA -----
+  jalon: ['Agarre ancho', 'Agarre cerrado', 'Supino', 'Neutro'],
+  'jalon-abierto': ['Prono', 'Tras nuca'],
+  'jalon-supino': ['Cerrado', 'Ancho'],
+  'remo-t': ['Agarre neutro', 'Agarre ancho', 'Máquina'],
+  'remo-gironda': ['Agarre estrecho', 'Agarre ancho', 'Barra V'],
+  'remo-barra': ['Prono', 'Supino', 'Multipower'],
+  'remo-maquina': ['Neutro', 'Prono', 'Unilateral'],
+  'remo-mancuerna': ['En banco', 'En punta'],
+  'pull-over': ['Cuerda', 'Barra'],
+  'pull-ups': ['Pronas', 'Supinas', 'Neutras', 'Lastradas'],
+  encogimientos: ['Mancuernas', 'Barra', 'Máquina', 'Multipower', 'Polea'],
+  'peso-muerto': ['Convencional', 'Sumo', 'Multipower'],
+  hiperextensiones: ['Peso corporal', 'Con disco'],
+  // ----- HOMBRO -----
+  'elevaciones-laterales': ['Máquina', 'Mancuernas', 'Polea', 'Polea unilateral'],
+  'press-militar': ['Barra', 'Mancuernas', 'Máquina', 'Multipower', 'Sentado'],
+  'elevaciones-frontales': ['Mancuernas', 'Polea', 'Disco', 'Barra'],
+  pajaros: ['Mancuernas', 'Polea', 'Máquina'],
+  'remo-menton': ['Barra', 'Polea', 'Mancuernas', 'Multipower'],
+  'press-arnold': ['Sentado', 'De pie'],
+  'contractora-invertida': ['Máquina', 'Polea'],
+  'face-pull': ['Polea', 'Unilateral'],
+  // ----- BÍCEPS -----
+  predicador: ['Barra Z', 'Máquina', 'Unilateral', 'Mancuerna'],
+  'curl-martillo': ['Mancuernas', 'Polea', 'Cuerda', 'Unilateral'],
+  'curl-barra': ['Recta', 'Barra Z', 'Ancho', 'Cerrado'],
+  'curl-alterno': ['De pie', 'Sentado', 'Inclinado'],
+  'curl-inclinado': ['Simultáneo', 'Alterno'],
+  'curl-polea': ['Barra', 'Cuerda', 'Unilateral'],
+  // ----- TRÍCEPS -----
+  'extension-triceps': ['Barra', 'Cuerda', 'Unilateral', 'Tras nuca'],
+  'extension-triceps-cabeza': ['Unilateral', 'A dos manos', 'Polea'],
+  'press-frances': ['Barra Z', 'Mancuernas', 'Polea'],
+  'patada-triceps': ['Mancuerna', 'Polea'],
+  // ----- ANTEBRAZO -----
+  'curl-inverso': ['Barra', 'Mancuernas', 'Polea'],
+  'curl-muneca': ['Barra', 'Mancuernas'],
+  // ----- PIERNA -----
+  prensa: ['45º', 'Horizontal', 'Unilateral'],
+  zancadas: ['Mancuernas', 'Barra', 'Caminando', 'Multipower'],
+  'hip-thrust': ['Barra', 'Máquina', 'Multipower', 'Unilateral'],
+  'curl-femoral': ['Sentado', 'Tumbado', 'Unilateral'],
+  'extension-cuadriceps': ['Bilateral', 'Unilateral'],
+  'abduccion-gluteo': ['Máquina', 'Polea', 'Multipower'],
+  gemelo: ['De pie', 'Sentado', 'En prensa'],
+  'peso-muerto-rumano': ['Barra', 'Mancuernas', 'Multipower'],
+  sentadilla: ['Libre', 'Multipower'],
+  'sentadilla-bulgara': ['Mancuernas', 'Barra', 'Multipower'],
+  'step-up': ['Mancuernas', 'Barra'],
+  'abductores-maquina': ['Máquina', 'Polea'],
+  'aduccion-maquina': ['Máquina', 'Polea'],
+  // ----- CORE -----
+  'elevaciones-piernas': ['En barra', 'En paralelas', 'Tumbado'],
+  'giro-ruso': ['Con disco', 'Con balón', 'Peso corporal'],
+  'crunch-polea': ['De rodillas', 'De pie']
+}
+
+/** Aplica el override de variantes a un ejercicio (si lo tiene definido). */
+export function withVariants(def: ExerciseDef): ExerciseDef {
+  const v = VARIANTS_OVERRIDE[def.id]
+  return v ? { ...def, variants: v } : def
+}
+
 export function catalogExercisesWithVideos(): ExerciseDef[] {
-  return CATALOG_EXERCISES.map((e) =>
-    CATALOG_VIDEOS[e.id] ? { ...e, videoUrl: CATALOG_VIDEOS[e.id] } : e
-  )
+  return CATALOG_EXERCISES.map((e) => {
+    const withVid = CATALOG_VIDEOS[e.id] ? { ...e, videoUrl: CATALOG_VIDEOS[e.id] } : e
+    return withVariants(withVid)
+  })
 }
 
 // ---------------------------------------------------------------------------

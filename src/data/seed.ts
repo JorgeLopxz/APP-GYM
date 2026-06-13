@@ -1,5 +1,5 @@
 import type { AppData, ExerciseDef, Routine } from '../types'
-import { catalogExercisesWithVideos } from './catalog'
+import { catalogExercisesWithVideos, withVariants } from './catalog'
 
 // ---------------------------------------------------------------------------
 // Catálogo de ejercicios (con variantes y músculos implicados)
@@ -268,9 +268,10 @@ export const SEED_ROUTINES: Routine[] = [
 ]
 
 export function seedExercisesWithVideos(): ExerciseDef[] {
-  return SEED_EXERCISES.map((e) =>
-    SEED_VIDEOS[e.id] ? { ...e, videoUrl: SEED_VIDEOS[e.id] } : e
-  )
+  return SEED_EXERCISES.map((e) => {
+    const withVid = SEED_VIDEOS[e.id] ? { ...e, videoUrl: SEED_VIDEOS[e.id] } : e
+    return withVariants(withVid)
+  })
 }
 
 export function buildSeedData(): AppData {
@@ -278,7 +279,7 @@ export function buildSeedData(): AppData {
   // catálogo completo, con historial y perfil vacíos. Así, al instalar la app
   // (o tras borrar los datos), cada persona empieza de cero y la personaliza.
   return {
-    version: 5,
+    version: 6,
     exercises: [...seedExercisesWithVideos(), ...catalogExercisesWithVideos()],
     routines: SEED_ROUTINES,
     sessions: [],
