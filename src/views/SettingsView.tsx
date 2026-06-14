@@ -16,7 +16,7 @@ import { NumberField, Segmented, Sheet } from '../components/ui'
 type Update = (fn: (d: AppData) => AppData) => void
 
 /** Versión visible de la app. Súbela en cada release. */
-export const APP_VERSION = 'v0.19'
+export const APP_VERSION = 'v0.20'
 
 // ---------------------------------------------------------------------------
 // Perfil corporal: la app pide tus métricas para afinar los cálculos
