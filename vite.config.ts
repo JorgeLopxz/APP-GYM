@@ -47,8 +47,8 @@ export default defineConfig({
         orientation: 'portrait',
         start_url: '/APP-GYM/',
         scope: '/APP-GYM/',
-        background_color: '#0a0a0c',
-        theme_color: '#0a0a0c',
+        background_color: '#0a0a0b',
+        theme_color: '#0a0a0b',
         icons: [
           { src: 'icon-192.v2.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.v2.png', sizes: '512x512', type: 'image/png' },

@@ -31,7 +31,7 @@ import {
 } from '../lib/stats'
 import { youtubeId, youtubeSearchUrl } from '../lib/youtube'
 import { exerciseRegion, REGION_ORDER } from '../data/catalog'
-import { NumberField, Sheet } from '../components/ui'
+import { NumberField, PlayIcon, Sheet } from '../components/ui'
 
 type Update = (fn: (d: AppData) => AppData) => void
 
@@ -98,9 +98,12 @@ function ProgramPicker(props: {
 
   return (
     <div className="view">
-      <CreatineBanner data={data} update={update} />
-      <h1 className="view-title">{nombre ? `Hola, ${nombre}` : 'Entreno'}</h1>
+      <div>
+        <span className="kicker">Hierro</span>
+        <h1 className="view-title greeting">{nombre ? `Hola, ${nombre}` : 'Entreno'}</h1>
+      </div>
       <p className="view-subtitle">Tus rutinas semanales</p>
+      <CreatineBanner data={data} update={update} />
       <div className="routine-list">
         {data.programs.map((p) => (
           <button
@@ -112,33 +115,31 @@ function ProgramPicker(props: {
             <div className="program-text">
               <span className="program-name">{p.name}</span>
               <span className="program-meta">
-                {p.dayIds.length} {p.dayIds.length === 1 ? 'día' : 'días'}
-                {p.ai ? ' · ✨ IA' : ''}
+                {p.dayIds.length} {p.dayIds.length === 1 ? 'día' : 'días'} por semana
+                {p.ai ? ' · IA' : ''}
               </span>
             </div>
-            <span className="program-arrow">›</span>
+            <span className="chevron-circle">›</span>
           </button>
         ))}
         {data.programs.length === 0 && (
-          <p className="view-subtitle">Aún no tienes rutinas. Crea una abajo 👇</p>
+          <p className="view-subtitle">Aún no tienes rutinas. Crea una abajo.</p>
         )}
       </div>
       <button type="button" className="btn-primary big" onClick={() => setCreating('choose')}>
-        + Crear rutina semanal
+        Crear rutina semanal
       </button>
 
       {creating === 'choose' && (
         <Sheet open onClose={() => setCreating(false)} title="Nueva rutina semanal">
           <p className="sheet-hint">¿Cómo quieres crearla?</p>
           <button type="button" className="big-choice" onClick={() => setCreating('ai')}>
-            <span className="big-choice-emoji">✨</span>
             <span>
               <strong>Con el asistente</strong>
               <small>Responde unas preguntas y te la genero a medida</small>
             </span>
           </button>
           <button type="button" className="big-choice" onClick={() => setCreating('manual')}>
-            <span className="big-choice-emoji">✏️</span>
             <span>
               <strong>A mano</strong>
               <small>La montas tú, día a día</small>
@@ -178,7 +179,6 @@ function ProgramDetail(props: {
   onBack: () => void
 }) {
   const { data, program, update, onBack } = props
-  const [editing, setEditing] = useState<Routine | 'new' | null>(null)
   const [confirming, setConfirming] = useState<Routine | null>(null)
   const [editingProgram, setEditingProgram] = useState(false)
 
@@ -229,7 +229,7 @@ function ProgramDetail(props: {
       </button>
       <div className="session-header">
         <div>
-          <h1 className="view-title">{program.name}</h1>
+          <h1 className="view-title compact">{program.name}</h1>
           <p className="view-subtitle">Elige el día de hoy</p>
         </div>
         <button
@@ -242,24 +242,20 @@ function ProgramDetail(props: {
         </button>
       </div>
       <div className="routine-list">
-        {days.map((routine) => {
+        {days.map((routine, idx) => {
           const last = lastDone(routine.id)
           return (
             <div key={routine.id} className="routine-card">
               <button type="button" className="routine-main" onClick={() => setConfirming(routine)}>
-                <span className="routine-name">{routine.name}</span>
-                <span className="routine-meta">
-                  {getRoutineItems(data, routine).length} ejercicios
-                  {last ? ` · última vez ${fmtDate(last)}` : ' · aún sin estrenar'}
+                <span className="day-num">{String(idx + 1).padStart(2, '0')}</span>
+                <span className="routine-text">
+                  <span className="routine-name">{routine.name}</span>
+                  <span className="routine-meta">
+                    {getRoutineItems(data, routine).length} ejercicios
+                    {last ? ` · última vez ${fmtDate(last)}` : ' · aún sin estrenar'}
+                  </span>
                 </span>
-              </button>
-              <button
-                type="button"
-                className="routine-edit"
-                onClick={() => setEditing(routine)}
-                aria-label={`Editar ${routine.name}`}
-              >
-                ✎
+                <span className="chevron-circle">›</span>
               </button>
             </div>
           )
@@ -275,14 +271,6 @@ function ProgramDetail(props: {
           program={program}
           update={update}
           onClose={() => setEditingProgram(false)}
-        />
-      )}
-      {editing && (
-        <RoutineEditor
-          data={data}
-          routine={editing === 'new' ? null : editing}
-          update={update}
-          onClose={() => setEditing(null)}
         />
       )}
       {confirming && (
@@ -314,7 +302,7 @@ function ProgramDetail(props: {
                 setConfirming(null)
               }}
             >
-              Empezar 🏋️
+              Empezar
             </button>
           </div>
         </Sheet>
@@ -469,7 +457,7 @@ function RoutineEditor(props: {
                     onClick={() => setInfoFor(def)}
                     aria-label="Ver técnica"
                   >
-                    🎬
+                    <PlayIcon />
                   </button>
                   <button
                     type="button"
@@ -559,7 +547,7 @@ function RoutineEditor(props: {
                         onClick={() => setInfoFor(ex)}
                         aria-label={`Ver técnica de ${ex.name}`}
                       >
-                        🎬
+                        <PlayIcon />
                       </button>
                     </div>
                   )
@@ -763,7 +751,12 @@ function ProgramEditor(props: {
                   {r.name}
                   <small className="day-meta"> · {getRoutineItems(data, r).length} ej.</small>
                 </span>
-                <button type="button" className="icon-btn subtle" onClick={() => setEditingDay(r)} aria-label="Editar día">
+                <button
+                  type="button"
+                  className="icon-btn subtle"
+                  onClick={() => setEditingDay(r)}
+                  aria-label={`Editar ${r.name}`}
+                >
                   ✎
                 </button>
                 <button
@@ -887,7 +880,7 @@ function AssistantSheet(props: {
   }
 
   return (
-    <Sheet open onClose={busy ? () => {} : onClose} title="✨ Asistente de rutinas">
+    <Sheet open onClose={busy ? () => {} : onClose} title="Asistente de rutinas">
       <p className="sheet-hint">Responde y te genero el programa completo.</p>
 
       <div className="routine-section-head">Tu objetivo</div>
@@ -962,7 +955,7 @@ function AssistantSheet(props: {
           Cancelar
         </button>
         <button type="button" className="btn-primary" onClick={() => void generate()} disabled={busy}>
-          {busy ? 'Generando…' : 'Generar rutina ✨'}
+          {busy ? 'Generando…' : 'Generar rutina'}
         </button>
       </div>
     </Sheet>
@@ -1114,19 +1107,31 @@ function ActiveSession(props: {
     update((d) => ({ ...d, sessions: d.sessions.filter((s) => s.id !== session.id) }))
   }
 
+  // progreso en vivo: series marcadas ✓ sobre el total de la sesión
+  const totalSets = sessionSetCount(session)
+  const doneSets = session.exercises.reduce(
+    (acc, l) => acc + l.sets.filter((s) => s.done).length,
+    0
+  )
+  const pct = totalSets > 0 ? (doneSets / totalSets) * 100 : 0
+
   return (
     <div className="view">
       <div className="session-header">
         <div>
-          <h1 className="view-title">{session.routineName}</h1>
+          <h1 className="view-title compact">{session.routineName}</h1>
           <p className="view-subtitle">
-            {sessionSetCount(session)} series ·{' '}
+            {doneSets} de {totalSets} series ·{' '}
             {session.exercises.filter((l) => l.sets.length > 0).length} ejercicios
           </p>
         </div>
         <button type="button" className="btn-primary" onClick={() => setFinishing(true)}>
           Terminar
         </button>
+      </div>
+
+      <div className="session-progress">
+        <div className="session-progress-fill" style={{ width: `${pct}%` }} />
       </div>
 
       {session.exercises.map((log, i) => (
@@ -1377,6 +1382,7 @@ function SetRow(props: {
           <option value="fallo">Fallo</option>
           <option value="negativas">Neg</option>
         </select>
+        <span className="set-spacer" />
         <button
           type="button"
           className={`set-check ${set.done ? 'checked' : ''}`}
@@ -1492,7 +1498,7 @@ function ExerciseInfoSheet(props: {
           target="_blank"
           rel="noreferrer"
         >
-          🎬 Buscar técnica en YouTube
+          Buscar técnica en YouTube
         </a>
       )}
 
@@ -1510,7 +1516,7 @@ function ExerciseInfoSheet(props: {
         </div>
       ) : (
         <button type="button" className="btn-ghost small" onClick={() => setEditingVideo(true)}>
-          {def.videoUrl ? '✏️ Cambiar vídeo' : '➕ Poner mi vídeo favorito'}
+          {def.videoUrl ? 'Cambiar vídeo' : 'Poner mi vídeo favorito'}
         </button>
       )}
 
@@ -1599,7 +1605,7 @@ function AddExerciseSheet(props: {
                   onClick={() => setInfoFor(ex)}
                   aria-label={`Ver técnica de ${ex.name}`}
                 >
-                  🎬
+                  <PlayIcon />
                 </button>
               </div>
             ))}
@@ -1696,13 +1702,13 @@ function FinishSheet(props: {
           <span className="stat-label">ejercicios</span>
         </div>
         <div className="stat">
-          <span className="stat-value">{prs.length > 0 ? `🏆 ${prs.length}` : '—'}</span>
+          <span className="stat-value">{prs.length > 0 ? prs.length : '—'}</span>
           <span className="stat-label">récords</span>
         </div>
       </div>
       {prs.length > 0 && (
         <div className="pr-box">
-          <p className="pr-title">🏆 ¡Récords personales!</p>
+          <p className="pr-title">Récords personales</p>
           {prs.map((p, i) => (
             <p key={i} className="pr-line">
               {p}
@@ -1712,7 +1718,7 @@ function FinishSheet(props: {
       )}
       {skipped > 0 && (
         <p className="sheet-hint">
-          ⚠️ {skipped} {skipped === 1 ? 'serie sin marcar ✓ no se guardará' : 'series sin marcar ✓ no se guardarán'}{' '}
+          {skipped} {skipped === 1 ? 'serie sin marcar ✓ no se guardará' : 'series sin marcar ✓ no se guardarán'}{' '}
           (eran el pre-relleno de la última vez).
         </p>
       )}
@@ -1762,7 +1768,9 @@ export function CreatineBanner({ data, update }: { data: AppData; update: Update
         })
       }
     >
-      💊 Creatina pendiente hoy — toca para marcarla
+      <span className="creatine-dot" />
+      <span className="banner-text">Creatina pendiente hoy — toca para marcarla</span>
+      <span className="banner-chevron">›</span>
     </button>
   )
 }

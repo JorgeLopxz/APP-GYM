@@ -44,7 +44,7 @@ export function MusclesView({ data }: { data: AppData }) {
       <h1 className="view-title">Músculos</h1>
       <div className="week-nav">
         <button type="button" className="icon-btn" onClick={() => setOffset((o) => o - 1)}>
-          ◀
+          ‹
         </button>
         <span className="week-label">{weekLabel(offset)}</span>
         <button
@@ -53,7 +53,7 @@ export function MusclesView({ data }: { data: AppData }) {
           disabled={offset >= 0}
           onClick={() => setOffset((o) => Math.min(0, o + 1))}
         >
-          ▶
+          ›
         </button>
       </div>
 
@@ -182,7 +182,7 @@ function WeakPoints({ data }: { data: AppData }) {
 
   return (
     <div className="settings-section">
-      <h2 className="settings-title">💡 Puntos débiles</h2>
+      <h2 className="settings-title">Puntos débiles</h2>
       <p className="hint-block">
         Media de las últimas {weeks === 1 ? 'semana' : `${weeks} semanas`}. Por debajo
         de ~6 series semanales un músculo apenas crece — estos son los tuyos más flojos,

@@ -20,13 +20,14 @@ import { SettingsView, ProfileSheet } from './views/SettingsView'
 
 type Tab = 'entreno' | 'timer' | 'progreso' | 'musculos' | 'historial' | 'ajustes'
 
+// iconos de línea de la tab bar (24×24, stroke redondeado)
 const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'entreno', label: 'Entreno', icon: '🏋️' },
-  { id: 'timer', label: 'Descanso', icon: '⏱' },
-  { id: 'progreso', label: 'Progreso', icon: '📈' },
-  { id: 'musculos', label: 'Músculos', icon: '🫀' },
-  { id: 'historial', label: 'Historial', icon: '📒' },
-  { id: 'ajustes', label: 'Ajustes', icon: '⚙️' }
+  { id: 'entreno', label: 'Entreno', icon: 'M6.5 6.5v11M3.5 8.5v7M17.5 6.5v11M20.5 8.5v7M6.5 12h11' },
+  { id: 'timer', label: 'Descanso', icon: 'M12 21a8 8 0 1 1 0-16 8 8 0 0 1 0 16ZM12 9.5V13l2.3 2.3M9.5 3h5' },
+  { id: 'progreso', label: 'Progreso', icon: 'M4 20h16M6.5 16.5l3.5-4.5 3 2.5 4.5-6' },
+  { id: 'musculos', label: 'Músculos', icon: 'M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM5.5 21c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5' },
+  { id: 'historial', label: 'Historial', icon: 'M5 5.5h14a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1ZM4 9.5h16M8.5 3v4M15.5 3v4' },
+  { id: 'ajustes', label: 'Ajustes', icon: 'M4 8h9M17 8h3M14 5v6M4 16h3M11 16h9M7 13v6' }
 ]
 
 export default function App() {
@@ -96,19 +97,13 @@ export default function App() {
   const timerActive = timer.endsAt !== null || timer.pausedRemaining !== null
 
   // ---- deslizar horizontal para cambiar de pestaña (estilo iOS) ----
-  const [dir, setDir] = useState<1 | -1>(1)
   const swipe = useRef<{ x: number; y: number; t: number } | null>(null)
 
-  const goTab = (next: Tab, direction: 1 | -1) => {
-    if (next === tab) return
-    setDir(direction)
-    setTab(next)
-  }
   const shiftTab = (delta: 1 | -1) => {
     const i = TABS.findIndex((t) => t.id === tab)
     const j = i + delta
     if (j < 0 || j >= TABS.length) return
-    goTab(TABS[j].id, delta)
+    setTab(TABS[j].id)
   }
 
   const onTouchStart = (e: RTouchEvent) => {
@@ -135,12 +130,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <main
-        className={`content ${dir === 1 ? 'slide-next' : 'slide-prev'}`}
-        key={tab}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-      >
+      <main className="content" key={tab} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {tab === 'entreno' && <WorkoutView data={data} update={update} />}
         {tab === 'timer' && (
           <TimerView data={data} update={update} timer={timer} setTimer={setTimer} />
@@ -175,7 +165,16 @@ export default function App() {
             className={`tab ${tab === t.id ? 'active' : ''}`}
             onClick={() => setTab(t.id)}
           >
-            <span className="tab-icon">{t.icon}</span>
+            <svg
+              viewBox="0 0 24 24"
+              className="tab-svg"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d={t.icon} />
+            </svg>
             <span className="tab-label">{t.label}</span>
           </button>
         ))}

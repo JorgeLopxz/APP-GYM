@@ -246,12 +246,12 @@ function BodyProgress({ data, update }: { data: AppData; update: Update }) {
         </div>
       </div>
       <button type="button" className="btn-ghost small" onClick={() => setEditingProfile(true)}>
-        ✏️ Editar perfil
+        Editar perfil
       </button>
 
       {cal ? (
         <div className="settings-section">
-          <h2 className="settings-title">🔥 Calorías estimadas</h2>
+          <h2 className="settings-title">Calorías estimadas</h2>
           <Segmented
             value={objetivo}
             onChange={(o: Objetivo) =>

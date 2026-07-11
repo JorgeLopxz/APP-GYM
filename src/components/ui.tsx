@@ -56,6 +56,29 @@ export function NumberField(props: {
 }
 
 // ---------------------------------------------------------------------------
+// PlayIcon: icono de línea para "ver técnica" (sustituye al emoji 🎬)
+// ---------------------------------------------------------------------------
+
+export function PlayIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M10 9.2v5.6L14.8 12Z" />
+    </svg>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Sheet: hoja modal que sube desde abajo
 // ---------------------------------------------------------------------------
 
@@ -165,13 +188,13 @@ export function LineChart(props: {
       <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
         <defs>
           <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#8e8e9a" />
-            <stop offset="0.5" stopColor="#f0f0f6" />
-            <stop offset="1" stopColor="#b9b9c6" />
+            <stop offset="0" stopColor="#8f8f9a" />
+            <stop offset="0.5" stopColor="#f4f4f9" />
+            <stop offset="1" stopColor="#bcbcc8" />
           </linearGradient>
           <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#d4d4de" stopOpacity="0.22" />
-            <stop offset="1" stopColor="#d4d4de" stopOpacity="0" />
+            <stop offset="0" stopColor="#d8d8e0" stopOpacity="0.2" />
+            <stop offset="1" stopColor="#d8d8e0" stopOpacity="0" />
           </linearGradient>
         </defs>
         {ticks.map((t, i) => (
@@ -181,8 +204,8 @@ export function LineChart(props: {
               x2={W - PAD.right}
               y1={y(t)}
               y2={y(t)}
-              stroke="#26262c"
-              strokeDasharray="3 4"
+              stroke="var(--line-hair)"
+              strokeDasharray="2 5"
             />
             <text x={PAD.left - 6} y={y(t) + 3} textAnchor="end" className="chart-tick">
               {fmtWeight(Math.round(t * 10) / 10)}
@@ -191,7 +214,7 @@ export function LineChart(props: {
         ))}
         {points.length > 1 && <path d={area} fill="url(#areaGrad)" />}
         {points.length > 1 && (
-          <path d={path} fill="none" stroke="url(#lineGrad)" strokeWidth="2.5" className="chart-line" />
+          <path d={path} fill="none" stroke="url(#lineGrad)" strokeWidth="2" className="chart-line" />
         )}
         {points.map((p, i) => (
           <g key={i} onClick={() => setSelected(i)} style={{ cursor: 'pointer' }}>
@@ -199,10 +222,10 @@ export function LineChart(props: {
             <circle
               cx={x(i)}
               cy={y(p.value)}
-              r={sel === i ? 5 : 3.5}
-              fill={sel === i ? '#f0f0f6' : '#0a0a0c'}
-              stroke="#d4d4de"
-              strokeWidth="2"
+              r={sel === i ? 5 : 3}
+              fill={sel === i ? 'var(--silver-bright)' : 'var(--bg)'}
+              stroke="var(--text-link)"
+              strokeWidth="1.5"
             />
           </g>
         ))}

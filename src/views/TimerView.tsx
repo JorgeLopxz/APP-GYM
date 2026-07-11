@@ -72,7 +72,7 @@ export function TimerView(props: {
   }
 
   // anillo de progreso
-  const R = 84
+  const R = 86
   const CIRC = 2 * Math.PI * R
   const progress =
     timer.endsAt === null && timer.pausedRemaining === null
@@ -90,25 +90,25 @@ export function TimerView(props: {
         <svg viewBox="0 0 200 200" className="timer-ring">
           <defs>
             <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#f0f0f6" />
-              <stop offset="1" stopColor="#8e8e9a" />
+              <stop offset="0" stopColor="#f4f4f9" />
+              <stop offset="1" stopColor="#8f8f9a" />
             </linearGradient>
           </defs>
-          <circle cx="100" cy="100" r={R} fill="none" stroke="#26262c" strokeWidth="10" />
+          <circle cx="100" cy="100" r={R} fill="none" stroke="#1e1e23" strokeWidth="6" />
           <circle
             cx="100"
             cy="100"
             r={R}
             fill="none"
-            stroke={finished ? '#46c98c' : 'url(#ringGrad)'}
-            strokeWidth="10"
+            stroke={finished ? 'var(--ok)' : 'url(#ringGrad)'}
+            strokeWidth="6"
             strokeLinecap="round"
             strokeDasharray={CIRC}
             strokeDashoffset={CIRC * (1 - Math.min(1, progress))}
             transform="rotate(-90 100 100)"
             style={{ transition: 'stroke-dashoffset 0.2s linear' }}
           />
-          <text x="100" y="108" textAnchor="middle" className="timer-text">
+          <text x="100" y="112" textAnchor="middle" className="timer-text">
             {finished ? '¡Listo!' : fmt(remaining)}
           </text>
         </svg>
@@ -117,15 +117,15 @@ export function TimerView(props: {
       <div className="timer-controls">
         {running ? (
           <button type="button" className="btn-ghost timer-btn" onClick={pause}>
-            ⏸ Pausa
+            Pausa
           </button>
         ) : (
           <button type="button" className="btn-primary timer-btn" onClick={start}>
-            {timer.pausedRemaining !== null ? '▶ Seguir' : '▶ Empezar'}
+            {timer.pausedRemaining !== null ? 'Seguir' : 'Empezar'}
           </button>
         )}
         <button type="button" className="btn-ghost timer-btn" onClick={reset}>
-          ↺ Reiniciar
+          Reiniciar
         </button>
       </div>
 
@@ -174,7 +174,7 @@ export function TimerChip(props: {
       className={`timer-chip ${finished ? 'done' : ''}`}
       onClick={finished ? onReset : onClick}
     >
-      {finished ? '⏱ ¡Descanso terminado! ✕' : `${paused ? '⏸' : '⏱'} ${fmt(remaining)}`}
+      {finished ? '¡Descanso terminado! ✕' : paused ? `${fmt(remaining)} · en pausa` : fmt(remaining)}
     </button>
   )
 }

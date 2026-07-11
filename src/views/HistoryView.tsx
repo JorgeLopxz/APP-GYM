@@ -48,7 +48,7 @@ function MonthCalendar(props: {
     <div className="calendar">
       <div className="week-nav">
         <button type="button" className="icon-btn" onClick={() => setOffset((o) => o - 1)}>
-          ◀
+          ‹
         </button>
         <span className="week-label">
           {label.charAt(0).toUpperCase() + label.slice(1)}
@@ -59,7 +59,7 @@ function MonthCalendar(props: {
           disabled={offset >= 0}
           onClick={() => setOffset((o) => Math.min(0, o + 1))}
         >
-          ▶
+          ›
         </button>
       </div>
       <div className="cal-grid">
@@ -90,7 +90,7 @@ function MonthCalendar(props: {
       <p className="cal-count">
         {monthCount === 0
           ? 'Sin entrenos este mes todavía'
-          : `${monthCount} ${monthCount === 1 ? 'entreno' : 'entrenos'} este mes 🔥`}
+          : `${monthCount} ${monthCount === 1 ? 'entreno' : 'entrenos'} este mes`}
       </p>
     </div>
   )

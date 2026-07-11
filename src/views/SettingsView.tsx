@@ -16,7 +16,7 @@ import { NumberField, Segmented, Sheet } from '../components/ui'
 type Update = (fn: (d: AppData) => AppData) => void
 
 /** Versión visible de la app. Súbela en cada release. */
-export const APP_VERSION = 'v0.20'
+export const APP_VERSION = 'v0.21'
 
 // ---------------------------------------------------------------------------
 // Perfil corporal: la app pide tus métricas para afinar los cálculos
@@ -63,7 +63,7 @@ export function ProfileSheet(props: {
   }
 
   return (
-    <Sheet open onClose={skip} title="Cuéntame sobre ti 💪">
+    <Sheet open onClose={skip} title="Cuéntame sobre ti">
       <p className="sheet-hint">
         Tu nombre identifica esta copia de la app (cada móvil guarda sus propios
         datos). Con tu peso corporal las dominadas cuentan los kilos de verdad y el
@@ -135,7 +135,7 @@ export function SettingsView(props: {
       <h1 className="view-title">Ajustes</h1>
 
       <section className="settings-section">
-        <h2 className="settings-title">👤 Perfil</h2>
+        <h2 className="settings-title">Perfil</h2>
         <p className="hint-block">
           {profile.edad
             ? `${profile.nombre ? profile.nombre + ' · ' : ''}${profile.edad} años · ${profile.alturaCm ?? '—'} cm · ${
@@ -144,7 +144,7 @@ export function SettingsView(props: {
             : 'Aún sin datos. Con tu nombre te saludamos al entrar; con edad, altura y peso afinamos las dominadas con peso real y la estimación de calorías.'}
         </p>
         <button type="button" className="btn-ghost" onClick={() => setEditingProfile(true)}>
-          ✏️ {profile.edad ? 'Editar perfil' : 'Completar perfil'}
+          {profile.edad ? 'Editar perfil' : 'Completar perfil'}
         </button>
         {editingProfile && (
           <ProfileSheet data={data} update={update} onClose={() => setEditingProfile(false)} />
@@ -152,7 +152,7 @@ export function SettingsView(props: {
       </section>
 
       <section className="settings-section">
-        <h2 className="settings-title">💊 Creatina</h2>
+        <h2 className="settings-title">Creatina</h2>
         <label className="check-row">
           <input
             type="checkbox"
@@ -206,7 +206,7 @@ export function SettingsView(props: {
               >
                 {takenToday ? 'Tomada hoy ✓' : 'Marcar tomada hoy'}
               </button>
-              <span className="streak">🔥 {streak} días seguidos</span>
+              <span className="streak">{streak} días seguidos</span>
             </div>
             <button
               type="button"
@@ -249,8 +249,8 @@ export function SettingsView(props: {
               }}
             >
               {settings.pushEnabled
-                ? '🔕 Desactivar avisos'
-                : '🔔 Activar avisos en el móvil'}
+                ? 'Desactivar avisos'
+                : 'Activar avisos en el móvil'}
             </button>
             <p className="hint-block">
               Lo envía nuestro servidor aunque tengas la app cerrada o el móvil
@@ -268,7 +268,7 @@ export function SettingsView(props: {
               className="btn-ghost"
               onClick={() => downloadCreatineICS(settings.creatineHour)}
             >
-              📅 Añadir al calendario del móvil
+              Añadir al calendario del móvil
             </button>
             {notifMsg && <p className="hint-block">{notifMsg}</p>}
             {!settings.pushEnabled && <PushDiagnostics />}
@@ -277,16 +277,16 @@ export function SettingsView(props: {
       </section>
 
       <section className="settings-section">
-        <h2 className="settings-title">💾 Tus datos</h2>
+        <h2 className="settings-title">Tus datos</h2>
         <p className="hint-block">
           Todo se guarda solo en este móvil, nada se sube a la nube. Haz una copia de
           vez en cuando por si cambias de dispositivo.
         </p>
         <button type="button" className="btn-ghost" onClick={() => exportJSON(data)}>
-          ⬇️ Exportar copia de seguridad
+          Exportar copia de seguridad
         </button>
         <button type="button" className="btn-ghost" onClick={() => fileRef.current?.click()}>
-          ⬆️ Importar copia
+          Importar copia
         </button>
         <input
           ref={fileRef}
@@ -319,12 +319,12 @@ export function SettingsView(props: {
             }
           }}
         >
-          🗑 Borrar todo y empezar de cero
+          Borrar todo y empezar de cero
         </button>
       </section>
 
       <section className="settings-section">
-        <h2 className="settings-title">📲 Instalar en el iPhone</h2>
+        <h2 className="settings-title">Instalar en el iPhone</h2>
         <ol className="install-steps">
           <li>Abre esta web en <strong>Safari</strong>.</li>
           <li>Toca el botón <strong>Compartir</strong> (cuadrado con flecha).</li>
@@ -334,7 +334,7 @@ export function SettingsView(props: {
       </section>
 
       <p className="version-line">
-        HIERRO {APP_VERSION} — hecho a medida para Jorge 🏋️
+        HIERRO {APP_VERSION} · Hecho a medida para Jorge
       </p>
     </div>
   )
