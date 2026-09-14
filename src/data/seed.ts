@@ -202,7 +202,7 @@ export const SEED_VIDEOS: Record<string, string> = {
   predicador: 'https://www.youtube.com/watch?v=lXbs6as_TvA',
   'curl-martillo': 'https://www.youtube.com/watch?v=mPvlpDWIoDA',
   'curl-femoral': 'https://www.youtube.com/watch?v=CBCPBnMzsMI',
-  hakka: 'https://www.youtube.com/watch?v=VNpkYdex6Yc',
+  hakka: 'https://www.youtube.com/watch?v=i4dMU7554Tk',
   'peso-muerto-rumano': 'https://www.youtube.com/watch?v=UgqrPwoTick',
   'extension-cuadriceps': 'https://www.youtube.com/watch?v=ndnA6yvGoqQ',
   'abduccion-gluteo': 'https://www.youtube.com/watch?v=2vCRMi-lgJ4',
@@ -279,7 +279,7 @@ export function buildSeedData(): AppData {
   // catálogo completo, con historial y perfil vacíos. Así, al instalar la app
   // (o tras borrar los datos), cada persona empieza de cero y la personaliza.
   return {
-    version: 7,
+    version: 8,
     exercises: [...seedExercisesWithVideos(), ...catalogExercisesWithVideos()],
     routines: SEED_ROUTINES,
     programs: [

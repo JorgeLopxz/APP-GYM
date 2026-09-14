@@ -27,7 +27,8 @@ export const MUSCLE_NAMES: Record<MuscleId, string> = {
   deltoide_lateral: 'Deltoide lateral',
   deltoide_posterior: 'Deltoide posterior',
   pecho_superior: 'Pecho superior',
-  pecho_inferior: 'Pecho inferior',
+  // porción esternal: la que trabajan el press plano, las aperturas o los fondos
+  pecho_inferior: 'Pecho medio-bajo',
   biceps: 'Bíceps',
   triceps: 'Tríceps',
   antebrazo: 'Antebrazo',
@@ -45,10 +46,35 @@ export const MUSCLE_NAMES: Record<MuscleId, string> = {
   gemelo: 'Gemelos'
 }
 
+/** Material con el que se hace el ejercicio (el principal; las variantes pueden cambiarlo). */
+export type Equipment =
+  | 'barra'
+  | 'mancuernas'
+  | 'maquina'
+  | 'polea'
+  | 'multipower'
+  | 'kettlebell'
+  | 'peso-corporal'
+  | 'otros'
+
+export const EQUIPMENT_LABEL: Record<Equipment, string> = {
+  barra: 'Barra',
+  mancuernas: 'Mancuernas',
+  maquina: 'Máquina',
+  polea: 'Polea',
+  multipower: 'Multipower',
+  kettlebell: 'Kettlebell',
+  'peso-corporal': 'Peso corporal',
+  otros: 'Otros'
+}
+
+export type Mechanic = 'compuesto' | 'aislamiento'
+export type Level = 'principiante' | 'intermedio' | 'avanzado'
+
 export interface ExerciseDef {
   id: string
   name: string
-  /** Variantes del ejercicio, p. ej. ['Hammer', 'Technogym']. Vacío = sin variantes. */
+  /** Variantes del ejercicio (equipo, agarre, ángulo…). Vacío = sin variantes. */
   variants: string[]
   primary: MuscleId[]
   secondary: MuscleId[]
@@ -56,6 +82,8 @@ export interface ExerciseDef {
   bodyweight?: boolean
   /** Vídeo de técnica (URL de YouTube) */
   videoUrl?: string
+  /** Solo en ejercicios creados por el usuario: los del catálogo lo leen de specs.ts */
+  equipment?: Equipment
 }
 
 export type SetTag = 'dropset' | 'fallo' | 'negativas'
@@ -75,6 +103,8 @@ export interface SetEntry {
 export interface ExerciseLog {
   exerciseId: string
   variant?: string
+  /** Marca de la máquina (Technogym, Hammer Strength…). Separa el historial. */
+  brand?: string
   sets: SetEntry[]
 }
 
@@ -93,6 +123,8 @@ export interface RoutineItem {
   exerciseId: string
   /** Variante elegida para esta rutina (texto libre: "Polea", "Tras nuca"…) */
   variant?: string
+  /** Marca de máquina habitual para este ejercicio en la rutina */
+  brand?: string
   /** Series objetivo predefinidas (peso × reps) para pre-rellenar el entreno */
   targetSets?: SetEntry[]
 }
@@ -109,7 +141,7 @@ export interface Routine {
 export type TrainingGoal = 'hipertrofia' | 'fuerza' | 'perdida' | 'mantenimiento'
 
 export const GOAL_LABEL: Record<TrainingGoal, string> = {
-  hipertrofia: 'Hipertrofia (músculo)',
+  hipertrofia: 'Hipertrofia',
   fuerza: 'Fuerza',
   perdida: 'Pérdida de grasa',
   mantenimiento: 'Mantenimiento'
@@ -167,6 +199,15 @@ export interface AppData {
   sessions: Session[]
   settings: Settings
   profile: Profile
+}
+
+/** Modifica los datos de la app de forma inmutable. */
+export type Update = (fn: (d: AppData) => AppData) => void
+
+export const LEVEL_LABEL: Record<Level, string> = {
+  principiante: 'Principiante',
+  intermedio: 'Intermedio',
+  avanzado: 'Avanzado'
 }
 
 /** Peso corporal actual (kg) o null si no se ha registrado. */

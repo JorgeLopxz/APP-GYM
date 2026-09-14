@@ -3,10 +3,12 @@ import { buildSeedData, seedExercisesWithVideos, SEED_VIDEOS } from '../data/see
 import {
   CATALOG_EXERCISES,
   CATALOG_VIDEOS,
-  catalogExercisesWithVideos
+  catalogExercisesWithVideos,
+  LEGACY_VIDEOS
 } from '../data/catalog'
+import { knownBrand, normalizeText } from '../data/brands'
 
-const CURRENT_VERSION = 7
+export const CURRENT_VERSION = 8
 
 const KEY = 'hierro-data-v1'
 
@@ -96,7 +98,7 @@ function migrate(parsed: AppData & { profile?: AppData['profile'] }): AppData {
     const dayIds = data.routines.map((r) => r.id)
     data = {
       ...data,
-      version: 7,
+      version: Math.max(7, data.version),
       programs:
         Array.isArray(data.programs) && data.programs.length > 0
           ? data.programs
@@ -112,7 +114,64 @@ function migrate(parsed: AppData & { profile?: AppData['profile'] }): AppData {
             : []
     }
   }
+  if (data.version === 7) {
+    data = migrateToV8(data)
+  }
   return data
+}
+
+/**
+ * v7 → v8: marcas de máquina y catálogo ampliado.
+ * - Las variantes que eran marcas («Hammer», «Technogym») pasan al campo
+ *   `brand` en sesiones y rutinas, así su historial sigue enlazado.
+ * - Los ejercicios que ganan variantes asignan la primera a lo ya registrado.
+ * - Se añaden los ejercicios nuevos y se actualizan los vídeos de técnica que
+ *   el usuario no cambió (los largos se sustituyeron por otros más cortos).
+ */
+function migrateToV8(data: AppData): AppData {
+  const canonList = [...seedExercisesWithVideos(), ...catalogExercisesWithVideos()]
+  const canon = new Map(canonList.map((e) => [e.id, e]))
+  const previous = new Map(data.exercises.map((e) => [e.id, e]))
+
+  const exercises: ExerciseDef[] = data.exercises.map((e) => {
+    const c = canon.get(e.id)
+    if (!c) {
+      const variants = e.variants.filter((v) => !knownBrand(v))
+      return variants.length === e.variants.length ? e : { ...e, variants }
+    }
+    const shipped = [...(LEGACY_VIDEOS[e.id] ?? []), c.videoUrl]
+    const ownVideo = !!e.videoUrl && !shipped.includes(e.videoUrl)
+    return {
+      ...e,
+      variants: c.variants,
+      videoUrl: ownVideo ? e.videoUrl : c.videoUrl ?? e.videoUrl
+    }
+  })
+  for (const c of canonList) if (!previous.has(c.id)) exercises.push(c)
+
+  const defs = new Map(exercises.map((e) => [e.id, e]))
+  const fix = <T extends { exerciseId: string; variant?: string; brand?: string }>(x: T): T => {
+    const def = defs.get(x.exerciseId)
+    const before = previous.get(x.exerciseId)
+    let { variant, brand } = x
+    const asBrand = knownBrand(variant)
+    if (asBrand && !brand) {
+      brand = asBrand.name
+      variant = def?.variants.find((v) => normalizeText(v) === 'maquina')
+    }
+    if (!variant && def && def.variants.length > 0 && before && before.variants.length === 0) {
+      variant = def.variants[0]
+    }
+    return variant === x.variant && brand === x.brand ? x : { ...x, variant, brand }
+  }
+
+  return {
+    ...data,
+    version: 8,
+    exercises,
+    sessions: data.sessions.map((s) => ({ ...s, exercises: s.exercises.map(fix) })),
+    routines: data.routines.map((r) => (r.items ? { ...r, items: r.items.map(fix) } : r))
+  }
 }
 
 export function loadData(): AppData {

@@ -1,20 +1,39 @@
 import { useMemo, useState } from 'react'
-import type { AppData, Objetivo } from '../types'
+import { Flame, TrendingUp } from 'lucide-react'
+import type { AppData, Objetivo, Update } from '../types'
 import { currentBodyweight } from '../types'
-import { bestSets, exerciseSeries, fmtWeight, getExercise, todayKey } from '../lib/stats'
+import {
+  bestSets,
+  brandsForExercise,
+  exerciseSeries,
+  finishedSessions,
+  fmtWeight,
+  getExercise,
+  loggedDimensions,
+  todayKey
+} from '../lib/stats'
 import { estimateCalories, OBJETIVO_LABEL } from '../lib/nutrition'
-import { LineChart, NumberField, Segmented } from '../components/ui'
+import {
+  EmptyState,
+  LineChart,
+  NumberField,
+  PageHeader,
+  PopupSelect,
+  Row,
+  Section,
+  Segmented
+} from '../components/ui'
+import { AvatarButton } from '../components/chrome'
 import { ProfileSheet } from './SettingsView'
-
-type Update = (fn: (d: AppData) => AppData) => void
 
 export function ProgressView({ data, update }: { data: AppData; update: Update }) {
   const [mode, setMode] = useState<'ejercicios' | 'cuerpo'>('ejercicios')
 
   return (
-    <div className="view">
-      <h1 className="view-title">Progreso</h1>
+    <div className="view is-wide">
+      <PageHeader title="Progreso" trailing={<AvatarButton />} wide />
       <Segmented
+        ariaLabel="Qué quieres ver"
         value={mode}
         onChange={setMode}
         options={[
@@ -22,23 +41,19 @@ export function ProgressView({ data, update }: { data: AppData; update: Update }
           { value: 'cuerpo', label: 'Mi cuerpo' }
         ]}
       />
-      {mode === 'ejercicios' ? (
-        <ExerciseProgress data={data} />
-      ) : (
-        <BodyProgress data={data} update={update} />
-      )}
+      {mode === 'ejercicios' ? <ExerciseProgress data={data} /> : <BodyProgress data={data} update={update} />}
     </div>
   )
 }
 
 // ---------------------------------------------------------------------------
-// Progreso por ejercicio
+// Progreso por ejercicio, filtrable por variante y por marca
 // ---------------------------------------------------------------------------
 
 type Metric = 'maxWeight' | 'maxE1rm' | 'maxReps'
 
 const METRIC_LABEL: Record<Metric, string> = {
-  maxWeight: 'Peso máx',
+  maxWeight: 'Peso máx.',
   maxE1rm: 'RM est.',
   maxReps: 'Reps'
 }
@@ -49,141 +64,158 @@ const METRIC_UNIT: Record<Metric, string> = {
   maxReps: 'reps'
 }
 
+const ALL = '__all__'
+const NONE = '__none__'
+
 function ExerciseProgress({ data }: { data: AppData }) {
-  // ejercicios con al menos un registro
+  // ejercicios con registros, del más reciente al más antiguo
   const trained = useMemo(() => {
-    const ids = new Set<string>()
-    for (const s of data.sessions) {
-      if (!s.finished) continue
-      for (const log of s.exercises) if (log.sets.length > 0) ids.add(log.exerciseId)
+    const order: string[] = []
+    const sessions = finishedSessions(data)
+    for (let i = sessions.length - 1; i >= 0; i--) {
+      for (const log of sessions[i].exercises) {
+        if (log.sets.length > 0 && !order.includes(log.exerciseId)) order.push(log.exerciseId)
+      }
     }
-    return data.exercises.filter((e) => ids.has(e.id))
+    return order.map((id) => getExercise(data, id)).filter((e) => !!e)
   }, [data])
 
+  // con varias marcas, arranca en la última usada: mezclar máquinas distintas
+  // dibujaría subidas y bajadas que no son reales
+  const defaultBrand = (id?: string) => {
+    if (!id) return ALL
+    const brands = brandsForExercise(data, id)
+    return brands.length >= 2 ? brands[0] : ALL
+  }
   const [exerciseId, setExerciseId] = useState<string>(trained[0]?.id ?? '')
-  const def = getExercise(data, exerciseId) ?? trained[0]
-  const effectiveId = def?.id ?? ''
-
-  const [variant, setVariant] = useState<string>('__all__')
+  const [variant, setVariant] = useState<string>(ALL)
+  const [brand, setBrand] = useState<string>(() => defaultBrand(trained[0]?.id))
   const [metric, setMetric] = useState<Metric>('maxWeight')
 
+  const def = trained.find((e) => e.id === exerciseId) ?? trained[0]
+
   if (!def) {
-    return <p className="view-subtitle">Termina tu primer entreno para ver gráficas.</p>
+    return (
+      <div className="group">
+        <EmptyState icon={<TrendingUp size={28} />} title="Aún sin gráficas">
+          Termina tu primer entreno y aquí verás cómo suben tus kilos, sesión a sesión.
+        </EmptyState>
+      </div>
+    )
   }
 
-  const bw = currentBodyweight(data.profile)
-  const variantValue =
-    def.variants.length > 0 && variant !== '__all__' && def.variants.includes(variant)
-      ? variant
-      : undefined
+  const dims = loggedDimensions(data, def.id)
+  const variantValue = variant !== ALL && dims.variants.includes(variant) ? variant : undefined
+  const brandValue =
+    brand === NONE ? '' : brand !== ALL && dims.brands.includes(brand) ? brand : undefined
 
-  const points = exerciseSeries(data, effectiveId, variantValue)
+  const bw = currentBodyweight(data.profile)
+  const points = exerciseSeries(data, def.id, variantValue, brandValue)
   // en ejercicios a peso corporal sin peso registrado, los kg no significan nada
-  const chartMetric: Metric =
-    def.bodyweight && !bw && metric === 'maxWeight' ? 'maxReps' : metric
+  const chartMetric: Metric = def.bodyweight && !bw && metric === 'maxWeight' ? 'maxReps' : metric
+  const unit = METRIC_UNIT[chartMetric]
 
   const chartPoints = points.map((p) => ({
     label: new Date(p.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
     value: p[chartMetric]
   }))
 
-  const bests = bestSets(data, effectiveId, variantValue)
-
+  const bests = bestSets(data, def.id, variantValue, brandValue)
   const first = chartPoints[0]?.value ?? 0
   const lastVal = chartPoints[chartPoints.length - 1]?.value ?? 0
-  const delta = lastVal - first
-  const relative = bw && bests.byE1rm ? bests.byE1rm.value / bw : null
+  const delta = Math.round((lastVal - first) * 10) / 10
+  const relative = bw && bests.byE1rm && !def.bodyweight ? bests.byE1rm.value / bw : null
 
   const fmtBest = (b: { weight: number; reps: number } | null) =>
-    b ? `${fmtWeight(b.weight)}×${b.reps}` : '—'
+    b ? `${fmtWeight(Math.round(b.weight * 10) / 10)} kg × ${b.reps}` : '—'
+
+  const variantOptions = [
+    { value: ALL, label: 'Todas las variantes' },
+    ...dims.variants.map((v) => ({ value: v, label: v }))
+  ]
+  const brandOptions = [
+    { value: ALL, label: 'Todas las marcas' },
+    ...dims.brands.map((b) => ({ value: b, label: b })),
+    ...(dims.unbranded && dims.brands.length > 0 ? [{ value: NONE, label: 'Sin marca' }] : [])
+  ]
 
   return (
-    <>
-      <select
-        className="big-select"
-        value={effectiveId}
-        onChange={(e) => {
-          setExerciseId(e.target.value)
-          setVariant('__all__')
-        }}
-      >
-        {trained.map((ex) => (
-          <option key={ex.id} value={ex.id}>
-            {ex.name}
-          </option>
-        ))}
-      </select>
-
-      {def.variants.length > 0 && (
-        <Segmented
-          value={def.variants.includes(variant) ? variant : '__all__'}
-          onChange={setVariant}
-          options={[
-            { value: '__all__', label: 'Todas' },
-            ...def.variants.map((v) => ({ value: v, label: v }))
-          ]}
+    <div className="split">
+      <div className="stack is-sticky">
+        <PopupSelect
+          className="is-large"
+          ariaLabel="Ejercicio"
+          value={def.id}
+          options={trained.map((e) => ({ value: e.id, label: e.name }))}
+          onChange={(v) => {
+            setExerciseId(v)
+            setVariant(ALL)
+            setBrand(defaultBrand(v))
+          }}
         />
-      )}
-
-      <Segmented
-        value={chartMetric}
-        onChange={(m) => setMetric(m)}
-        options={(def.bodyweight && !bw
-          ? (['maxReps', 'maxE1rm'] as Metric[])
-          : (['maxWeight', 'maxE1rm', 'maxReps'] as Metric[])
-        ).map((m) => ({
-          value: m,
-          label: def.bodyweight && m === 'maxWeight' ? 'Peso total' : METRIC_LABEL[m]
-        }))}
-      />
-
-      {def.bodyweight && bw ? (
-        <p className="hint-block">
-          Dominadas y similares cuentan tu peso corporal ({fmtWeight(bw)} kg) + lastre.
-        </p>
-      ) : null}
-
-      <LineChart points={chartPoints} unit={METRIC_UNIT[chartMetric]} />
-
-      <div className="stat-grid">
-        <div className="stat-card">
-          <span className="stat-value">{fmtBest(bests.byWeight)}</span>
-          <span className="stat-label">{def.bodyweight ? 'peso total máx' : 'mejor peso'}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-value">{fmtBest(bests.byReps)}</span>
-          <span className="stat-label">más reps</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-value">
-            {bests.byE1rm ? `${fmtWeight(Math.round(bests.byE1rm.value * 10) / 10)} kg` : '—'}
-          </span>
-          <span className="stat-label">
-            RM estimado{bests.byE1rm ? ` (con ${fmtBest(bests.byE1rm)})` : ''}
-          </span>
-        </div>
-        {relative ? (
-          <div className="stat-card">
-            <span className="stat-value">{relative.toFixed(2)}×</span>
-            <span className="stat-label">tu peso corporal</span>
-          </div>
-        ) : (
-          <div className="stat-card">
-            <span className={`stat-value ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}`}>
-              {delta > 0 ? '+' : ''}
-              {fmtWeight(Math.round(delta * 10) / 10)}
-            </span>
-            <span className="stat-label">desde el inicio</span>
+        {(dims.variants.length > 1 || dims.brands.length > 0) && (
+          <div className="filter-bar">
+            {dims.variants.length > 1 && (
+              <PopupSelect ariaLabel="Variante" value={variantValue ?? ALL} options={variantOptions} onChange={setVariant} />
+            )}
+            {dims.brands.length > 0 && (
+              <PopupSelect
+                ariaLabel="Marca"
+                value={brand === NONE ? NONE : brandValue ?? ALL}
+                options={brandOptions}
+                onChange={setBrand}
+              />
+            )}
           </div>
         )}
+        <Segmented
+          ariaLabel="Métrica"
+          value={chartMetric}
+          onChange={setMetric}
+          options={(def.bodyweight && !bw
+            ? (['maxReps', 'maxE1rm'] as Metric[])
+            : (['maxWeight', 'maxE1rm', 'maxReps'] as Metric[])
+          ).map((m) => ({
+            value: m,
+            label: def.bodyweight && m === 'maxWeight' ? 'Peso total' : METRIC_LABEL[m]
+          }))}
+        />
+        <LineChart points={chartPoints} unit={unit} emptyText="Sin registros con este filtro." />
       </div>
 
-      <p className="hint-block">
-        El <strong>RM estimado</strong> traduce cada serie a su equivalente a 1
-        repetición máxima, así comparas sesiones aunque cambies de reps: 80×7 y 90×3
-        quedan en la misma escala.
-      </p>
-    </>
+      <div className="stack">
+        <Section
+          title="Récords"
+          footer="El RM estimado traduce cada serie a su equivalente a una repetición máxima: así comparas 80×7 con 90×3 en la misma escala."
+        >
+          <Row title={def.bodyweight ? 'Peso total máximo' : 'Mejor peso'} detail={fmtBest(bests.byWeight)} />
+          <Row title="Más repeticiones" detail={fmtBest(bests.byReps)} />
+          <Row
+            title="RM estimado"
+            subtitle={bests.byE1rm ? `Con ${fmtBest(bests.byE1rm)}` : undefined}
+            detail={bests.byE1rm ? `${fmtWeight(Math.round(bests.byE1rm.value * 10) / 10)} kg` : '—'}
+          />
+          {relative && <Row title="Respecto a tu peso" detail={`${relative.toFixed(2)}×`} />}
+          {points.length > 1 && (
+            <Row
+              title="Desde el primer registro"
+              detail={
+                <span className={delta > 0 ? 'is-up' : delta < 0 ? 'is-down' : ''}>
+                  {delta > 0 ? '+' : ''}
+                  {fmtWeight(delta)} {unit}
+                </span>
+              }
+            />
+          )}
+          <Row title="Sesiones registradas" detail={points.length} />
+        </Section>
+        {def.bodyweight && bw ? (
+          <p className="section-foot">
+            En {def.name.toLowerCase()} el peso total suma tu peso corporal ({fmtWeight(bw)} kg) y el lastre.
+          </p>
+        ) : null}
+      </div>
+    </div>
   )
 }
 
@@ -196,12 +228,10 @@ function BodyProgress({ data, update }: { data: AppData; update: Update }) {
   const bw = currentBodyweight(profile)
   const [newWeight, setNewWeight] = useState(bw ?? 70)
   const [editingProfile, setEditingProfile] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   const chartPoints = profile.pesoLog.map((e) => ({
-    label: new Date(e.date + 'T12:00:00').toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'short'
-    }),
+    label: new Date(e.date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
     value: e.kg
   }))
 
@@ -216,87 +246,87 @@ function BodyProgress({ data, update }: { data: AppData; update: Update }) {
         ...d,
         profile: {
           ...d.profile,
-          pesoLog: [...log, { date: today, kg: newWeight }].sort((a, b) =>
-            a.date.localeCompare(b.date)
-          )
+          pesoLog: [...log, { date: today, kg: newWeight }].sort((a, b) => a.date.localeCompare(b.date))
         }
       }
     })
+    setSaved(true)
   }
 
   return (
-    <>
-      <LineChart points={chartPoints} unit="kg" />
-
-      <div className="weight-add">
-        <NumberField label="kg hoy" value={newWeight} step={0.5} min={30} onChange={setNewWeight} />
-        <button type="button" className="btn-primary" onClick={logWeight}>
-          Registrar peso
-        </button>
-      </div>
-
-      <div className="stat-grid">
-        <div className="stat-card">
-          <span className="stat-value">{profile.edad ?? '—'}</span>
-          <span className="stat-label">edad</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-value">{profile.alturaCm ? `${profile.alturaCm} cm` : '—'}</span>
-          <span className="stat-label">altura</span>
-        </div>
-      </div>
-      <button type="button" className="btn-ghost small" onClick={() => setEditingProfile(true)}>
-        ✏️ Editar perfil
-      </button>
-
-      {cal ? (
-        <div className="settings-section">
-          <h2 className="settings-title">🔥 Calorías estimadas</h2>
-          <Segmented
-            value={objetivo}
-            onChange={(o: Objetivo) =>
-              update((d) => ({ ...d, profile: { ...d.profile, objetivo: o } }))
+    <div className="split">
+      <div className="stack is-sticky">
+        <LineChart points={chartPoints} unit="kg" emptyText="Registra tu peso para ver cómo evoluciona." />
+        <Section footer={saved ? 'Peso de hoy guardado.' : 'Si ya registraste hoy, se sustituye.'}>
+          <Row
+            title="Peso de hoy"
+            accessory={
+              <NumberField
+                value={newWeight}
+                step={0.5}
+                min={30}
+                ariaLabel="Peso de hoy en kilos"
+                onChange={(v) => {
+                  setNewWeight(v)
+                  setSaved(false)
+                }}
+              />
             }
-            options={(Object.keys(OBJETIVO_LABEL) as Objetivo[]).map((o) => ({
-              value: o,
-              label: OBJETIVO_LABEL[o]
-            }))}
           />
-          <div className="stat-grid">
-            <div className="stat-card">
-              <span className="stat-value">{cal.tdee.toLocaleString('es-ES')}</span>
-              <span className="stat-label">mantenimiento kcal</span>
+          <Row title="Registrar peso" tint onClick={logWeight} />
+        </Section>
+      </div>
+
+      <div className="stack">
+        <Section title="Perfil">
+          <Row title="Edad" detail={profile.edad ? `${profile.edad} años` : '—'} />
+          <Row title="Altura" detail={profile.alturaCm ? `${profile.alturaCm} cm` : '—'} />
+          <Row title="Sexo" detail={profile.sexo === 'F' ? 'Mujer' : profile.sexo === 'M' ? 'Hombre' : '—'} />
+          <Row title="Editar perfil" tint onClick={() => setEditingProfile(true)} />
+        </Section>
+
+        {cal ? (
+          <Section
+            title="Calorías estimadas"
+            footer="Estimación con Mifflin-St Jeor y tu frecuencia real de entreno; no es consejo médico. Si en 2–3 semanas la báscula no se mueve hacia tu objetivo, ajusta ±150 kcal."
+          >
+            <div className="row">
+              <div className="row-fill">
+                <Segmented
+                  ariaLabel="Objetivo"
+                  value={objetivo}
+                  onChange={(o: Objetivo) => update((d) => ({ ...d, profile: { ...d.profile, objetivo: o } }))}
+                  options={(Object.keys(OBJETIVO_LABEL) as Objetivo[]).map((o) => ({
+                    value: o,
+                    label: OBJETIVO_LABEL[o]
+                  }))}
+                />
+              </div>
             </div>
-            <div className="stat-card">
-              <span className="stat-value up">{cal.target.toLocaleString('es-ES')}</span>
-              <span className="stat-label">objetivo kcal/día</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-value">
-                {cal.proteinMin}–{cal.proteinMax} g
-              </span>
-              <span className="stat-label">proteína/día</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-value">{cal.sessionsPerWeek}</span>
-              <span className="stat-label">entrenos/semana</span>
-            </div>
-          </div>
-          <p className="hint-block">
-            Estimación con Mifflin-St Jeor y tu frecuencia real de entreno (no es
-            consejo médico). La báscula manda: si en 2–3 semanas no te mueves hacia tu
-            objetivo, ajusta ±150 kcal.
-          </p>
-        </div>
-      ) : (
-        <button type="button" className="btn-ghost" onClick={() => setEditingProfile(true)}>
-          Completa tu perfil (edad, sexo, altura y peso) para estimar tus calorías
-        </button>
-      )}
+            <Row title="Mantenimiento" detail={`${cal.tdee.toLocaleString('es-ES')} kcal`} />
+            <Row
+              title="Objetivo diario"
+              detail={<span className="tint-text">{cal.target.toLocaleString('es-ES')} kcal</span>}
+            />
+            <Row title="Proteína" detail={`${cal.proteinMin}–${cal.proteinMax} g`} />
+            <Row title="Entrenos por semana" detail={cal.sessionsPerWeek.toLocaleString('es-ES')} />
+          </Section>
+        ) : (
+          <Section>
+            <Row
+              icon={<Flame />}
+              title="Estima tus calorías"
+              subtitle="Completa edad, sexo, altura y peso"
+              chevron
+              onClick={() => setEditingProfile(true)}
+            />
+          </Section>
+        )}
+      </div>
 
       {editingProfile && (
         <ProfileSheet data={data} update={update} onClose={() => setEditingProfile(false)} />
       )}
-    </>
+    </div>
   )
 }

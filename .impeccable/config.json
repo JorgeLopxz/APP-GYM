@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-09-14T15:46:50.273Z",
+        "reason": "user confirmed: Jorge chose SF Pro (system) with Inter only as the non-Apple fallback in the 2026-09-14 question round"
+      }
+    ]
+  }
+}

@@ -3,10 +3,13 @@ import type {
   ExerciseDef,
   ExerciseLog,
   MuscleId,
+  Program,
+  Routine,
   Session,
   SetEntry
 } from '../types'
 import { currentBodyweight } from '../types'
+import { musclesFor } from './exercise'
 
 /** 1RM estimado (fórmula de Epley). Para comparar series con distintas reps. */
 export function e1rm(weight: number, reps: number): number {
@@ -32,14 +35,6 @@ export function logVolume(log: ExerciseLog, base = 0): number {
   return log.sets.reduce((acc, set) => acc + setVolume(set, base), 0)
 }
 
-export function sessionVolume(data: AppData, session: Session): number {
-  const defs = new Map(data.exercises.map((e) => [e.id, e]))
-  return session.exercises.reduce(
-    (acc, log) => acc + logVolume(log, exerciseBase(data, defs.get(log.exerciseId))),
-    0
-  )
-}
-
 export function sessionSetCount(session: Session): number {
   return session.exercises.reduce((acc, log) => acc + log.sets.length, 0)
 }
@@ -50,11 +45,22 @@ export function finishedSessions(data: AppData): Session[] {
     .sort((a, b) => a.date.localeCompare(b.date))
 }
 
-/** Última vez que se hizo un ejercicio (+variante), para mostrar de referencia. */
+/** Compara variante o marca tratando "sin valor" como cadena vacía. */
+const same = (a?: string, b?: string) => (a ?? '') === (b ?? '')
+
+/**
+ * Filtro de variante/marca en historial y gráficas: undefined = todas;
+ * '' = solo registros sin variante/marca; texto = exactamente esa.
+ */
+const passes = (filter: string | undefined, value?: string) =>
+  filter === undefined || same(filter, value)
+
+/** Última vez que se hizo un ejercicio con ESA variante y ESA marca. */
 export function lastLog(
   data: AppData,
   exerciseId: string,
   variant: string | undefined,
+  brand: string | undefined,
   excludeSessionId?: string
 ): { date: string; sets: SetEntry[] } | null {
   const sessions = finishedSessions(data)
@@ -62,19 +68,23 @@ export function lastLog(
     const session = sessions[i]
     if (session.id === excludeSessionId) continue
     const log = session.exercises.find(
-      (l) => l.exerciseId === exerciseId && (l.variant ?? '') === (variant ?? '')
+      (l) =>
+        l.exerciseId === exerciseId &&
+        same(l.variant, variant) &&
+        same(l.brand, brand) &&
+        l.sets.length > 0
     )
-    if (log && log.sets.length > 0) return { date: session.date, sets: log.sets }
+    if (log) return { date: session.date, sets: log.sets }
   }
   return null
 }
 
-/** Último registro del ejercicio con cualquier variante (para pre-rellenar). */
+/** Último registro del ejercicio con cualquier variante y marca. */
 export function lastLogAny(
   data: AppData,
   exerciseId: string,
   excludeSessionId?: string
-): { date: string; variant?: string; sets: SetEntry[] } | null {
+): { date: string; variant?: string; brand?: string; sets: SetEntry[] } | null {
   const sessions = finishedSessions(data)
   for (let i = sessions.length - 1; i >= 0; i--) {
     const session = sessions[i]
@@ -82,7 +92,9 @@ export function lastLogAny(
     const log = session.exercises.find(
       (l) => l.exerciseId === exerciseId && l.sets.length > 0
     )
-    if (log) return { date: session.date, variant: log.variant, sets: log.sets }
+    if (log) {
+      return { date: session.date, variant: log.variant, brand: log.brand, sets: log.sets }
+    }
   }
   return null
 }
@@ -90,6 +102,55 @@ export function lastLogAny(
 /** Copia las series de una sesión anterior como plantilla (sin marcar hechas). */
 export function prefillSets(sets: SetEntry[]): SetEntry[] {
   return sets.map((s) => ({ ...s, done: false }))
+}
+
+/** Marcas usadas con un ejercicio, de la más reciente a la más antigua. */
+export function brandsForExercise(data: AppData, exerciseId: string): string[] {
+  const out: string[] = []
+  const sessions = finishedSessions(data)
+  for (let i = sessions.length - 1; i >= 0; i--) {
+    for (const log of sessions[i].exercises) {
+      if (log.exerciseId === exerciseId && log.brand && !out.includes(log.brand)) {
+        out.push(log.brand)
+      }
+    }
+  }
+  return out
+}
+
+/** Marcas usadas en cualquier ejercicio, de la más reciente a la más antigua. */
+export function recentBrands(data: AppData): string[] {
+  const out: string[] = []
+  const sessions = finishedSessions(data)
+  for (let i = sessions.length - 1; i >= 0; i--) {
+    for (const log of sessions[i].exercises) {
+      if (log.brand && !out.includes(log.brand)) out.push(log.brand)
+    }
+  }
+  for (const r of data.routines) {
+    for (const it of r.items ?? []) if (it.brand && !out.includes(it.brand)) out.push(it.brand)
+  }
+  return out
+}
+
+/** Variantes y marcas con registros de un ejercicio (para filtrar gráficas). */
+export function loggedDimensions(
+  data: AppData,
+  exerciseId: string
+): { variants: string[]; brands: string[]; unbranded: boolean } {
+  const variants: string[] = []
+  const brands: string[] = []
+  let unbranded = false
+  for (const s of finishedSessions(data)) {
+    for (const log of s.exercises) {
+      if (log.exerciseId !== exerciseId || log.sets.length === 0) continue
+      if (log.variant && !variants.includes(log.variant)) variants.push(log.variant)
+      if (log.brand) {
+        if (!brands.includes(log.brand)) brands.push(log.brand)
+      } else unbranded = true
+    }
+  }
+  return { variants, brands, unbranded }
 }
 
 export interface ExercisePoint {
@@ -102,22 +163,22 @@ export interface ExercisePoint {
 }
 
 /**
- * Serie temporal de un ejercicio (+variante) a lo largo de las sesiones.
- * En ejercicios a peso corporal, si hay peso registrado en el perfil, los kilos
- * incluyen el cuerpo (dominadas de un usuario de 75 kg con 5 kg de lastre = 80 kg).
+ * Serie temporal de un ejercicio a lo largo de las sesiones, filtrada por
+ * variante y marca (undefined = todas). En ejercicios a peso corporal, si hay
+ * peso registrado en el perfil, los kilos incluyen el cuerpo.
  */
 export function exerciseSeries(
   data: AppData,
   exerciseId: string,
-  variant: string | undefined
+  variant: string | undefined,
+  brand?: string
 ): ExercisePoint[] {
   const base = exerciseBase(data, getExercise(data, exerciseId))
   const points: ExercisePoint[] = []
   for (const session of finishedSessions(data)) {
     const logs = session.exercises.filter(
       (l) =>
-        l.exerciseId === exerciseId &&
-        (variant === undefined || (l.variant ?? '') === variant)
+        l.exerciseId === exerciseId && passes(variant, l.variant) && passes(brand, l.brand)
     )
     const sets = logs.flatMap((l) => l.sets)
     if (sets.length === 0) continue
@@ -140,14 +201,14 @@ export interface BestSet {
 }
 
 /**
- * Mejores series de un ejercicio (+variante) CON contexto: el mejor peso con
- * sus reps ("100×6"), las más reps con su peso ("80×12") y el mejor RM con la
- * serie que lo produjo. Incluye el peso corporal en ejercicios bodyweight.
+ * Mejores series de un ejercicio CON contexto: el mejor peso con sus reps
+ * ("100×6"), las más reps con su peso y el mejor RM con la serie que lo produjo.
  */
 export function bestSets(
   data: AppData,
   exerciseId: string,
-  variant: string | undefined
+  variant: string | undefined,
+  brand?: string
 ): { byWeight: BestSet | null; byReps: BestSet | null; byE1rm: BestSet | null } {
   const base = exerciseBase(data, getExercise(data, exerciseId))
   let byWeight: BestSet | null = null
@@ -156,7 +217,7 @@ export function bestSets(
   for (const session of finishedSessions(data)) {
     for (const log of session.exercises) {
       if (log.exerciseId !== exerciseId) continue
-      if (variant !== undefined && (log.variant ?? '') !== variant) continue
+      if (!passes(variant, log.variant) || !passes(brand, log.brand)) continue
       for (const set of log.sets) {
         const w = set.weight + base
         const rm = e1rm(w, set.reps)
@@ -181,10 +242,12 @@ export interface PRs {
   maxReps: number
 }
 
+/** Récords previos del ejercicio con esa variante y esa marca. */
 export function prsBefore(
   data: AppData,
   exerciseId: string,
   variant: string | undefined,
+  brand: string | undefined,
   beforeSessionId: string,
   beforeDate?: string
 ): PRs {
@@ -195,7 +258,7 @@ export function prsBefore(
     if (beforeDate && session.date >= beforeDate) continue
     for (const log of session.exercises) {
       if (log.exerciseId !== exerciseId) continue
-      if ((log.variant ?? '') !== (variant ?? '')) continue
+      if (!same(log.variant, variant) || !same(log.brand, brand)) continue
       for (const set of log.sets) {
         prs.maxWeight = Math.max(prs.maxWeight, set.weight)
         prs.maxE1rm = Math.max(prs.maxE1rm, e1rm(set.weight, set.reps))
@@ -204,6 +267,43 @@ export function prsBefore(
     }
   }
   return prs
+}
+
+// ---------------------------------------------------------------------------
+// Qué toca hoy: el día siguiente al último entrenado de su programa
+// ---------------------------------------------------------------------------
+
+export function nextUp(
+  data: AppData
+): { program: Program; routine: Routine; lastDone: string | null } | null {
+  const exists = (id: string) => data.routines.some((r) => r.id === id)
+  const programs = data.programs.filter((p) => p.dayIds.some(exists))
+  if (programs.length === 0) return null
+
+  const finished = finishedSessions(data)
+  const last = [...finished].reverse().find((s) => programs.some((p) => p.dayIds.includes(s.routineId)))
+
+  let program = programs[0]
+  let nextId = program.dayIds.find(exists)!
+  if (last) {
+    program = programs.find((p) => p.dayIds.includes(last.routineId))!
+    const order = program.dayIds
+    const idx = order.indexOf(last.routineId)
+    for (let k = 1; k <= order.length; k++) {
+      const candidate = order[(idx + k) % order.length]
+      if (exists(candidate)) {
+        nextId = candidate
+        break
+      }
+    }
+  }
+  const routine = data.routines.find((r) => r.id === nextId)!
+  const doneOnes = finished.filter((s) => s.routineId === routine.id)
+  return {
+    program,
+    routine,
+    lastDone: doneOnes.length > 0 ? doneOnes[doneOnes.length - 1].date : null
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -258,8 +358,9 @@ export function muscleWeek(data: AppData, offset: number): MuscleWeek {
         map.set(def.name, (map.get(def.name) ?? 0) + amount)
         result.sources[muscle] = map
       }
-      for (const m of def.primary) add(m, log.sets.length)
-      for (const m of def.secondary) add(m, log.sets.length * 0.5)
+      const muscles = musclesFor(def, log.variant)
+      for (const m of muscles.primary) add(m, log.sets.length)
+      for (const m of muscles.secondary) add(m, log.sets.length * 0.5)
     }
   }
   return result
@@ -330,6 +431,18 @@ export function fmtDate(iso: string): string {
     day: 'numeric',
     month: 'short'
   })
+}
+
+/** "hoy", "ayer", "hace 3 días" o la fecha corta si hace más de una semana. */
+export function fmtRelative(iso: string): string {
+  const d = new Date(iso)
+  const today = new Date()
+  const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime()
+  const days = Math.round((startOf(today) - startOf(d)) / 86400000)
+  if (days <= 0) return 'hoy'
+  if (days === 1) return 'ayer'
+  if (days < 7) return `hace ${days} días`
+  return fmtDate(iso)
 }
 
 export function todayKey(date = new Date()): string {

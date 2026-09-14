@@ -1,5 +1,6 @@
 import type { AppData, Program, Routine, RoutineItem, SetEntry, TrainingGoal } from '../types'
-import { MUSCLE_NAMES } from '../types'
+import { EQUIPMENT_LABEL, MUSCLE_NAMES } from '../types'
+import { exerciseSpecs } from './exercise'
 import { PUSH_SERVER } from './push'
 import { uid } from './storage'
 import type { Experience, GenResult } from './generator'
@@ -31,10 +32,12 @@ export async function generateProgramAI(
   input: AIInput
 ): Promise<GenResult> {
   const valid = new Map(data.exercises.map((e) => [e.id, e]))
+  // el material va junto a los músculos para que la IA respete peticiones
+  // como «solo mancuernas» sin tener que cambiar el worker
   const catalog = data.exercises.map((e) => ({
     id: e.id,
     name: e.name,
-    muscles: e.primary.map((m) => MUSCLE_NAMES[m]).join(', ')
+    muscles: `${e.primary.map((m) => MUSCLE_NAMES[m]).join(', ')} · ${EQUIPMENT_LABEL[exerciseSpecs(e).equipment]}`
   }))
 
   const res = await fetch(`${PUSH_SERVER}/generate-routine`, {

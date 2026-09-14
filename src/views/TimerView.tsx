@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react'
-import type { AppData } from '../types'
+import { Pause, Play, X } from 'lucide-react'
+import type { Update } from '../types'
 import type { TimerState } from '../lib/storage'
 import { unlockAudio } from '../lib/notify'
 import { cancelPushTimer, schedulePushTimer } from '../lib/push'
+import { PageHeader, Section } from '../components/ui'
+import { AvatarButton } from '../components/chrome'
 
-type Update = (fn: (d: AppData) => AppData) => void
 type SetTimer = (t: TimerState) => void
 
-const PRESETS = [60, 90, 120, 180]
+const PRESETS = [60, 90, 120, 150, 180, 240]
 
-function fmt(s: number): string {
-  const mm = Math.floor(s / 60)
-  const ss = String(Math.floor(s % 60)).padStart(2, '0')
+/** m:ss redondeando hacia arriba, como el Reloj de iOS. */
+export function fmtClock(seconds: number): string {
+  const total = Math.max(0, Math.ceil(seconds - 0.05))
+  const mm = Math.floor(total / 60)
+  const ss = String(total % 60).padStart(2, '0')
   return `${mm}:${ss}`
 }
 
@@ -19,38 +23,24 @@ function useNow(active: boolean): number {
   const [now, setNow] = useState(Date.now())
   useEffect(() => {
     if (!active) return
+    setNow(Date.now())
     const t = setInterval(() => setNow(Date.now()), 200)
     return () => clearInterval(t)
   }, [active])
   return now
 }
 
-function remainingOf(timer: TimerState, now: number): number {
-  if (timer.pausedRemaining !== null) return timer.pausedRemaining
-  if (timer.endsAt !== null) return Math.max(0, (timer.endsAt - now) / 1000)
-  return timer.duration
-}
-
-export function TimerView(props: {
-  data: AppData
-  update: Update
-  timer: TimerState
-  setTimer: SetTimer
-}) {
-  const { update, timer, setTimer } = props
-
-  const now = useNow(timer.endsAt !== null && timer.pausedRemaining === null)
-  const remaining = remainingOf(timer, now)
-
-  const running = timer.endsAt !== null && timer.pausedRemaining === null && remaining > 0
-  const finished = timer.endsAt !== null && timer.pausedRemaining === null && remaining <= 0
-
-  const setNewDuration = (s: number) => {
-    const clamped = Math.max(15, s)
-    setTimer({ duration: clamped, endsAt: null, pausedRemaining: null })
-    // recuerda tu descanso preferido
-    update((d) => ({ ...d, settings: { ...d.settings, restSeconds: clamped } }))
-  }
+/** Estado y acciones del descanso, compartidos por la pestaña y el accesorio. */
+function useRestTimer(timer: TimerState, setTimer: SetTimer, update: Update) {
+  const ticking = timer.endsAt !== null && timer.pausedRemaining === null
+  const now = useNow(ticking)
+  const remaining =
+    timer.pausedRemaining ??
+    (timer.endsAt !== null ? Math.max(0, (timer.endsAt - now) / 1000) : timer.duration)
+  const paused = timer.pausedRemaining !== null
+  const running = ticking && remaining > 0
+  const finished = ticking && remaining <= 0
+  const idle = timer.endsAt === null && timer.pausedRemaining === null
 
   const start = () => {
     unlockAudio() // iOS solo deja sonar audio desbloqueado en un gesto
@@ -71,110 +61,173 @@ export function TimerView(props: {
     void cancelPushTimer()
   }
 
-  // anillo de progreso
-  const R = 84
-  const CIRC = 2 * Math.PI * R
-  const progress =
-    timer.endsAt === null && timer.pausedRemaining === null
-      ? 1
-      : Math.max(0, remaining / timer.duration)
+  const setDuration = (s: number) => {
+    const clamped = Math.max(15, Math.min(3600, s))
+    if (!idle) void cancelPushTimer()
+    setTimer({ duration: clamped, endsAt: null, pausedRemaining: null })
+    // recuerda tu descanso preferido
+    update((d) => ({ ...d, settings: { ...d.settings, restSeconds: clamped } }))
+  }
+
+  /** ±15 s: en reposo cambia la duración; en marcha o en pausa, el tiempo que queda. */
+  const nudge = (delta: number) => {
+    if (idle || finished) {
+      setDuration(timer.duration + delta)
+    } else if (paused) {
+      setTimer({ ...timer, pausedRemaining: Math.max(1, remaining + delta) })
+    } else if (timer.endsAt !== null) {
+      const endsAt = Math.max(Date.now() + 1000, timer.endsAt + delta * 1000)
+      setTimer({ ...timer, endsAt })
+      void Promise.resolve(cancelPushTimer()).then(() => schedulePushTimer(endsAt))
+    }
+  }
+
+  const base = paused || running ? Math.max(timer.duration, remaining) : timer.duration
+  const progress = idle ? 1 : Math.max(0, Math.min(1, remaining / base))
+
+  return { remaining, paused, running, finished, idle, progress, start, pause, reset, setDuration, nudge }
+}
+
+export function TimerView(props: { update: Update; timer: TimerState; setTimer: SetTimer }) {
+  const { update, timer, setTimer } = props
+  const t = useRestTimer(timer, setTimer, update)
+  const R = 92
+  const C = 2 * Math.PI * R
+
+  const status = t.finished
+    ? '¡A por la siguiente serie!'
+    : t.paused
+      ? 'En pausa'
+      : t.running
+        ? `de ${fmtClock(timer.duration)}`
+        : 'Listo para empezar'
 
   return (
     <div className="view">
-      <h1 className="view-title">Descanso</h1>
-      <p className="view-subtitle">
-        Sigue corriendo aunque cambies de pestaña o cierres la app
-      </p>
+      <PageHeader
+        title="Descanso"
+        subtitle="Sigue contando aunque cambies de pestaña o bloquees el móvil"
+        trailing={<AvatarButton />}
+      />
 
-      <div className="timer-wrap">
-        <svg viewBox="0 0 200 200" className="timer-ring">
-          <defs>
-            <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#f0f0f6" />
-              <stop offset="1" stopColor="#8e8e9a" />
-            </linearGradient>
-          </defs>
-          <circle cx="100" cy="100" r={R} fill="none" stroke="#26262c" strokeWidth="10" />
-          <circle
-            cx="100"
-            cy="100"
-            r={R}
-            fill="none"
-            stroke={finished ? '#46c98c' : 'url(#ringGrad)'}
-            strokeWidth="10"
-            strokeLinecap="round"
-            strokeDasharray={CIRC}
-            strokeDashoffset={CIRC * (1 - Math.min(1, progress))}
-            transform="rotate(-90 100 100)"
-            style={{ transition: 'stroke-dashoffset 0.2s linear' }}
-          />
-          <text x="100" y="108" textAnchor="middle" className="timer-text">
-            {finished ? '¡Listo!' : fmt(remaining)}
-          </text>
-        </svg>
+      <div className="timer">
+        <div className="timer-dial">
+          <svg viewBox="0 0 200 200" aria-hidden="true">
+            <circle className="ring-track" cx="100" cy="100" r={R} fill="none" strokeWidth="7" />
+            <circle
+              className={`ring-progress ${t.finished ? 'is-done' : t.idle ? 'is-idle' : ''}`}
+              cx="100"
+              cy="100"
+              r={R}
+              fill="none"
+              strokeWidth="7"
+              strokeDasharray={C}
+              strokeDashoffset={C * (1 - t.progress)}
+            />
+          </svg>
+          <div className="timer-center" role="timer" aria-live="off">
+            <span className={`timer-digits ${t.finished ? 'is-done' : ''}`}>
+              {fmtClock(t.finished ? 0 : t.remaining)}
+            </span>
+            <span className="timer-sub">{status}</span>
+          </div>
+        </div>
+
+        <div className="timer-controls">
+          <button type="button" className="round-btn is-gray" onClick={t.reset} disabled={t.idle}>
+            Cancelar
+          </button>
+          {t.running ? (
+            <button type="button" className="round-btn is-tint" onClick={t.pause}>
+              Pausa
+            </button>
+          ) : (
+            <button type="button" className="round-btn is-filled" onClick={t.start}>
+              {t.paused ? 'Seguir' : 'Iniciar'}
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="timer-controls">
-        {running ? (
-          <button type="button" className="btn-ghost timer-btn" onClick={pause}>
-            ⏸ Pausa
+      <Section
+        title="Duración"
+        bare
+        footer="Al llegar a cero suena un triple bip. Con los avisos activados en Ajustes te llega además una notificación con el móvil bloqueado."
+      >
+        <div className="chips">
+          {PRESETS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              className={`chip tabular ${timer.duration === p ? 'is-active' : ''}`}
+              onClick={() => t.setDuration(p)}
+            >
+              {fmtClock(p)}
+            </button>
+          ))}
+          <button type="button" className="chip" onClick={() => t.nudge(-15)}>
+            −15 s
           </button>
-        ) : (
-          <button type="button" className="btn-primary timer-btn" onClick={start}>
-            {timer.pausedRemaining !== null ? '▶ Seguir' : '▶ Empezar'}
+          <button type="button" className="chip" onClick={() => t.nudge(15)}>
+            +15 s
           </button>
-        )}
-        <button type="button" className="btn-ghost timer-btn" onClick={reset}>
-          ↺ Reiniciar
-        </button>
-      </div>
-
-      <div className="timer-presets">
-        {PRESETS.map((p) => (
-          <button
-            key={p}
-            type="button"
-            className={`chip ${timer.duration === p ? 'active' : ''}`}
-            onClick={() => setNewDuration(p)}
-          >
-            {fmt(p)}
-          </button>
-        ))}
-        <button type="button" className="chip" onClick={() => setNewDuration(timer.duration - 15)}>
-          −15s
-        </button>
-        <button type="button" className="chip" onClick={() => setNewDuration(timer.duration + 15)}>
-          +15s
-        </button>
-      </div>
-
-      <p className="hint-block">
-        Al llegar a cero suena un triple bip. Con los avisos activados (en Ajustes)
-        te llega también una notificación aunque tengas el móvil bloqueado.
-      </p>
+        </div>
+      </Section>
     </div>
   )
 }
 
-/** Chip flotante con el tiempo restante cuando estás en otra pestaña. */
-export function TimerChip(props: {
+/** Accesorio flotante sobre la barra de pestañas mientras hay un descanso activo. */
+export function TimerAccessory(props: {
   timer: TimerState
-  onClick: () => void
-  onReset: () => void
+  setTimer: SetTimer
+  update: Update
+  onOpen: () => void
 }) {
-  const { timer, onClick, onReset } = props
-  const now = useNow(timer.pausedRemaining === null)
-  const remaining = remainingOf(timer, now)
-  const paused = timer.pausedRemaining !== null
-  const finished = !paused && timer.endsAt !== null && remaining <= 0
+  const { timer, setTimer, update, onOpen } = props
+  const t = useRestTimer(timer, setTimer, update)
+  const R = 15
+  const C = 2 * Math.PI * R
 
   return (
-    <button
-      type="button"
-      className={`timer-chip ${finished ? 'done' : ''}`}
-      onClick={finished ? onReset : onClick}
-    >
-      {finished ? '⏱ ¡Descanso terminado! ✕' : `${paused ? '⏸' : '⏱'} ${fmt(remaining)}`}
-    </button>
+    <div className={`accessory ${t.finished ? 'is-done' : ''}`}>
+      <div className="accessory-inner">
+        <button type="button" className="accessory-main" onClick={onOpen} aria-label="Abrir descanso">
+          <svg className="accessory-ring" viewBox="0 0 38 38" aria-hidden="true">
+            <circle className="ring-track" cx="19" cy="19" r={R} fill="none" strokeWidth="3.5" />
+            <circle
+              className={`ring-progress ${t.finished ? 'is-done' : ''}`}
+              cx="19"
+              cy="19"
+              r={R}
+              fill="none"
+              strokeWidth="3.5"
+              strokeDasharray={C}
+              strokeDashoffset={C * (1 - t.progress)}
+              transform="rotate(-90 19 19)"
+            />
+          </svg>
+          <span className="accessory-text">
+            <span className="accessory-time">{t.finished ? '¡Listo!' : fmtClock(t.remaining)}</span>
+            <span className="accessory-label">
+              {t.finished ? 'Descanso terminado' : t.paused ? 'Descanso en pausa' : 'Descanso'}
+            </span>
+          </span>
+        </button>
+        {!t.finished &&
+          (t.running ? (
+            <button type="button" className="accessory-btn" onClick={t.pause} aria-label="Pausar descanso">
+              <Pause size={20} strokeWidth={2.4} fill="currentColor" />
+            </button>
+          ) : (
+            <button type="button" className="accessory-btn" onClick={t.start} aria-label="Seguir descanso">
+              <Play size={20} strokeWidth={2.4} fill="currentColor" />
+            </button>
+          ))}
+        <button type="button" className="accessory-btn" onClick={t.reset} aria-label="Quitar descanso">
+          <X size={20} strokeWidth={2.4} />
+        </button>
+      </div>
+    </div>
   )
 }

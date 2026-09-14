@@ -6,3 +6,6 @@ dev-dist
 bodymap-preview.png
 realbody-preview.png
 worker/.vapid.json
+.impeccable/review
+.impeccable/config.local.json
+.impeccable/hook.cache.json

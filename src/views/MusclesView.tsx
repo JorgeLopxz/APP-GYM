@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { BicepsFlexed, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { AppData, MuscleId } from '../types'
 import { MUSCLE_NAMES } from '../types'
 import { muscleWeek, muscleWeeklyAverage, weekLabel } from '../lib/stats'
@@ -9,9 +10,15 @@ import {
   REGION_NAMES,
   regionForMuscle
 } from '../components/BodyMap'
+import { EmptyState, PageHeader, Row, Section } from '../components/ui'
+import { AvatarButton } from '../components/chrome'
 
 /** Series semanales a partir de las cuales un músculo se pinta al máximo. */
 const FULL_SETS = 12
+
+function fmtSets(n: number): string {
+  return n.toLocaleString('es-ES', { maximumFractionDigits: 1 })
+}
 
 export function MusclesView({ data }: { data: AppData }) {
   const [offset, setOffset] = useState(0)
@@ -26,141 +33,160 @@ export function MusclesView({ data }: { data: AppData }) {
     heat[m as MuscleId] = Math.min(1, (sets ?? 0) / FULL_SETS)
   }
 
-  const ranked = (Object.entries(week.sets) as [MuscleId, number][])
-    .sort((a, b) => b[1] - a[1])
-
-  const untouched = (Object.keys(MUSCLE_NAMES) as MuscleId[]).filter(
-    (m) => !(m in week.sets)
-  )
+  const ranked = (Object.entries(week.sets) as [MuscleId, number][]).sort((a, b) => b[1] - a[1])
+  const untouched = (Object.keys(MUSCLE_NAMES) as MuscleId[]).filter((m) => !(m in week.sets))
 
   const selectedMuscles = selected ? REGION_MUSCLES[selected] ?? [] : []
-  const selectedTotal = selectedMuscles.reduce(
-    (acc, m) => acc + (week.sets[m] ?? 0),
-    0
-  )
+  const selectedTotal = selectedMuscles.reduce((acc, m) => acc + (week.sets[m] ?? 0), 0)
+  const sourcesText = (m: MuscleId) => {
+    const sources = week.sources[m]
+    return sources
+      ? [...sources.entries()].map(([name, n]) => `${name} (${fmtSets(n)})`).join(', ')
+      : 'Sin trabajo esta semana'
+  }
 
   return (
-    <div className="view">
-      <h1 className="view-title">Músculos</h1>
-      <div className="week-nav">
-        <button type="button" className="icon-btn" onClick={() => setOffset((o) => o - 1)}>
-          ◀
-        </button>
-        <span className="week-label">{weekLabel(offset)}</span>
-        <button
-          type="button"
-          className="icon-btn"
-          disabled={offset >= 0}
-          onClick={() => setOffset((o) => Math.min(0, o + 1))}
-        >
-          ▶
-        </button>
-      </div>
-
-      <BodyMap
-        heat={heat}
-        selected={selected}
-        onSelect={(r) => {
-          setSelected(r)
-          setOpenRow(null)
-        }}
-        sexo={data.profile.sexo}
+    <div className="view is-wide">
+      <PageHeader
+        title="Músculos"
+        subtitle={`${week.sessionCount} ${week.sessionCount === 1 ? 'entreno' : 'entrenos'} en la semana`}
+        trailing={<AvatarButton />}
+        wide
       />
 
-      {selected && openRow === null && (
-        <div className="muscle-detail">
-          <p className="muscle-detail-title">
-            {REGION_NAMES[selected.split(':')[1]] ?? selected} —{' '}
-            {fmtSets(selectedTotal)} series
-          </p>
-          {selectedMuscles.map((m) => {
-            const sets = week.sets[m] ?? 0
-            const sources = week.sources[m]
-            return (
-              <p key={m} className="muscle-detail-line">
-                <strong>{MUSCLE_NAMES[m]}</strong> · {fmtSets(sets)} series
-                {sources
-                  ? ` — ${[...sources.entries()]
-                      .map(([name, n]) => `${name} (${fmtSets(n)})`)
-                      .join(', ')}`
-                  : ''}
-              </p>
-            )
-          })}
-        </div>
-      )}
-
-      <div className="muscle-list">
-        {ranked.map(([m, sets]) => {
-          const region = regionForMuscle(m)
-          const open = openRow === m
-          return (
-            <div key={m}>
-              <button
-                type="button"
-                className={`muscle-row ${selected !== null && selected === region ? 'selected' : ''}`}
-                onClick={() => {
-                  if (open) {
-                    setOpenRow(null)
-                    setSelected(null)
-                  } else {
-                    setOpenRow(m)
-                    setSelected(region)
-                  }
-                }}
-              >
-                <span className="muscle-dot" style={{ background: heatColor(Math.min(1, sets / FULL_SETS)) }} />
-                <span className="muscle-name">{MUSCLE_NAMES[m]}</span>
-                <span className="muscle-bar">
-                  <span
-                    className="muscle-bar-fill"
-                    style={{
-                      width: `${Math.min(100, (sets / FULL_SETS) * 100)}%`,
-                      background: heatColor(Math.min(1, sets / FULL_SETS))
-                    }}
-                  />
-                </span>
-                <span className="muscle-sets">{fmtSets(sets)}</span>
-              </button>
-              {open && (
-                <div className="muscle-row-detail">
-                  {week.sources[m] ? (
-                    [...week.sources[m]!.entries()].map(([name, n]) => (
-                      <p key={name} className="muscle-detail-line">
-                        {name}: {fmtSets(n)} series
-                      </p>
-                    ))
-                  ) : (
-                    <p className="muscle-detail-line">Sin trabajo esta semana.</p>
-                  )}
-                </div>
-              )}
-            </div>
-          )
-        })}
-        {ranked.length === 0 && (
-          <p className="view-subtitle">Sin entrenos esta semana todavía.</p>
-        )}
+      <div className="week-switcher">
+        <button
+          type="button"
+          className="circle-btn"
+          onClick={() => {
+            setOffset((o) => o - 1)
+            setSelected(null)
+            setOpenRow(null)
+          }}
+          aria-label="Semana anterior"
+        >
+          <ChevronLeft size={20} strokeWidth={2.4} />
+        </button>
+        <span className="week-label" aria-live="polite">
+          {weekLabel(offset)}
+        </span>
+        <button
+          type="button"
+          className="circle-btn"
+          disabled={offset >= 0}
+          onClick={() => {
+            setOffset((o) => Math.min(0, o + 1))
+            setSelected(null)
+            setOpenRow(null)
+          }}
+          aria-label="Semana siguiente"
+        >
+          <ChevronRight size={20} strokeWidth={2.4} />
+        </button>
       </div>
 
-      <WeakPoints data={data} />
+      <div className="split">
+        <div className="stack is-sticky">
+          <div className="bodymap-card">
+            <BodyMap
+              heat={heat}
+              selected={selected}
+              onSelect={(r) => {
+                setSelected(r)
+                setOpenRow(null)
+              }}
+              sexo={data.profile.sexo}
+            />
+            <div className="heat-legend" aria-hidden="true">
+              <span>0</span>
+              <span className="heat-bar" />
+              <span>{FULL_SETS}+ series</span>
+            </div>
+          </div>
 
-      {untouched.length > 0 && ranked.length > 0 && (
-        <p className="hint-block">
-          Sin trabajo esta semana: {untouched.map((m) => MUSCLE_NAMES[m]).join(', ')}.
-        </p>
-      )}
-      <p className="hint-block">
-        Cada serie directa suma 1 y cada serie de músculo secundario suma 0,5. Una
-        referencia habitual de hipertrofia: <strong>10–20 series</strong> por músculo y
-        semana.
-      </p>
+          {selected && openRow === null && (
+            <Section
+              title={`${REGION_NAMES[selected.split(':')[1]] ?? 'Zona'} · ${fmtSets(selectedTotal)} series`}
+            >
+              {selectedMuscles.map((m) => (
+                <Row key={m} title={MUSCLE_NAMES[m]} subtitle={sourcesText(m)} detail={fmtSets(week.sets[m] ?? 0)} />
+              ))}
+            </Section>
+          )}
+        </div>
+
+        <div className="stack">
+          <Section
+            title="Series por músculo"
+            footer="Cada serie directa suma 1 y cada serie como músculo secundario suma 0,5. Referencia habitual para ganar músculo: 10–20 series por músculo a la semana."
+          >
+            {ranked.map(([m, sets]) => {
+              const region = regionForMuscle(m)
+              const open = openRow === m
+              const intensity = Math.min(1, sets / FULL_SETS)
+              return (
+                <div key={m}>
+                  <button
+                    type="button"
+                    className={`muscle-row ${open ? 'is-selected' : ''}`}
+                    aria-expanded={open}
+                    onClick={() => {
+                      if (open) {
+                        setOpenRow(null)
+                        setSelected(null)
+                      } else {
+                        setOpenRow(m)
+                        setSelected(region)
+                      }
+                    }}
+                  >
+                    <span className="muscle-dot" style={{ background: heatColor(intensity) }} />
+                    <span className="muscle-name">{MUSCLE_NAMES[m]}</span>
+                    <span className="muscle-bar">
+                      <span style={{ transform: `scaleX(${intensity})`, background: heatColor(intensity) }} />
+                    </span>
+                    <span className="muscle-value">{fmtSets(sets)}</span>
+                  </button>
+                  {open && (
+                    <div className="muscle-sources">
+                      {week.sources[m] ? (
+                        [...week.sources[m]!.entries()].map(([name, n]) => (
+                          <span key={name}>
+                            {name}: {fmtSets(n)} series
+                          </span>
+                        ))
+                      ) : (
+                        <span>Sin trabajo esta semana.</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+            {ranked.length === 0 && (
+              <EmptyState icon={<BicepsFlexed size={28} />} title="Semana en blanco">
+                Cuando termines un entreno verás aquí cómo se reparte el trabajo por músculo.
+              </EmptyState>
+            )}
+          </Section>
+
+          {untouched.length > 0 && ranked.length > 0 && (
+            <Section title="Sin trabajar esta semana" bare>
+              <div className="chips">
+                {untouched.map((m) => (
+                  <span key={m} className="chip">
+                    {MUSCLE_NAMES[m]}
+                  </span>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          <WeakPoints data={data} />
+        </div>
+      </div>
     </div>
   )
-}
-
-function fmtSets(n: number): string {
-  return n.toLocaleString('es-ES', { maximumFractionDigits: 1 })
 }
 
 // ---------------------------------------------------------------------------
@@ -169,7 +195,6 @@ function fmtSets(n: number): string {
 
 function WeakPoints({ data }: { data: AppData }) {
   const { avg, weeks } = useMemo(() => muscleWeeklyAverage(data), [data])
-
   if (weeks === 0) return null
 
   const weakest = (Object.keys(MUSCLE_NAMES) as MuscleId[])
@@ -181,31 +206,21 @@ function WeakPoints({ data }: { data: AppData }) {
   if (weakest.length === 0) return null
 
   return (
-    <div className="settings-section">
-      <h2 className="settings-title">💡 Puntos débiles</h2>
-      <p className="hint-block">
-        Media de las últimas {weeks === 1 ? 'semana' : `${weeks} semanas`}. Por debajo
-        de ~6 series semanales un músculo apenas crece — estos son los tuyos más flojos,
-        con ejercicios para darles caña:
-      </p>
+    <Section
+      title="Puntos débiles"
+      footer={`Media de ${weeks === 1 ? 'la última semana' : `las últimas ${weeks} semanas`}. Por debajo de unas 6 series semanales un músculo apenas crece.`}
+    >
       {weakest.map(({ muscle, sets }) => {
-        const suggestions = data.exercises
-          .filter((e) => e.primary.includes(muscle))
-          .slice(0, 2)
+        const suggestions = data.exercises.filter((e) => e.primary.includes(muscle)).slice(0, 2)
         return (
-          <div key={muscle} className="weak-row">
-            <div className="weak-head">
-              <span className="weak-name">{MUSCLE_NAMES[muscle]}</span>
-              <span className="weak-sets">{fmtSets(sets)} series/sem</span>
-            </div>
-            {suggestions.length > 0 && (
-              <span className="weak-suggest">
-                → {suggestions.map((e) => e.name).join(' · ')}
-              </span>
-            )}
-          </div>
+          <Row
+            key={muscle}
+            title={MUSCLE_NAMES[muscle]}
+            subtitle={suggestions.length > 0 ? `Prueba: ${suggestions.map((e) => e.name).join(' · ')}` : undefined}
+            detail={<span className="is-down">{fmtSets(sets)}/sem</span>}
+          />
         )
       })}
-    </div>
+    </Section>
   )
 }
