@@ -2,18 +2,18 @@
 name: HIERRO
 description: Registro de fuerza que se usa como una app nativa de Apple, en el lenguaje de interfaz iOS 26.
 colors:
-  tint: "#c93400"
-  tint-dark: "#ff7a1a"
-  tint-press: "#a82b00"
-  tint-press-dark: "#e56a0e"
-  tint-text: "#c93400"
-  tint-text-dark: "#ff8a33"
-  tint-soft: "rgba(201, 52, 0, 0.11)"
-  tint-soft-dark: "rgba(255, 122, 26, 0.18)"
+  tint: "#1c1c1e"
+  tint-dark: "#ececf0"
+  tint-press: "#3a3a3c"
+  tint-press-dark: "#c7c7cc"
+  tint-text: "#1c1c1e"
+  tint-text-dark: "#f2f2f7"
+  tint-soft: "rgba(60, 60, 67, 0.1)"
+  tint-soft-dark: "rgba(235, 235, 245, 0.14)"
   on-tint: "#ffffff"
   on-tint-dark: "#000000"
   green: "#1f9d46"
-  green-dark: "#30d158"
+  green-dark: "#2fb65a"
   green-text: "#1a7f3a"
   green-soft: "rgba(52, 199, 89, 0.16)"
   switch-on: "#34c759"
@@ -274,7 +274,7 @@ The system rejects the dark gym dashboard with a neon accent and the grid of ide
 
 **Key Characteristics:**
 - System grouped surfaces: #F2F2F7 / #000000 background, #FFFFFF / #1C1C1E cells, hairline separators inset past icons.
-- One tint, two appearances: #C93400 in light, #FF7A1A in dark, with a brighter #FF8A33 for tint-coloured text in dark.
+- One tint, two appearances: #1C1C1E in light, #ECECF0 in dark, with #F2F2F7 for tint-coloured text in dark (sober graphite, chosen by Jorge in v0.22 over the earlier orange).
 - Glass only on chrome (tab bar capsule, navigation buttons, rest accessory, menus); content stays opaque.
 - System font stack: SF Pro on Apple, self-hosted Inter only as the non-Apple fallback; SF Pro Rounded for large numerals.
 - Capsule controls everywhere a finger lands; 22px continuous-feeling corners on groups; 32px on sheets.
@@ -285,8 +285,8 @@ The system rejects the dark gym dashboard with a neon accent and the grid of ide
 An achromatic system field with one warm iron tint and two semantic system colours; everything else is grey, translucent fill, or hairline. Frontmatter keys match the `index.css` custom properties; a `-dark` suffix records the value the same property takes under `prefers-color-scheme: dark`.
 
 ### Primary
-- **Iron Red-Hot** (`tint`, dark `tint-dark`): the only accent. Filled capsule buttons (Empezar, Terminar), the active chip, the next pending set badge, trained days on the calendar, the session progress bar, chart lines and the rest ring while counting. Pressed state darkens to `tint-press`. Text on it is `on-tint`, white in light and black in dark.
-- **Iron Text** (`tint-text`, dark `tint-text-dark`): tint used as type or glyph: plain buttons (Nueva, Añadir serie), active tab label, checkmarks, PR values, row actions. Lifted in dark so thin strokes and 17px text keep contrast on #1C1C1E.
+- **Graphite Steel** (`tint`, dark `tint-dark`): the only accent. Filled capsule buttons (Empezar, Terminar), the active chip, the next pending set badge, trained days on the calendar, the session progress bar, chart lines and the rest ring while counting. Pressed state darkens to `tint-press`. Text on it is `on-tint`, white in light and black in dark.
+- **Graphite Text** (`tint-text`, dark `tint-text-dark`): tint used as type or glyph: plain buttons (Nueva, Añadir serie), active tab label, checkmarks, PR values, row actions. Lifted in dark so thin strokes and 17px text keep contrast on #1C1C1E.
 - **Iron Wash** (`tint-soft`): translucent tint behind tinted buttons, an unassigned variant/brand tag chip, tagged set badges, text selection and the focused stepper input.
 
 ### Secondary

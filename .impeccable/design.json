@@ -4,35 +4,216 @@
   "title": "Design System: HIERRO",
   "extensions": {
     "colorMeta": {
-      "tint": { "role": "primary", "displayName": "Iron Red-Hot", "canonical": "#c93400", "darkValue": "#ff7a1a", "cssVar": "--tint", "tonalRamp": ["#3a0f00", "#5e1900", "#842300", "#a82b00", "#c93400", "#e0612f", "#f09a73", "#fbd6c4"] },
-      "tint-text": { "role": "primary", "displayName": "Iron Text", "canonical": "#c93400", "darkValue": "#ff8a33", "cssVar": "--tint-text", "tonalRamp": ["#3a0f00", "#5e1900", "#842300", "#c93400", "#ff7a1a", "#ff8a33", "#ffb47d", "#ffe0c7"] },
-      "tint-soft": { "role": "primary", "displayName": "Iron Wash", "canonical": "rgba(201, 52, 0, 0.11)", "darkValue": "rgba(255, 122, 26, 0.18)", "cssVar": "--tint-soft" },
-      "green": { "role": "secondary", "displayName": "Set Done Green", "canonical": "#1f9d46", "darkValue": "#30d158", "cssVar": "--green", "tonalRamp": ["#0a2e15", "#114d24", "#1a7f3a", "#1f9d46", "#30d158", "#6ae08a", "#a8eebb", "#dcf8e3"] },
-      "red": { "role": "tertiary", "displayName": "Destructive Red", "canonical": "#d70015", "darkValue": "#ff453a", "cssVar": "--red", "tonalRamp": ["#3d0006", "#66000c", "#9a0010", "#d70015", "#ff453a", "#ff7b73", "#ffb0ab", "#ffe0de"] },
-      "heat-hot": { "role": "tertiary", "displayName": "Heat Scale (muscle map only)", "canonical": "rgb(165, 14, 22)", "tonalRamp": ["rgb(242, 235, 235)", "rgb(240, 214, 214)", "rgb(239, 186, 186)", "rgb(238, 158, 158)", "rgb(222, 118, 120)", "rgb(200, 76, 82)", "rgb(182, 44, 51)", "rgb(165, 14, 22)"] },
-      "bg": { "role": "neutral", "displayName": "Grouped Background", "canonical": "#f2f2f7", "darkValue": "#000000", "cssVar": "--bg", "tonalRamp": ["#000000", "#1c1c1e", "#2c2c2e", "#3a3a3c", "#636366", "#aeaeb2", "#e5e5ea", "#f2f2f7"] },
-      "cell": { "role": "neutral", "displayName": "Cell", "canonical": "#ffffff", "darkValue": "#1c1c1e", "cssVar": "--cell" },
-      "label": { "role": "neutral", "displayName": "Label", "canonical": "#000000", "darkValue": "#ffffff", "cssVar": "--label" },
-      "label-2": { "role": "neutral", "displayName": "Secondary Label", "canonical": "#6e6e73", "darkValue": "#98989f", "cssVar": "--label-2" },
-      "label-3": { "role": "neutral", "displayName": "Tertiary Label", "canonical": "#8e8e93", "darkValue": "#6c6c70", "cssVar": "--label-3" },
-      "separator": { "role": "neutral", "displayName": "Hairline Separator", "canonical": "rgba(60, 60, 67, 0.2)", "darkValue": "rgba(84, 84, 88, 0.62)", "cssVar": "--separator" },
-      "fill-3": { "role": "neutral", "displayName": "Control Fill", "canonical": "rgba(118, 118, 128, 0.12)", "darkValue": "rgba(118, 118, 128, 0.24)", "cssVar": "--fill-3" },
-      "glass": { "role": "neutral", "displayName": "Chrome Glass", "canonical": "rgba(250, 250, 252, 0.74)", "darkValue": "rgba(38, 38, 42, 0.66)", "cssVar": "--glass" }
+      "tint": {
+        "role": "primary",
+        "displayName": "Graphite Steel",
+        "canonical": "#1c1c1e",
+        "darkValue": "#ececf0",
+        "cssVar": "--tint",
+        "tonalRamp": [
+          "#000000",
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#c7c7cc",
+          "#ececf0"
+        ]
+      },
+      "tint-text": {
+        "role": "primary",
+        "displayName": "Graphite Text",
+        "canonical": "#1c1c1e",
+        "darkValue": "#f2f2f7",
+        "cssVar": "--tint-text",
+        "tonalRamp": [
+          "#000000",
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#c7c7cc",
+          "#ececf0"
+        ]
+      },
+      "tint-soft": {
+        "role": "primary",
+        "displayName": "Iron Wash",
+        "canonical": "rgba(60, 60, 67, 0.1)",
+        "darkValue": "rgba(235, 235, 245, 0.14)",
+        "cssVar": "--tint-soft"
+      },
+      "green": {
+        "role": "secondary",
+        "displayName": "Set Done Green",
+        "canonical": "#1f9d46",
+        "darkValue": "#30d158",
+        "cssVar": "--green",
+        "tonalRamp": [
+          "#0a2e15",
+          "#114d24",
+          "#1a7f3a",
+          "#1f9d46",
+          "#30d158",
+          "#6ae08a",
+          "#a8eebb",
+          "#dcf8e3"
+        ]
+      },
+      "red": {
+        "role": "tertiary",
+        "displayName": "Destructive Red",
+        "canonical": "#d70015",
+        "darkValue": "#ff453a",
+        "cssVar": "--red",
+        "tonalRamp": [
+          "#3d0006",
+          "#66000c",
+          "#9a0010",
+          "#d70015",
+          "#ff453a",
+          "#ff7b73",
+          "#ffb0ab",
+          "#ffe0de"
+        ]
+      },
+      "heat-hot": {
+        "role": "tertiary",
+        "displayName": "Heat Scale (muscle map only)",
+        "canonical": "rgb(165, 14, 22)",
+        "tonalRamp": [
+          "rgb(242, 235, 235)",
+          "rgb(240, 214, 214)",
+          "rgb(239, 186, 186)",
+          "rgb(238, 158, 158)",
+          "rgb(222, 118, 120)",
+          "rgb(200, 76, 82)",
+          "rgb(182, 44, 51)",
+          "rgb(165, 14, 22)"
+        ]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Grouped Background",
+        "canonical": "#f2f2f7",
+        "darkValue": "#000000",
+        "cssVar": "--bg",
+        "tonalRamp": [
+          "#000000",
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ]
+      },
+      "cell": {
+        "role": "neutral",
+        "displayName": "Cell",
+        "canonical": "#ffffff",
+        "darkValue": "#1c1c1e",
+        "cssVar": "--cell"
+      },
+      "label": {
+        "role": "neutral",
+        "displayName": "Label",
+        "canonical": "#000000",
+        "darkValue": "#ffffff",
+        "cssVar": "--label"
+      },
+      "label-2": {
+        "role": "neutral",
+        "displayName": "Secondary Label",
+        "canonical": "#6e6e73",
+        "darkValue": "#98989f",
+        "cssVar": "--label-2"
+      },
+      "label-3": {
+        "role": "neutral",
+        "displayName": "Tertiary Label",
+        "canonical": "#8e8e93",
+        "darkValue": "#6c6c70",
+        "cssVar": "--label-3"
+      },
+      "separator": {
+        "role": "neutral",
+        "displayName": "Hairline Separator",
+        "canonical": "rgba(60, 60, 67, 0.2)",
+        "darkValue": "rgba(84, 84, 88, 0.62)",
+        "cssVar": "--separator"
+      },
+      "fill-3": {
+        "role": "neutral",
+        "displayName": "Control Fill",
+        "canonical": "rgba(118, 118, 128, 0.12)",
+        "darkValue": "rgba(118, 118, 128, 0.24)",
+        "cssVar": "--fill-3"
+      },
+      "glass": {
+        "role": "neutral",
+        "displayName": "Chrome Glass",
+        "canonical": "rgba(250, 250, 252, 0.74)",
+        "darkValue": "rgba(38, 38, 42, 0.66)",
+        "cssVar": "--glass"
+      }
     },
     "typographyMeta": {
-      "large-title": { "displayName": "Large Title", "purpose": "Page title under the transparent nav bar; 30px under 360px wide." },
-      "title-1": { "displayName": "Title 1", "purpose": "Up-next day name and finish title." },
-      "title-2": { "displayName": "Title 2", "purpose": "Profile name." },
-      "title-3": { "displayName": "Title 3", "purpose": "Section and empty-state titles; exercise titles at 600." },
-      "headline": { "displayName": "Headline", "purpose": "Nav and sheet titles, filled buttons, calendar month." },
-      "body": { "displayName": "Body", "purpose": "Row titles, fields, menu items, plain buttons." },
-      "subhead": { "displayName": "Subhead", "purpose": "Row subtitles, metadata, chips." },
-      "footnote": { "displayName": "Footnote", "purpose": "Section footers, menu titles, notes." },
-      "caption": { "displayName": "Caption", "purpose": "Set table heads, stepper labels, legends." },
-      "tab-label": { "displayName": "Tab Label", "purpose": "Phone tab bar labels under icons." },
-      "numeral-display": { "displayName": "Rounded Numeral", "purpose": "Chart readout, finish stats; PR values at 30px." },
-      "numeral-field": { "displayName": "Rounded Field Numeral", "purpose": "Stepper values and rest accessory time." },
-      "timer-digits": { "displayName": "Timer Digits", "purpose": "Rest dial countdown." }
+      "large-title": {
+        "displayName": "Large Title",
+        "purpose": "Page title under the transparent nav bar; 30px under 360px wide."
+      },
+      "title-1": {
+        "displayName": "Title 1",
+        "purpose": "Up-next day name and finish title."
+      },
+      "title-2": {
+        "displayName": "Title 2",
+        "purpose": "Profile name."
+      },
+      "title-3": {
+        "displayName": "Title 3",
+        "purpose": "Section and empty-state titles; exercise titles at 600."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Nav and sheet titles, filled buttons, calendar month."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Row titles, fields, menu items, plain buttons."
+      },
+      "subhead": {
+        "displayName": "Subhead",
+        "purpose": "Row subtitles, metadata, chips."
+      },
+      "footnote": {
+        "displayName": "Footnote",
+        "purpose": "Section footers, menu titles, notes."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Set table heads, stepper labels, legends."
+      },
+      "tab-label": {
+        "displayName": "Tab Label",
+        "purpose": "Phone tab bar labels under icons."
+      },
+      "numeral-display": {
+        "displayName": "Rounded Numeral",
+        "purpose": "Chart readout, finish stats; PR values at 30px."
+      },
+      "numeral-field": {
+        "displayName": "Rounded Field Numeral",
+        "purpose": "Stepper values and rest accessory time."
+      },
+      "timer-digits": {
+        "displayName": "Timer Digits",
+        "purpose": "Rest dial countdown."
+      }
     },
     "cssVariablesOnly": {
       "--font": "-apple-system, BlinkMacSystemFont, 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif",
@@ -42,38 +223,128 @@
       "--safe-b": "env(safe-area-inset-bottom, 0px)"
     },
     "accessibilityVariants": [
-      { "name": "prefers-contrast: more", "value": "--separator rgba(60,60,67,0.5) / dark rgba(160,160,168,0.7); --label-2 #3a3a3c / dark #d1d1d6; --fill-3 0.22 / dark 0.4" },
-      { "name": "prefers-reduced-transparency: reduce", "value": "--glass and --glass-strong resolve to --cell; backdrop-filter removed from glass buttons, tab bar, accessory, menu, nav fade" },
-      { "name": "prefers-reduced-motion: reduce", "value": "animations and transitions to 0.01ms; sheets and menus fade in over 0.2s; chart line drawn immediately" }
+      {
+        "name": "prefers-contrast: more",
+        "value": "--separator rgba(60,60,67,0.5) / dark rgba(160,160,168,0.7); --label-2 #3a3a3c / dark #d1d1d6; --fill-3 0.22 / dark 0.4"
+      },
+      {
+        "name": "prefers-reduced-transparency: reduce",
+        "value": "--glass and --glass-strong resolve to --cell; backdrop-filter removed from glass buttons, tab bar, accessory, menu, nav fade"
+      },
+      {
+        "name": "prefers-reduced-motion: reduce",
+        "value": "animations and transitions to 0.01ms; sheets and menus fade in over 0.2s; chart line drawn immediately"
+      }
     ],
     "shadows": [
-      { "name": "glass-shadow", "value": "0 10px 30px -10px rgba(0,0,0,0.2), 0 2px 6px -2px rgba(0,0,0,0.08)", "purpose": "Floating glass chrome; dark uses 0.7 / 0.5. Paired with inset 0 0.5px 0 var(--glass-edge), 0 0 0 0.5px var(--glass-line)." },
-      { "name": "lift", "value": "0 16px 36px -18px rgba(0,0,0,0.28)", "purpose": "Current exercise card only, with inset 1.5px tint ring at 60%; dark 0.9." },
-      { "name": "menu", "value": "0 0 0 0.5px var(--glass-line), 0 22px 50px -12px rgba(0,0,0,0.35)", "purpose": "Context menus." },
-      { "name": "sheet", "value": "0 -10px 40px rgba(0,0,0,0.16)", "purpose": "Bottom sheet on phone." },
-      { "name": "sheet-card", "value": "0 30px 80px -20px rgba(0,0,0,0.4)", "purpose": "Centred sheet at 768px and up." },
-      { "name": "drag", "value": "0 18px 44px -12px rgba(0,0,0,0.4)", "purpose": "Row being reordered." },
-      { "name": "control-thumb", "value": "0 3px 8px rgba(0,0,0,0.15), 0 3px 1px rgba(0,0,0,0.06)", "purpose": "Switch and segmented thumbs." }
+      {
+        "name": "glass-shadow",
+        "value": "0 10px 30px -10px rgba(0,0,0,0.2), 0 2px 6px -2px rgba(0,0,0,0.08)",
+        "purpose": "Floating glass chrome; dark uses 0.7 / 0.5. Paired with inset 0 0.5px 0 var(--glass-edge), 0 0 0 0.5px var(--glass-line)."
+      },
+      {
+        "name": "lift",
+        "value": "0 16px 36px -18px rgba(0,0,0,0.28)",
+        "purpose": "Current exercise card only, with inset 1.5px tint ring at 60%; dark 0.9."
+      },
+      {
+        "name": "menu",
+        "value": "0 0 0 0.5px var(--glass-line), 0 22px 50px -12px rgba(0,0,0,0.35)",
+        "purpose": "Context menus."
+      },
+      {
+        "name": "sheet",
+        "value": "0 -10px 40px rgba(0,0,0,0.16)",
+        "purpose": "Bottom sheet on phone."
+      },
+      {
+        "name": "sheet-card",
+        "value": "0 30px 80px -20px rgba(0,0,0,0.4)",
+        "purpose": "Centred sheet at 768px and up."
+      },
+      {
+        "name": "drag",
+        "value": "0 18px 44px -12px rgba(0,0,0,0.4)",
+        "purpose": "Row being reordered."
+      },
+      {
+        "name": "control-thumb",
+        "value": "0 3px 8px rgba(0,0,0,0.15), 0 3px 1px rgba(0,0,0,0.06)",
+        "purpose": "Switch and segmented thumbs."
+      }
     ],
     "materials": [
-      { "name": "glass-chrome", "value": "background: var(--glass); backdrop-filter: blur(20px-24px) saturate(180%-190%)", "purpose": "Tab bar, glass buttons, rest accessory." },
-      { "name": "glass-menu", "value": "background: var(--glass-strong); backdrop-filter: blur(40px) saturate(180%)", "purpose": "Context menus." }
+      {
+        "name": "glass-chrome",
+        "value": "background: var(--glass); backdrop-filter: blur(20px-24px) saturate(180%-190%)",
+        "purpose": "Tab bar, glass buttons, rest accessory."
+      },
+      {
+        "name": "glass-menu",
+        "value": "background: var(--glass-strong); backdrop-filter: blur(40px) saturate(180%)",
+        "purpose": "Context menus."
+      }
     ],
     "motion": [
-      { "name": "ease", "value": "cubic-bezier(0.32, 0.72, 0, 1)", "purpose": "iOS curve for sheets, thumbs, indicators, presses, push and pop." },
-      { "name": "ease-out", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "View entrance and chart line draw." },
-      { "name": "press", "value": "transform scale(0.88-0.97) over 0.2-0.22s var(--ease)", "purpose": "Every tappable control; no colour flash." },
-      { "name": "view-in", "value": "0.36s, 6px rise; tab swipe slides 24px", "purpose": "Section changes." },
-      { "name": "push-pop", "value": "0.44s var(--ease), translateX 32% in / -16% back", "purpose": "Drill-in navigation with back gesture." },
-      { "name": "sheet-in", "value": "0.52s var(--ease) from translateY(100%)", "purpose": "Bottom sheet; drag dismiss projects velocity, closes past 45% height or 1100px/s, 200-360ms." },
-      { "name": "menu-in", "value": "0.34s var(--ease) from scale(0.55)", "purpose": "Context menu from anchor." },
-      { "name": "tab-indicator", "value": "0.5s var(--ease)", "purpose": "Sliding active tab capsule." },
-      { "name": "pop", "value": "0.36-0.55s var(--ease), scale 0.4 to 1.14 to 1", "purpose": "Done check and finish hero icon." }
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "iOS curve for sheets, thumbs, indicators, presses, push and pop."
+      },
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "View entrance and chart line draw."
+      },
+      {
+        "name": "press",
+        "value": "transform scale(0.88-0.97) over 0.2-0.22s var(--ease)",
+        "purpose": "Every tappable control; no colour flash."
+      },
+      {
+        "name": "view-in",
+        "value": "0.36s, 6px rise; tab swipe slides 24px",
+        "purpose": "Section changes."
+      },
+      {
+        "name": "push-pop",
+        "value": "0.44s var(--ease), translateX 32% in / -16% back",
+        "purpose": "Drill-in navigation with back gesture."
+      },
+      {
+        "name": "sheet-in",
+        "value": "0.52s var(--ease) from translateY(100%)",
+        "purpose": "Bottom sheet; drag dismiss projects velocity, closes past 45% height or 1100px/s, 200-360ms."
+      },
+      {
+        "name": "menu-in",
+        "value": "0.34s var(--ease) from scale(0.55)",
+        "purpose": "Context menu from anchor."
+      },
+      {
+        "name": "tab-indicator",
+        "value": "0.5s var(--ease)",
+        "purpose": "Sliding active tab capsule."
+      },
+      {
+        "name": "pop",
+        "value": "0.36-0.55s var(--ease), scale 0.4 to 1.14 to 1",
+        "purpose": "Done check and finish hero icon."
+      }
     ],
     "breakpoints": [
-      { "name": "compact", "value": "max-width: 360px" },
-      { "name": "regular", "value": "min-width: 768px" },
-      { "name": "wide", "value": "min-width: 1024px" }
+      {
+        "name": "compact",
+        "value": "max-width: 360px"
+      },
+      {
+        "name": "regular",
+        "value": "min-width: 768px"
+      },
+      {
+        "name": "wide",
+        "value": "min-width: 1024px"
+      }
     ]
   },
   "components": [
@@ -83,7 +354,7 @@
       "refersTo": "button-filled",
       "description": "The single primary action on a screen (Empezar, Terminar).",
       "html": "<button class=\"ds-btn ds-btn-filled\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M6 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 6 3.5Z\"/></svg>Empezar</button>",
-      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 18px; border: 0; border-radius: 999px; font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; font-size: 17px; font-weight: 600; cursor: pointer; transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.2s ease; } .ds-btn-filled { background: var(--tint, #c93400); color: var(--on-tint, #ffffff); } .ds-btn-filled:active { background: var(--tint-press, #a82b00); transform: scale(0.97); } .ds-btn:focus-visible { outline: 2px solid var(--tint, #c93400); outline-offset: 2px; }"
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 18px; border: 0; border-radius: 999px; font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; font-size: 17px; font-weight: 600; cursor: pointer; transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.2s ease; } .ds-btn-filled { background: var(--tint, #1c1c1e); color: var(--on-tint, #ffffff); } .ds-btn-filled:active { background: var(--tint-press, #3a3a3c); transform: scale(0.97); } .ds-btn:focus-visible { outline: 2px solid var(--tint, #1c1c1e); outline-offset: 2px; }"
     },
     {
       "name": "Tinted and Plain Buttons",
@@ -91,7 +362,7 @@
       "refersTo": "button-tinted",
       "description": "Secondary emphasis in tint wash; plain tint text for section actions.",
       "html": "<div class=\"ds-row-btns\"><button class=\"ds-btn2 ds-btn-tinted\">Duplicar</button><button class=\"ds-btn2 ds-btn-gray\">Cancelar</button><button class=\"ds-btn2 ds-btn-plain\">+ Añadir serie</button></div>",
-      "css": ".ds-row-btns { display: flex; gap: 8px; align-items: center; } .ds-btn2 { height: 44px; padding: 0 18px; border: 0; border-radius: 999px; font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; font-size: 17px; font-weight: 600; cursor: pointer; transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1); } .ds-btn2:active { transform: scale(0.97); } .ds-btn2:focus-visible { outline: 2px solid var(--tint, #c93400); outline-offset: 2px; } .ds-btn-tinted { background: var(--tint-soft, rgba(201,52,0,0.11)); color: var(--tint-text, #c93400); } .ds-btn-gray { background: var(--fill-3, rgba(118,118,128,0.12)); color: var(--label, #000); } .ds-btn-plain { background: none; padding: 0 6px; font-weight: 400; color: var(--tint-text, #c93400); }"
+      "css": ".ds-row-btns { display: flex; gap: 8px; align-items: center; } .ds-btn2 { height: 44px; padding: 0 18px; border: 0; border-radius: 999px; font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; font-size: 17px; font-weight: 600; cursor: pointer; transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1); } .ds-btn2:active { transform: scale(0.97); } .ds-btn2:focus-visible { outline: 2px solid var(--tint, #1c1c1e); outline-offset: 2px; } .ds-btn-tinted { background: var(--tint-soft, rgba(201,52,0,0.11)); color: var(--tint-text, #1c1c1e); } .ds-btn-gray { background: var(--fill-3, rgba(118,118,128,0.12)); color: var(--label, #000); } .ds-btn-plain { background: none; padding: 0 6px; font-weight: 400; color: var(--tint-text, #1c1c1e); }"
     },
     {
       "name": "Chips",
@@ -99,7 +370,7 @@
       "refersTo": "chip",
       "description": "Filter chips (selected fills with tint) and in-place variant/brand tag chips.",
       "html": "<div class=\"ds-chips\"><button class=\"ds-chip is-active\">Todas</button><button class=\"ds-chip\">Sentado</button><button class=\"ds-tag\">Technogym <svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"m6 9 6 6 6-6\"/></svg></button><button class=\"ds-tag is-empty\">Marca <svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"m6 9 6 6 6-6\"/></svg></button></div>",
-      "css": ".ds-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; } .ds-chip, .ds-tag { display: inline-flex; align-items: center; gap: 4px; border: 0; border-radius: 999px; background: var(--fill-3, rgba(118,118,128,0.12)); color: var(--label, #000); font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; font-weight: 500; cursor: pointer; transition: transform 0.18s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.2s ease; } .ds-chip { height: 34px; padding: 0 14px; font-size: 15px; } .ds-tag { height: 30px; padding: 0 10px; font-size: 14px; } .ds-tag svg { color: var(--label-2, #6e6e73); } .ds-chip:hover:not(.is-active), .ds-tag:hover { background: var(--fill-2, rgba(120,120,128,0.16)); } .ds-chip:active, .ds-tag:active { transform: scale(0.95); } .ds-chip:focus-visible, .ds-tag:focus-visible { outline: 2px solid var(--tint, #c93400); outline-offset: 2px; } .ds-chip.is-active { background: var(--tint, #c93400); color: var(--on-tint, #fff); font-weight: 600; } .ds-tag.is-empty { background: var(--tint-soft, rgba(201,52,0,0.11)); color: var(--tint-text, #c93400); } .ds-tag.is-empty svg { color: currentColor; }"
+      "css": ".ds-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; } .ds-chip, .ds-tag { display: inline-flex; align-items: center; gap: 4px; border: 0; border-radius: 999px; background: var(--fill-3, rgba(118,118,128,0.12)); color: var(--label, #000); font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; font-weight: 500; cursor: pointer; transition: transform 0.18s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.2s ease; } .ds-chip { height: 34px; padding: 0 14px; font-size: 15px; } .ds-tag { height: 30px; padding: 0 10px; font-size: 14px; } .ds-tag svg { color: var(--label-2, #6e6e73); } .ds-chip:hover:not(.is-active), .ds-tag:hover { background: var(--fill-2, rgba(120,120,128,0.16)); } .ds-chip:active, .ds-tag:active { transform: scale(0.95); } .ds-chip:focus-visible, .ds-tag:focus-visible { outline: 2px solid var(--tint, #1c1c1e); outline-offset: 2px; } .ds-chip.is-active { background: var(--tint, #1c1c1e); color: var(--on-tint, #fff); font-weight: 600; } .ds-tag.is-empty { background: var(--tint-soft, rgba(201,52,0,0.11)); color: var(--tint-text, #1c1c1e); } .ds-tag.is-empty svg { color: currentColor; }"
     },
     {
       "name": "Grouped List",
@@ -107,7 +378,7 @@
       "refersTo": "group",
       "description": "Inset grouped cell with icon tile row, subtitle, detail and chevron; hairlines inset past the icon.",
       "html": "<div class=\"ds-group\"><button class=\"ds-row\"><span class=\"ds-icon\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z\"/><path d=\"m8.5 8.5 7 7\"/></svg></span><span class=\"ds-text\"><span class=\"ds-title\">Creatina</span><span class=\"ds-sub\">Pendiente · aviso a las 09:00</span></span></button><button class=\"ds-row\"><span class=\"ds-text\"><span class=\"ds-title\">PPL + Pecho/Espalda</span><span class=\"ds-sub\">4 días</span></span><svg class=\"ds-chev\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"m9 18 6-6-6-6\"/></svg></button></div>",
-      "css": ".ds-group { background: var(--cell, #fff); border-radius: 22px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; max-width: 390px; } .ds-row { position: relative; width: 100%; min-height: 52px; padding: 11px 16px; display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: var(--label, #000); text-align: left; cursor: pointer; transition: background-color 0.3s ease; } .ds-row + .ds-row::before { content: ''; position: absolute; top: 0; left: 16px; right: 0; height: 0.5px; background: var(--separator, rgba(60,60,67,0.2)); } .ds-row:hover { background: var(--fill-4, rgba(116,116,128,0.08)); } .ds-row:active { background: var(--press, rgba(0,0,0,0.06)); transition: none; } .ds-row:focus-visible { outline: 2px solid var(--tint, #c93400); outline-offset: -2px; } .ds-icon { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: var(--tint, #c93400); color: var(--on-tint, #fff); flex-shrink: 0; } .ds-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; } .ds-title { font-size: 17px; line-height: 22px; } .ds-sub { font-size: 15px; line-height: 20px; color: var(--label-2, #6e6e73); } .ds-chev { color: var(--label-3, #8e8e93); margin-right: -4px; }"
+      "css": ".ds-group { background: var(--cell, #fff); border-radius: 22px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; max-width: 390px; } .ds-row { position: relative; width: 100%; min-height: 52px; padding: 11px 16px; display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: var(--label, #000); text-align: left; cursor: pointer; transition: background-color 0.3s ease; } .ds-row + .ds-row::before { content: ''; position: absolute; top: 0; left: 16px; right: 0; height: 0.5px; background: var(--separator, rgba(60,60,67,0.2)); } .ds-row:hover { background: var(--fill-4, rgba(116,116,128,0.08)); } .ds-row:active { background: var(--press, rgba(0,0,0,0.06)); transition: none; } .ds-row:focus-visible { outline: 2px solid var(--tint, #1c1c1e); outline-offset: -2px; } .ds-icon { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: var(--tint, #1c1c1e); color: var(--on-tint, #fff); flex-shrink: 0; } .ds-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; } .ds-title { font-size: 17px; line-height: 22px; } .ds-sub { font-size: 15px; line-height: 20px; color: var(--label-2, #6e6e73); } .ds-chev { color: var(--label-3, #8e8e93); margin-right: -4px; }"
     },
     {
       "name": "Set Row",
@@ -115,7 +386,7 @@
       "refersTo": "stepper",
       "description": "Session set: badge, kg and reps steppers in rounded tabular numerals, check that turns green when done.",
       "html": "<div class=\"ds-set\"><span class=\"ds-badge is-next\">1</span><div class=\"ds-step\"><button>−</button><input value=\"150\" inputmode=\"decimal\"><button>+</button></div><div class=\"ds-step\"><button>−</button><input value=\"8\" inputmode=\"numeric\"><button>+</button></div><button class=\"ds-check\" aria-pressed=\"false\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg></button></div><div class=\"ds-set is-done\"><span class=\"ds-badge\">2</span><div class=\"ds-step\"><button>−</button><input value=\"52,5\"><button>+</button></div><div class=\"ds-step\"><button>−</button><input value=\"12\"><button>+</button></div><button class=\"ds-check is-done\" aria-pressed=\"true\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg></button></div>",
-      "css": ".ds-set { display: grid; grid-template-columns: 30px minmax(0,1fr) minmax(0,1fr) 40px; align-items: center; gap: 8px; padding: 4px 0; max-width: 390px; font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; } .ds-badge { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--fill-3, rgba(118,118,128,0.12)); color: var(--label, #000); font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; } .ds-badge.is-next { background: var(--tint, #c93400); color: var(--on-tint, #fff); } .ds-step { height: 40px; display: flex; align-items: center; border-radius: 12px; background: var(--fill-3, rgba(118,118,128,0.12)); overflow: hidden; transition: background-color 0.25s ease; } .ds-step button { width: 32px; height: 100%; border: 0; background: none; color: var(--label, #000); font-size: 18px; cursor: pointer; } .ds-step button:active { background: var(--fill-2, rgba(120,120,128,0.16)); } .ds-step input { flex: 1; min-width: 0; width: 100%; height: 100%; border: 0; outline: none; background: transparent; text-align: center; font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--label, #000); } .ds-step input:focus { background: var(--tint-soft, rgba(201,52,0,0.11)); color: var(--tint-text, #c93400); } .ds-set.is-done .ds-step { background: var(--green-soft, rgba(52,199,89,0.16)); } .ds-set.is-done .ds-step input { color: var(--label-2, #6e6e73); } .ds-check { width: 40px; height: 40px; border: 0; border-radius: 50%; display: grid; place-items: center; background: var(--fill-3, rgba(118,118,128,0.12)); color: var(--label-3, #8e8e93); cursor: pointer; transition: background-color 0.22s ease, transform 0.22s cubic-bezier(0.32, 0.72, 0, 1); } .ds-check:active { transform: scale(0.88); } .ds-check:focus-visible { outline: 2px solid var(--tint, #c93400); outline-offset: 2px; } .ds-check.is-done { background: var(--green, #1f9d46); color: var(--on-green, #fff); }"
+      "css": ".ds-set { display: grid; grid-template-columns: 30px minmax(0,1fr) minmax(0,1fr) 40px; align-items: center; gap: 8px; padding: 4px 0; max-width: 390px; font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; } .ds-badge { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--fill-3, rgba(118,118,128,0.12)); color: var(--label, #000); font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; } .ds-badge.is-next { background: var(--tint, #1c1c1e); color: var(--on-tint, #fff); } .ds-step { height: 40px; display: flex; align-items: center; border-radius: 12px; background: var(--fill-3, rgba(118,118,128,0.12)); overflow: hidden; transition: background-color 0.25s ease; } .ds-step button { width: 32px; height: 100%; border: 0; background: none; color: var(--label, #000); font-size: 18px; cursor: pointer; } .ds-step button:active { background: var(--fill-2, rgba(120,120,128,0.16)); } .ds-step input { flex: 1; min-width: 0; width: 100%; height: 100%; border: 0; outline: none; background: transparent; text-align: center; font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--label, #000); } .ds-step input:focus { background: var(--tint-soft, rgba(201,52,0,0.11)); color: var(--tint-text, #1c1c1e); } .ds-set.is-done .ds-step { background: var(--green-soft, rgba(52,199,89,0.16)); } .ds-set.is-done .ds-step input { color: var(--label-2, #6e6e73); } .ds-check { width: 40px; height: 40px; border: 0; border-radius: 50%; display: grid; place-items: center; background: var(--fill-3, rgba(118,118,128,0.12)); color: var(--label-3, #8e8e93); cursor: pointer; transition: background-color 0.22s ease, transform 0.22s cubic-bezier(0.32, 0.72, 0, 1); } .ds-check:active { transform: scale(0.88); } .ds-check:focus-visible { outline: 2px solid var(--tint, #1c1c1e); outline-offset: 2px; } .ds-check.is-done { background: var(--green, #1f9d46); color: var(--on-green, #fff); }"
     },
     {
       "name": "Search and Field",
@@ -123,7 +394,7 @@
       "refersTo": "field",
       "description": "Filled search bar and text field at 12px corners on the system control fill.",
       "html": "<div class=\"ds-fields\"><label class=\"ds-search\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m21 21-4.3-4.3\"/></svg><input type=\"search\" placeholder=\"Buscar ejercicio\"></label><input class=\"ds-field\" placeholder=\"Nombre de la rutina\"></div>",
-      "css": ".ds-fields { display: flex; flex-direction: column; gap: 12px; max-width: 390px; font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; } .ds-search { height: 40px; padding: 0 10px; display: flex; align-items: center; gap: 6px; border-radius: 12px; background: var(--fill-3, rgba(118,118,128,0.12)); color: var(--label-2, #6e6e73); } .ds-search:focus-within { outline: 2px solid var(--tint, #c93400); outline-offset: 0; } .ds-search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; font: inherit; font-size: 17px; color: var(--label, #000); caret-color: var(--tint, #c93400); -webkit-appearance: none; appearance: none; } .ds-search input::placeholder, .ds-field::placeholder { color: var(--placeholder, #767679); } .ds-field { min-height: 44px; padding: 10px 14px; border: 0; border-radius: 12px; background: var(--fill-3, rgba(118,118,128,0.12)); font: inherit; font-size: 17px; color: var(--label, #000); caret-color: var(--tint, #c93400); outline: none; } .ds-field:focus-visible { outline: 2px solid var(--tint, #c93400); outline-offset: 0; }"
+      "css": ".ds-fields { display: flex; flex-direction: column; gap: 12px; max-width: 390px; font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; } .ds-search { height: 40px; padding: 0 10px; display: flex; align-items: center; gap: 6px; border-radius: 12px; background: var(--fill-3, rgba(118,118,128,0.12)); color: var(--label-2, #6e6e73); } .ds-search:focus-within { outline: 2px solid var(--tint, #1c1c1e); outline-offset: 0; } .ds-search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; font: inherit; font-size: 17px; color: var(--label, #000); caret-color: var(--tint, #1c1c1e); -webkit-appearance: none; appearance: none; } .ds-search input::placeholder, .ds-field::placeholder { color: var(--placeholder, #767679); } .ds-field { min-height: 44px; padding: 10px 14px; border: 0; border-radius: 12px; background: var(--fill-3, rgba(118,118,128,0.12)); font: inherit; font-size: 17px; color: var(--label, #000); caret-color: var(--tint, #1c1c1e); outline: none; } .ds-field:focus-visible { outline: 2px solid var(--tint, #1c1c1e); outline-offset: 0; }"
     },
     {
       "name": "Segmented and Switch",
@@ -131,7 +402,7 @@
       "refersTo": "segmented",
       "description": "Platform segmented control with sliding thumb, and the system switch.",
       "html": "<div class=\"ds-controls\"><div class=\"ds-seg\" style=\"--n:3;--i:1\"><span class=\"ds-seg-thumb\"></span><button>Semana</button><button class=\"is-active\">Mes</button><button>Año</button></div><button class=\"ds-switch is-on\" role=\"switch\" aria-checked=\"true\"><span class=\"ds-switch-thumb\"></span></button></div>",
-      "css": ".ds-controls { display: flex; align-items: center; gap: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; } .ds-seg { position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); width: 280px; padding: 2px; border-radius: 10px; background: var(--fill-3, rgba(118,118,128,0.12)); } .ds-seg-thumb { position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc((100% - 4px) / var(--n)); border-radius: 8px; background: var(--cell, #fff); box-shadow: 0 3px 8px rgba(0,0,0,0.12), 0 3px 1px rgba(0,0,0,0.04); transform: translateX(calc(var(--i) * 100%)); transition: transform 0.36s cubic-bezier(0.32, 0.72, 0, 1); } .ds-seg button { position: relative; height: 32px; border: 0; background: none; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 500; color: var(--label, #000); cursor: pointer; } .ds-seg button.is-active { font-weight: 600; } .ds-seg button:focus-visible { outline: 2px solid var(--tint, #c93400); } .ds-switch { position: relative; width: 51px; height: 31px; border: 0; border-radius: 999px; background: var(--fill, rgba(120,120,128,0.2)); cursor: pointer; transition: background-color 0.28s cubic-bezier(0.32, 0.72, 0, 1); } .ds-switch.is-on { background: var(--switch-on, #34c759); } .ds-switch:focus-visible { outline: 2px solid var(--tint, #c93400); outline-offset: 2px; } .ds-switch-thumb { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 999px; background: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 3px 1px rgba(0,0,0,0.06); transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1); } .ds-switch.is-on .ds-switch-thumb { transform: translateX(20px); }"
+      "css": ".ds-controls { display: flex; align-items: center; gap: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; } .ds-seg { position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); width: 280px; padding: 2px; border-radius: 10px; background: var(--fill-3, rgba(118,118,128,0.12)); } .ds-seg-thumb { position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc((100% - 4px) / var(--n)); border-radius: 8px; background: var(--cell, #fff); box-shadow: 0 3px 8px rgba(0,0,0,0.12), 0 3px 1px rgba(0,0,0,0.04); transform: translateX(calc(var(--i) * 100%)); transition: transform 0.36s cubic-bezier(0.32, 0.72, 0, 1); } .ds-seg button { position: relative; height: 32px; border: 0; background: none; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 500; color: var(--label, #000); cursor: pointer; } .ds-seg button.is-active { font-weight: 600; } .ds-seg button:focus-visible { outline: 2px solid var(--tint, #1c1c1e); } .ds-switch { position: relative; width: 51px; height: 31px; border: 0; border-radius: 999px; background: var(--fill, rgba(120,120,128,0.2)); cursor: pointer; transition: background-color 0.28s cubic-bezier(0.32, 0.72, 0, 1); } .ds-switch.is-on { background: var(--switch-on, #34c759); } .ds-switch:focus-visible { outline: 2px solid var(--tint, #1c1c1e); outline-offset: 2px; } .ds-switch-thumb { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 999px; background: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 3px 1px rgba(0,0,0,0.06); transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1); } .ds-switch.is-on .ds-switch-thumb { transform: translateX(20px); }"
     },
     {
       "name": "Floating Tab Bar",
@@ -139,7 +410,7 @@
       "refersTo": "tabbar",
       "description": "Glass capsule with five tabs and a sliding fill indicator; active tab in tint text.",
       "html": "<nav class=\"ds-tabbar\" style=\"--i:0\"><span class=\"ds-tab-ind\"></span><button class=\"ds-tab is-active\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M6.5 6.5 17.5 17.5M21 21l-1-1M3 3l1 1M18 22l4-4M2 6l4-4M3 10l7-7M14 21l7-7\"/></svg><span>Entreno</span></button><button class=\"ds-tab\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M10 2h4M12 14l3-3\"/><circle cx=\"12\" cy=\"14\" r=\"8\"/></svg><span>Descanso</span></button><button class=\"ds-tab\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"m22 7-8.5 8.5-5-5L2 17\"/><path d=\"M16 7h6v6\"/></svg><span>Progreso</span></button><button class=\"ds-tab\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M7 12.5a5 5 0 1 0 10 0c0-4-5-9-5-9s-5 5-5 9Z\"/></svg><span>Músculos</span></button><button class=\"ds-tab\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18\"/></svg><span>Historial</span></button></nav>",
-      "css": ".ds-tabbar { position: relative; width: 390px; max-width: 100%; height: 62px; padding: 4px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-radius: 999px; background: var(--glass, rgba(250,250,252,0.74)); -webkit-backdrop-filter: blur(24px) saturate(190%); backdrop-filter: blur(24px) saturate(190%); box-shadow: inset 0 0.5px 0 var(--glass-edge, rgba(255,255,255,0.8)), 0 0 0 0.5px var(--glass-line, rgba(0,0,0,0.07)), 0 10px 30px -10px rgba(0,0,0,0.2), 0 2px 6px -2px rgba(0,0,0,0.08); font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; } .ds-tab-ind { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 5); border-radius: 999px; background: var(--fill-3, rgba(118,118,128,0.12)); transform: translateX(calc(var(--i) * 100%)); transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1); } .ds-tab { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 0; background: none; border-radius: 999px; color: var(--label, #000); font-size: 10px; font-weight: 600; letter-spacing: 0.01em; cursor: pointer; } .ds-tab svg { width: 24px; height: 24px; transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); } .ds-tab:active svg { transform: scale(0.86); } .ds-tab:not(.is-active):hover { color: var(--label-2, #6e6e73); } .ds-tab:focus-visible { outline: 2px solid var(--tint, #c93400); outline-offset: -2px; } .ds-tab.is-active { color: var(--tint-text, #c93400); }"
+      "css": ".ds-tabbar { position: relative; width: 390px; max-width: 100%; height: 62px; padding: 4px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-radius: 999px; background: var(--glass, rgba(250,250,252,0.74)); -webkit-backdrop-filter: blur(24px) saturate(190%); backdrop-filter: blur(24px) saturate(190%); box-shadow: inset 0 0.5px 0 var(--glass-edge, rgba(255,255,255,0.8)), 0 0 0 0.5px var(--glass-line, rgba(0,0,0,0.07)), 0 10px 30px -10px rgba(0,0,0,0.2), 0 2px 6px -2px rgba(0,0,0,0.08); font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; } .ds-tab-ind { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 5); border-radius: 999px; background: var(--fill-3, rgba(118,118,128,0.12)); transform: translateX(calc(var(--i) * 100%)); transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1); } .ds-tab { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 0; background: none; border-radius: 999px; color: var(--label, #000); font-size: 10px; font-weight: 600; letter-spacing: 0.01em; cursor: pointer; } .ds-tab svg { width: 24px; height: 24px; transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); } .ds-tab:active svg { transform: scale(0.86); } .ds-tab:not(.is-active):hover { color: var(--label-2, #6e6e73); } .ds-tab:focus-visible { outline: 2px solid var(--tint, #1c1c1e); outline-offset: -2px; } .ds-tab.is-active { color: var(--tint-text, #1c1c1e); }"
     },
     {
       "name": "Glass Nav Button",
@@ -147,7 +418,7 @@
       "refersTo": "glass-button",
       "description": "Circular and text glass buttons floating in the nav bar; tint variant for the session's Terminar.",
       "html": "<div class=\"ds-glass-row\"><button class=\"ds-glass\" aria-label=\"Atrás\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"><path d=\"m15 18-6-6 6-6\"/></svg></button><button class=\"ds-glass is-text is-tint\">Terminar</button></div>",
-      "css": ".ds-glass-row { display: flex; gap: 12px; padding: 16px; background: var(--bg, #f2f2f7); font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; } .ds-glass { height: 44px; min-width: 44px; padding: 0; border: 0; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; color: var(--label, #000); background: var(--glass, rgba(250,250,252,0.74)); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); box-shadow: inset 0 0.5px 0 var(--glass-edge, rgba(255,255,255,0.8)), 0 0 0 0.5px var(--glass-line, rgba(0,0,0,0.07)), 0 10px 30px -10px rgba(0,0,0,0.2), 0 2px 6px -2px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1); } .ds-glass.is-text { padding: 0 16px; font-size: 17px; font-weight: 500; } .ds-glass.is-tint { background: var(--tint, #c93400); color: var(--on-tint, #fff); font-weight: 600; } .ds-glass:active { transform: scale(0.93); } .ds-glass:focus-visible { outline: 2px solid var(--tint, #c93400); outline-offset: 2px; }"
+      "css": ".ds-glass-row { display: flex; gap: 12px; padding: 16px; background: var(--bg, #f2f2f7); font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; } .ds-glass { height: 44px; min-width: 44px; padding: 0; border: 0; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; color: var(--label, #000); background: var(--glass, rgba(250,250,252,0.74)); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); box-shadow: inset 0 0.5px 0 var(--glass-edge, rgba(255,255,255,0.8)), 0 0 0 0.5px var(--glass-line, rgba(0,0,0,0.07)), 0 10px 30px -10px rgba(0,0,0,0.2), 0 2px 6px -2px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1); } .ds-glass.is-text { padding: 0 16px; font-size: 17px; font-weight: 500; } .ds-glass.is-tint { background: var(--tint, #1c1c1e); color: var(--on-tint, #fff); font-weight: 600; } .ds-glass:active { transform: scale(0.93); } .ds-glass:focus-visible { outline: 2px solid var(--tint, #1c1c1e); outline-offset: 2px; }"
     },
     {
       "name": "Bottom Sheet",
@@ -155,7 +426,7 @@
       "refersTo": "sheet",
       "description": "Drag-to-dismiss sheet with grabber, three-column bar and grouped body.",
       "html": "<div class=\"ds-sheet\"><div class=\"ds-sheet-head\"><span class=\"ds-grabber\"></span><div class=\"ds-sheet-bar\"><button class=\"ds-sheet-act\">Cancelar</button><span class=\"ds-sheet-title\">Marca</span><button class=\"ds-sheet-act is-strong\">Listo</button></div></div><div class=\"ds-sheet-body\"><div class=\"ds-sheet-group\"><div class=\"ds-sheet-row\">Technogym <svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg></div><div class=\"ds-sheet-row\">gym80</div></div></div></div>",
-      "css": ".ds-sheet { width: 390px; max-width: 100%; background: var(--sheet-bg, #f2f2f7); border-radius: 32px 32px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.16); font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; color: var(--label, #000); } .ds-sheet-head { padding: 6px 12px 2px; cursor: grab; } .ds-grabber { display: block; width: 36px; height: 5px; margin: 0 auto 2px; border-radius: 3px; background: var(--fill, rgba(120,120,128,0.2)); } .ds-sheet-bar { min-height: 50px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; } .ds-sheet-act { justify-self: start; height: 44px; padding: 0 6px; border: 0; background: none; font: inherit; font-size: 17px; color: var(--tint-text, #c93400); cursor: pointer; } .ds-sheet-act.is-strong { justify-self: end; font-weight: 600; } .ds-sheet-act:focus-visible { outline: 2px solid var(--tint, #c93400); outline-offset: 2px; } .ds-sheet-title { font-size: 17px; line-height: 22px; font-weight: 600; } .ds-sheet-body { padding: 8px 16px 28px; } .ds-sheet-group { background: var(--sheet-cell, #fff); border-radius: 22px; overflow: hidden; } .ds-sheet-row { min-height: 52px; padding: 11px 16px; display: flex; align-items: center; justify-content: space-between; font-size: 17px; } .ds-sheet-row + .ds-sheet-row { border-top: 0.5px solid var(--separator, rgba(60,60,67,0.2)); } .ds-sheet-row svg { color: var(--tint-text, #c93400); }"
+      "css": ".ds-sheet { width: 390px; max-width: 100%; background: var(--sheet-bg, #f2f2f7); border-radius: 32px 32px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.16); font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; color: var(--label, #000); } .ds-sheet-head { padding: 6px 12px 2px; cursor: grab; } .ds-grabber { display: block; width: 36px; height: 5px; margin: 0 auto 2px; border-radius: 3px; background: var(--fill, rgba(120,120,128,0.2)); } .ds-sheet-bar { min-height: 50px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; } .ds-sheet-act { justify-self: start; height: 44px; padding: 0 6px; border: 0; background: none; font: inherit; font-size: 17px; color: var(--tint-text, #1c1c1e); cursor: pointer; } .ds-sheet-act.is-strong { justify-self: end; font-weight: 600; } .ds-sheet-act:focus-visible { outline: 2px solid var(--tint, #1c1c1e); outline-offset: 2px; } .ds-sheet-title { font-size: 17px; line-height: 22px; font-weight: 600; } .ds-sheet-body { padding: 8px 16px 28px; } .ds-sheet-group { background: var(--sheet-cell, #fff); border-radius: 22px; overflow: hidden; } .ds-sheet-row { min-height: 52px; padding: 11px 16px; display: flex; align-items: center; justify-content: space-between; font-size: 17px; } .ds-sheet-row + .ds-sheet-row { border-top: 0.5px solid var(--separator, rgba(60,60,67,0.2)); } .ds-sheet-row svg { color: var(--tint-text, #1c1c1e); }"
     }
   ],
   "narrative": {
@@ -163,20 +434,48 @@
     "overview": "HIERRO behaves like an app Apple shipped: the iOS 26 interface language (large titles, inset grouped lists, floating glass chrome, sheets that follow the finger) applied to strength logging. The content field is achromatic and opaque, system grouped backgrounds carrying elevated cells, while a single \"iron glowing red\" tint marks only what is actionable or current. Colour is confined to meaning: the tint acts, green confirms a done set, red destroys, and the red heat scale lives only on the muscle map.\n\nDensity follows Dynamic Type rather than a dashboard: one column capped at 640px on phone, 17px body, 52px rows, 24px between sections, generous hit targets of 40 to 44px for anything tapped between sets with sweaty hands. Every live figure (kg, reps, sets, time) is set in tabular numerals, and the big numerals of a finished session or record use the rounded system face so a PR lands at scale. Appearance follows the system automatically in light and dark, and the build honours increased contrast, reduced transparency and reduced motion as first-class variants rather than afterthoughts.\n\nThe system rejects the dark gym dashboard with a neon accent and the grid of identical cards, as confirmed by the direction contract.",
     "keyCharacteristics": [
       "System grouped surfaces: #F2F2F7 / #000000 background, #FFFFFF / #1C1C1E cells, hairline separators inset past icons.",
-      "One tint, two appearances: #C93400 in light, #FF7A1A in dark, with a brighter #FF8A33 for tint-coloured text in dark.",
+      "One tint, two appearances: #1C1C1E in light, #ECECF0 in dark, with #F2F2F7 for tint-coloured text in dark (sober graphite, chosen by Jorge in v0.22 over the earlier orange).",
       "Glass only on chrome (tab bar capsule, navigation buttons, rest accessory, menus); content stays opaque.",
       "System font stack: SF Pro on Apple, self-hosted Inter only as the non-Apple fallback; SF Pro Rounded for large numerals.",
       "Capsule controls everywhere a finger lands; 22px continuous-feeling corners on groups; 32px on sheets.",
       "iOS motion curve cubic-bezier(0.32, 0.72, 0, 1), 200 to 520ms, press states that scale down rather than recolour."
     ],
     "rules": [
-      { "name": "The Color-Is-Meaning Rule", "body": "Tint means actionable or current, green means a set is done, red means destructive. Trend values stay neutral: an improvement is `label` at 600 weight, a decline is `label-2` at 600, never green or red.", "section": "colors" },
-      { "name": "The One Tint Rule", "body": "There is exactly one accent hue. A new screen that needs emphasis uses the tint, weight, or scale, never a second brand colour.", "section": "colors" },
-      { "name": "The Heat Stays Home Rule", "body": "The red heat ramp exists only on the muscle map and its legend and per-muscle bars. It never signals error, trend or intensity anywhere else.", "section": "colors" },
-      { "name": "The Tabular Figures Rule", "body": "Every live figure (kg, reps, set counts, times, dates in grids, chart ticks) sets `font-variant-numeric: tabular-nums` so columns align and values do not jitter while counting.", "section": "typography" },
-      { "name": "The Platform Face Rule", "body": "Never load a display face. SF Pro on Apple devices; Inter only where SF Pro does not exist.", "section": "typography" },
-      { "name": "The Glass Is Chrome Rule", "body": "Translucent material belongs only to navigation and transient overlays: tab bar, glass nav buttons, rest accessory, menus, the scrolled nav bar fade. Cells, cards, charts and the body map are always opaque.", "section": "elevation" },
-      { "name": "The Current Lifts Rule", "body": "Only the exercise in progress gets `--lift` and the tint ring; resting content sits flat on tone.", "section": "elevation" }
+      {
+        "name": "The Color-Is-Meaning Rule",
+        "body": "Tint means actionable or current, green means a set is done, red means destructive. Trend values stay neutral: an improvement is `label` at 600 weight, a decline is `label-2` at 600, never green or red.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Tint Rule",
+        "body": "There is exactly one accent hue. A new screen that needs emphasis uses the tint, weight, or scale, never a second brand colour.",
+        "section": "colors"
+      },
+      {
+        "name": "The Heat Stays Home Rule",
+        "body": "The red heat ramp exists only on the muscle map and its legend and per-muscle bars. It never signals error, trend or intensity anywhere else.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Figures Rule",
+        "body": "Every live figure (kg, reps, set counts, times, dates in grids, chart ticks) sets `font-variant-numeric: tabular-nums` so columns align and values do not jitter while counting.",
+        "section": "typography"
+      },
+      {
+        "name": "The Platform Face Rule",
+        "body": "Never load a display face. SF Pro on Apple devices; Inter only where SF Pro does not exist.",
+        "section": "typography"
+      },
+      {
+        "name": "The Glass Is Chrome Rule",
+        "body": "Translucent material belongs only to navigation and transient overlays: tab bar, glass nav buttons, rest accessory, menus, the scrolled nav bar fade. Cells, cards, charts and the body map are always opaque.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Current Lifts Rule",
+        "body": "Only the exercise in progress gets `--lift` and the tint ring; resting content sits flat on tone.",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "**Do** use `tint` for the one primary action per screen and for what is current (next set, active tab, trained day), and nothing decorative.",

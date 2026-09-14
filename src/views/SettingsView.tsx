@@ -20,7 +20,7 @@ import { disablePush, enablePush, pushDiagnostics, syncPushHour, testServerPush 
 import { NumberField, Row, Section, Segmented, Sheet, Switch } from '../components/ui'
 
 /** Versión visible de la app. Súbela en cada release. */
-export const APP_VERSION = 'v0.21'
+export const APP_VERSION = 'v0.22'
 
 // ---------------------------------------------------------------------------
 // Perfil corporal: la app pide tus métricas para afinar los cálculos

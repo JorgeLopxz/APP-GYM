@@ -54,8 +54,7 @@ push y el asistente de rutinas con IA. El flujo es:
 Lenguaje de interfaz de iOS: títulos grandes que se pliegan en la barra, listas
 agrupadas, barra de pestañas de vidrio flotante, hojas modales que se arrastran
 y menús contextuales. Tipografía del sistema (SF Pro en iPhone/Mac, Inter en el
-resto). Apariencia clara u oscura automática según el dispositivo; un único tinte
-naranja «hierro al rojo» para lo accionable, verde para lo hecho y rojo para lo
+resto). Apariencia clara u oscura automática según el dispositivo; un único tinte grafito acero sobrio para lo accionable, verde para lo hecho y rojo para lo
 destructivo. En iPad y escritorio la barra de pestañas sube arriba y Progreso y
 Músculos pasan a dos columnas. Respeta «reducir movimiento» y «reducir transparencia».
 

@@ -34,11 +34,12 @@
   --fill-4: rgba(116, 116, 128, 0.08);
   --press: rgba(0, 0, 0, 0.06);
 
-  /* color con significado */
-  --tint: #c93400;
-  --tint-press: #a82b00;
-  --tint-text: #c93400;
-  --tint-soft: rgba(201, 52, 0, 0.11);
+  /* color con significado: tinte grafito acero, sobrio; el color vivo queda
+     solo para «hecho» (verde) y para el mapa de calor */
+  --tint: #1c1c1e;
+  --tint-press: #3a3a3c;
+  --tint-text: #1c1c1e;
+  --tint-soft: rgba(60, 60, 67, 0.1);
   --on-tint: #ffffff;
   --green: #1f9d46;
   --green-text: #1a7f3a;
@@ -102,14 +103,14 @@
     --fill-4: rgba(116, 116, 128, 0.18);
     --press: rgba(255, 255, 255, 0.08);
 
-    --tint: #ff7a1a;
-    --tint-press: #e56a0e;
-    --tint-text: #ff8a33;
-    --tint-soft: rgba(255, 122, 26, 0.18);
+    --tint: #ececf0;
+    --tint-press: #c7c7cc;
+    --tint-text: #f2f2f7;
+    --tint-soft: rgba(235, 235, 245, 0.14);
     --on-tint: #000000;
-    --green: #30d158;
-    --green-text: #30d158;
-    --green-soft: rgba(48, 209, 88, 0.18);
+    --green: #2fb65a;
+    --green-text: #3cc167;
+    --green-soft: rgba(48, 182, 90, 0.2);
     --on-green: #000000;
     --switch-on: #30d158;
     --red: #ff453a;
@@ -1858,7 +1859,7 @@ span.chip:active {
 }
 
 .ex-card.is-current {
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tint) 60%, transparent), var(--lift);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tint) 28%, transparent), var(--lift);
 }
 
 .ex-head {
