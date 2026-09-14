@@ -179,6 +179,8 @@ export type Objetivo = 'definicion' | 'recomp' | 'volumen'
 export interface Profile {
   /** Nombre de quien usa la app (cada móvil tiene su copia con sus datos) */
   nombre?: string
+  /** Foto de perfil: JPEG cuadrado de 256 px como data URL (solo en este móvil) */
+  foto?: string
   edad?: number
   sexo?: 'M' | 'F'
   alturaCm?: number

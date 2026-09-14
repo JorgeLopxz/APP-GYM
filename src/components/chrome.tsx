@@ -5,13 +5,29 @@ import { User } from 'lucide-react'
 export const ChromeContext = createContext<{
   openSettings: () => void
   name?: string
+  /** Foto de perfil (data URL) */
+  photo?: string
   /** Registra la acción de «volver» para el gesto desde el borde izquierdo */
   setBack: (fn: (() => void) | null) => void
 }>({ openSettings: () => {}, setBack: () => {} })
 
-/** Avatar con la inicial del usuario: abre Perfil y ajustes (como en App Store). */
+/** Avatar grande: foto, inicial o silueta. */
+export function Avatar(props: { name?: string; photo?: string }) {
+  const initial = props.name?.trim().charAt(0).toUpperCase()
+  return (
+    <span className="avatar-lg" aria-hidden="true">
+      {props.photo ? (
+        <img src={props.photo} alt="" />
+      ) : (
+        initial ?? <User size={40} strokeWidth={2} />
+      )}
+    </span>
+  )
+}
+
+/** Avatar con tu foto o inicial: abre Perfil y ajustes (como en App Store). */
 export function AvatarButton() {
-  const { openSettings, name } = useContext(ChromeContext)
+  const { openSettings, name, photo } = useContext(ChromeContext)
   const initial = name?.trim().charAt(0).toUpperCase()
   return (
     <button
@@ -20,7 +36,13 @@ export function AvatarButton() {
       onClick={openSettings}
       aria-label="Perfil y ajustes"
     >
-      {initial ? <span>{initial}</span> : <User size={19} strokeWidth={2.2} />}
+      {photo ? (
+        <img src={photo} alt="" />
+      ) : initial ? (
+        <span>{initial}</span>
+      ) : (
+        <User size={19} strokeWidth={2.2} />
+      )}
     </button>
   )
 }

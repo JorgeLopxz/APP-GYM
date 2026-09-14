@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import {
   Bell,
   BellOff,
+  Camera,
   CalendarPlus,
   Check,
   Download,
@@ -18,9 +19,11 @@ import { exportJSON, importJSON, resetData } from '../lib/storage'
 import { downloadCreatineICS } from '../lib/ics'
 import { disablePush, enablePush, pushDiagnostics, syncPushHour, testServerPush } from '../lib/push'
 import { NumberField, Row, Section, Segmented, Sheet, Switch } from '../components/ui'
+import { Avatar } from '../components/chrome'
+import { squareAvatar } from '../lib/image'
 
 /** Versión visible de la app. Súbela en cada release. */
-export const APP_VERSION = 'v0.23'
+export const APP_VERSION = 'v0.24'
 
 // ---------------------------------------------------------------------------
 // Perfil corporal: la app pide tus métricas para afinar los cálculos
@@ -34,6 +37,21 @@ export function ProfileSheet(props: { data: AppData; update: Update; onClose: ()
   const [sexo, setSexo] = useState<'M' | 'F'>(p.sexo ?? 'M')
   const [altura, setAltura] = useState(p.alturaCm ?? 175)
   const [peso, setPeso] = useState(currentBodyweight(p) ?? 70)
+  const [foto, setFoto] = useState(p.foto)
+  const [loadingPhoto, setLoadingPhoto] = useState(false)
+  const photoRef = useRef<HTMLInputElement>(null)
+
+  const pickPhoto = async (file: File | undefined) => {
+    if (!file) return
+    setLoadingPhoto(true)
+    try {
+      setFoto(await squareAvatar(file))
+    } catch {
+      alert('No se pudo usar esa imagen. Prueba con otra foto.')
+    } finally {
+      setLoadingPhoto(false)
+    }
+  }
 
   const save = () => {
     update((d) => {
@@ -44,6 +62,7 @@ export function ProfileSheet(props: { data: AppData; update: Update; onClose: ()
         profile: {
           ...d.profile,
           nombre: nombre.trim() || undefined,
+          foto,
           edad,
           sexo,
           alturaCm: altura,
@@ -76,6 +95,40 @@ export function ProfileSheet(props: { data: AppData; update: Update; onClose: ()
         </button>
       }
     >
+      <div className="profile-card">
+        <Avatar name={nombre} photo={foto} />
+        <div className="photo-actions">
+          <button
+            type="button"
+            className="btn btn-tinted btn-sm"
+            onClick={() => photoRef.current?.click()}
+            disabled={loadingPhoto}
+          >
+            {loadingPhoto ? (
+              <LoaderCircle className="spin" size={16} strokeWidth={2.4} />
+            ) : (
+              <Camera size={16} strokeWidth={2.4} />
+            )}
+            {foto ? 'Cambiar foto' : 'Añadir foto'}
+          </button>
+          {foto && (
+            <button type="button" className="btn btn-plain btn-sm is-destructive" onClick={() => setFoto(undefined)}>
+              Quitar
+            </button>
+          )}
+        </div>
+        <input
+          ref={photoRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            e.target.value = ''
+            void pickPhoto(file)
+          }}
+        />
+      </div>
       <p className="sheet-lead">
         Cada móvil guarda sus propios datos. Con tu peso, las dominadas cuentan los kilos reales y se
         estiman tus calorías; si eres mujer, el mapa muscular muestra un cuerpo femenino.
@@ -213,9 +266,14 @@ export function SettingsSheet(props: {
       }
     >
       <div className="profile-card">
-        <span className="avatar-lg" aria-hidden="true">
-          {initial ?? <User size={40} strokeWidth={2} />}
-        </span>
+        <button
+          type="button"
+          className="avatar-lg-btn"
+          onClick={() => setEditingProfile(true)}
+          aria-label="Editar perfil y foto"
+        >
+          <Avatar name={profile.nombre} photo={profile.foto} />
+        </button>
         <span className="profile-name">{profile.nombre ?? 'Tu perfil'}</span>
         <span className="profile-meta">{meta || 'Añade tus datos para afinar calorías y dominadas'}</span>
         <button type="button" className="btn btn-tinted btn-sm" onClick={() => setEditingProfile(true)}>

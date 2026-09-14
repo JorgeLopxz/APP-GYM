@@ -168,11 +168,12 @@ export default function App() {
     () => ({
       openSettings: () => setSettingsOpen(true),
       name: data.profile.nombre,
+      photo: data.profile.foto,
       setBack: (fn: (() => void) | null) => {
         backRef.current = fn
       }
     }),
-    [data.profile.nombre]
+    [data.profile.nombre, data.profile.foto]
   )
 
   const timerActive = timer.endsAt !== null || timer.pausedRemaining !== null
