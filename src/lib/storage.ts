@@ -8,7 +8,7 @@ import {
 } from '../data/catalog'
 import { knownBrand, normalizeText } from '../data/brands'
 
-export const CURRENT_VERSION = 8
+export const CURRENT_VERSION = 9
 
 const KEY = 'hierro-data-v1'
 
@@ -117,7 +117,29 @@ function migrate(parsed: AppData & { profile?: AppData['profile'] }): AppData {
   if (data.version === 7) {
     data = migrateToV8(data)
   }
+  if (data.version === 8) {
+    data = migrateToV9(data)
+  }
   return data
+}
+
+/**
+ * v8 → v9: nombres del catálogo actualizados (p. ej. «Contractora (pec deck)»).
+ * Los ejercicios del catálogo no se pueden renombrar desde la app, así que se
+ * sincronizan con su nombre canónico; los creados por el usuario no se tocan.
+ */
+function migrateToV9(data: AppData): AppData {
+  const canon = new Map(
+    [...seedExercisesWithVideos(), ...catalogExercisesWithVideos()].map((e) => [e.id, e.name])
+  )
+  return {
+    ...data,
+    version: 9,
+    exercises: data.exercises.map((e) => {
+      const name = canon.get(e.id)
+      return name && name !== e.name ? { ...e, name } : e
+    })
+  }
 }
 
 /**

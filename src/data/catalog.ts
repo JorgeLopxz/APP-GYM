@@ -1427,6 +1427,60 @@ export const VARIANT_MUSCLES: Record<
   }
 }
 
+/**
+ * Otros nombres con los que se conoce cada ejercicio en el gimnasio (inglés o
+ * jerga). Solo sirven para buscar: «pec deck» encuentra la Contractora.
+ */
+export const SEARCH_ALIASES: Record<string, string[]> = {
+  contractora: ['pec deck', 'peck deck', 'pec fly', 'mariposa', 'butterfly', 'aperturas en maquina'],
+  'contractora-invertida': ['pec deck inverso', 'reverse pec deck', 'reverse fly', 'rear delt', 'deltoide posterior maquina'],
+  'cruce-poleas': ['crossover', 'cable fly', 'cable crossover'],
+  'aperturas-mancuernas': ['dumbbell fly', 'flyes'],
+  'press-banca-barra': ['bench press', 'press banca'],
+  'press-plano': ['bench press', 'chest press', 'press banca'],
+  'press-inclinado': ['incline press', 'incline chest press'],
+  'press-convergente': ['chest press', 'iso lateral', 'isolateral'],
+  'fondos-paralelas': ['dips'],
+  'pull-ups': ['pull up', 'pullup', 'dominadas pronas'],
+  'dominadas-supinas': ['chin up', 'chinup'],
+  jalon: ['lat pulldown', 'polea al pecho', 'jalon al pecho'],
+  'jalon-maquina': ['front lat pulldown', 'lat pulldown maquina'],
+  'remo-gironda': ['seated row', 'remo sentado', 'remo en polea baja'],
+  'remo-maquina': ['machine row', 'low row', 'seated row maquina'],
+  'remo-alto-maquina': ['high row'],
+  'remo-t': ['t bar row', 'tbar', 'remo en t'],
+  'pull-over': ['straight arm pulldown', 'pullover'],
+  'pullover-maquina': ['pullover machine'],
+  'extension-lumbar-maquina': ['back extension', 'lower back'],
+  'press-militar': ['shoulder press', 'overhead press', 'ohp'],
+  'elevaciones-laterales': ['lateral raise', 'laterales'],
+  'face-pull': ['tiron a la cara'],
+  encogimientos: ['shrugs', 'shrug'],
+  predicador: ['preacher curl', 'scott'],
+  'curl-martillo': ['hammer curl'],
+  'press-frances': ['skull crusher', 'rompecraneos'],
+  'extension-triceps': ['pushdown', 'triceps pushdown', 'jalon triceps'],
+  hakka: ['hack squat', 'sentadilla hakka'],
+  'sentadilla-pendulo': ['pendulum squat', 'pendular'],
+  'sentadilla-cinturon': ['belt squat'],
+  prensa: ['leg press'],
+  'extension-cuadriceps': ['leg extension', 'sillon de cuadriceps'],
+  'curl-femoral': ['leg curl', 'femoral tumbado', 'femoral sentado'],
+  'abduccion-gluteo': ['hip abduction', 'abductora'],
+  'abductores-maquina': ['hip abduction', 'abductora'],
+  'aduccion-maquina': ['hip adduction', 'adductora', 'aductora'],
+  'peso-muerto-rumano': ['rdl', 'romanian deadlift'],
+  'peso-muerto': ['deadlift'],
+  'hip-thrust': ['empuje de cadera', 'glute drive'],
+  'sentadilla-bulgara': ['bulgarian split squat', 'split squat'],
+  gemelo: ['calf raise', 'pantorrilla'],
+  'gemelo-sentado': ['seated calf raise', 'pantorrilla sentado'],
+  'crunch-polea': ['cable crunch'],
+  'rueda-abdominal': ['ab wheel', 'rollout'],
+  'paseo-granjero': ['farmer walk', 'farmers walk'],
+  'fondos-maquina': ['dip machine', 'seated dip']
+}
+
 /** Aplica el override de variantes a un ejercicio (si lo tiene definido). */
 export function withVariants(def: ExerciseDef): ExerciseDef {
   const v = VARIANTS_OVERRIDE[def.id]

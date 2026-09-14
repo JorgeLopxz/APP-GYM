@@ -1,7 +1,13 @@
 import type { AppData, Equipment, ExerciseDef, Routine, RoutineItem } from '../types'
 import { EQUIPMENT_LABEL, MUSCLE_NAMES } from '../types'
 import { catalogSpecs, type ExerciseSpecs } from '../data/specs'
-import { exerciseRegion, REGION_ORDER, VARIANT_MUSCLES, type Region } from '../data/catalog'
+import {
+  exerciseRegion,
+  REGION_ORDER,
+  SEARCH_ALIASES,
+  VARIANT_MUSCLES,
+  type Region
+} from '../data/catalog'
 import { normalizeText } from '../data/brands'
 
 /** Ficha técnica: la del catálogo o, en ejercicios propios, la mínima que se sabe. */
@@ -68,6 +74,7 @@ export function matchesQuery(def: ExerciseDef, query: string): boolean {
   const hay = normalizeText(
     [
       def.name,
+      ...(SEARCH_ALIASES[def.id] ?? []),
       ...def.variants,
       ...def.primary.map((m) => MUSCLE_NAMES[m]),
       EQUIPMENT_LABEL[exerciseSpecs(def).equipment]

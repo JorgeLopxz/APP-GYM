@@ -30,7 +30,7 @@ export const SEED_EXERCISES: ExerciseDef[] = [
   },
   {
     id: 'contractora',
-    name: 'Contractora',
+    name: 'Contractora (pec deck)',
     variants: [],
     primary: ['pecho_inferior'],
     secondary: ['pecho_superior']
@@ -95,7 +95,7 @@ export const SEED_EXERCISES: ExerciseDef[] = [
   },
   {
     id: 'contractora-invertida',
-    name: 'Contractora invertida',
+    name: 'Contractora invertida (pec deck inverso)',
     variants: [],
     primary: ['deltoide_posterior'],
     secondary: ['espalda_alta']
@@ -279,7 +279,7 @@ export function buildSeedData(): AppData {
   // catálogo completo, con historial y perfil vacíos. Así, al instalar la app
   // (o tras borrar los datos), cada persona empieza de cero y la personaliza.
   return {
-    version: 8,
+    version: 9,
     exercises: [...seedExercisesWithVideos(), ...catalogExercisesWithVideos()],
     routines: SEED_ROUTINES,
     programs: [
