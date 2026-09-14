@@ -52,8 +52,21 @@
   --indigo-icon: #5856d6;
 
   /* vidrio (solo cromo) */
-  --glass: rgba(250, 250, 252, 0.74);
-  --glass-strong: rgba(250, 250, 252, 0.9);
+  --glass: rgba(255, 255, 255, 0.5);
+  --glass-strong: rgba(250, 250, 252, 0.84);
+  /* Liquid Glass: borde de luz, reflejo superior, relieve interior y lente */
+  --glass-rim: linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.35) 26%,
+    rgba(255, 255, 255, 0) 50%,
+    rgba(255, 255, 255, 0.25) 78%,
+    rgba(255, 255, 255, 0.85) 100%
+  );
+  --glass-sheen: radial-gradient(120% 90% at 22% 0%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 56%);
+  --glass-inner: inset 0 1px 1.5px rgba(255, 255, 255, 0.9), inset 0 -1px 2px rgba(0, 0, 0, 0.06);
+  --glass-lens: rgba(120, 120, 128, 0.14);
+  --glass-lens-inner: inset 0 1px 1px rgba(255, 255, 255, 0.85), inset 0 -1px 1px rgba(0, 0, 0, 0.06);
   --glass-edge: rgba(255, 255, 255, 0.8);
   --glass-line: rgba(0, 0, 0, 0.07);
   --glass-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.2), 0 2px 6px -2px rgba(0, 0, 0, 0.08);
@@ -118,8 +131,20 @@
     --gray-icon: #636366;
     --indigo-icon: #5e5ce6;
 
-    --glass: rgba(38, 38, 42, 0.66);
-    --glass-strong: rgba(44, 44, 48, 0.9);
+    --glass: rgba(40, 40, 44, 0.46);
+    --glass-strong: rgba(44, 44, 48, 0.86);
+    --glass-rim: linear-gradient(
+      140deg,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0.12) 28%,
+      rgba(255, 255, 255, 0) 52%,
+      rgba(255, 255, 255, 0.08) 80%,
+      rgba(255, 255, 255, 0.35) 100%
+    );
+    --glass-sheen: radial-gradient(120% 90% at 22% 0%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 56%);
+    --glass-inner: inset 0 1px 1px rgba(255, 255, 255, 0.2), inset 0 -1px 2px rgba(0, 0, 0, 0.35);
+    --glass-lens: rgba(255, 255, 255, 0.12);
+    --glass-lens-inner: inset 0 1px 1px rgba(255, 255, 255, 0.22), inset 0 -1px 1px rgba(0, 0, 0, 0.3);
     --glass-edge: rgba(255, 255, 255, 0.14);
     --glass-line: rgba(255, 255, 255, 0.08);
     --glass-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7), 0 2px 6px -2px rgba(0, 0, 0, 0.5);
@@ -3093,6 +3118,100 @@ span.chip:active {
 /* ---------------------------------------------------------------------------
    Pantallas anchas: iPad y escritorio
    --------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------
+   Liquid Glass (iOS 26): vidrio claro con desenfoque saturado, reflejo
+   superior, borde de luz y lente en la pestaña activa. Solo en el cromo
+   flotante; el contenido sigue opaco. Safari no permite la refracción real
+   de Apple en la web: esto es su aproximación con backdrop-filter.
+   --------------------------------------------------------------------------- */
+
+.tabbar-inner,
+.accessory-inner,
+.glass-btn,
+.menu {
+  background-color: var(--glass);
+  background-image: var(--glass-sheen);
+  -webkit-backdrop-filter: blur(16px) saturate(200%) brightness(1.04);
+  backdrop-filter: blur(16px) saturate(200%) brightness(1.04);
+  box-shadow: var(--glass-inner), 0 0 0 0.5px var(--glass-line), var(--glass-shadow);
+}
+
+.menu {
+  background-color: var(--glass-strong);
+}
+
+.accessory-inner {
+  position: relative;
+}
+
+/* borde de luz: degradado recortado a 1 px por máscara */
+.tabbar-inner::before,
+.accessory-inner::before,
+.glass-btn::before,
+.menu::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--glass-rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.glass-btn.is-tint {
+  background-color: color-mix(in srgb, var(--tint) 88%, transparent);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 60%);
+  color: var(--on-tint);
+}
+
+.glass-btn:active {
+  background-image: radial-gradient(90% 90% at 50% 50%, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 70%),
+    var(--glass-sheen);
+}
+
+/* la lente de la pestaña activa: se hincha al tocar la barra */
+.tab-indicator {
+  background: var(--glass-lens);
+  box-shadow: var(--glass-lens-inner), 0 2px 10px -3px rgba(0, 0, 0, 0.14);
+  transform: translateX(calc(var(--i, 0) * 100%)) scale(var(--lens, 1));
+  transition: transform 0.5s var(--ease);
+}
+
+.tabbar-inner:active {
+  --lens: 1.07;
+}
+
+/* brillo de cristal en los botones rellenos y el control segmentado */
+.btn-filled {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 58%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+    0 6px 16px -8px rgba(0, 0, 0, 0.35);
+}
+
+.segmented-thumb {
+  box-shadow: var(--glass-lens-inner), 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
+}
+
+.sheet {
+  box-shadow: inset 0 1px 0 var(--glass-edge), 0 -10px 40px rgba(0, 0, 0, 0.16);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .tabbar-inner,
+  .accessory-inner,
+  .glass-btn,
+  .menu {
+    background-image: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
 
 @media (max-width: 360px) {
   .cal-day {
