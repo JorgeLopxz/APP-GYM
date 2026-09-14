@@ -6,6 +6,10 @@ import './index.css'
 
 registerSW({ immediate: true })
 
+// Safari en iOS solo aplica los estilos :active (la animación de pulsar) si la
+// página tiene algún listener de touchstart
+document.addEventListener('touchstart', () => {}, { passive: true })
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

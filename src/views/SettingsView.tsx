@@ -23,7 +23,7 @@ import { Avatar } from '../components/chrome'
 import { PhotoCropSheet } from '../components/PhotoCropSheet'
 
 /** Versión visible de la app. Súbela en cada release. */
-export const APP_VERSION = 'v0.26'
+export const APP_VERSION = 'v0.27'
 
 // ---------------------------------------------------------------------------
 // Perfil corporal: la app pide tus métricas para afinar los cálculos

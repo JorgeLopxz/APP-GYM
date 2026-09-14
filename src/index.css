@@ -3213,6 +3213,124 @@ span.chip:active {
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Pulsación estilo iPhone: respuesta instantánea al tocar y vuelta con muelle
+   al soltar. El vidrio y lo redondo se agranda; lo sólido se hunde; el texto
+   se atenúa. (main.tsx registra un touchstart para que iOS aplique :active.)
+   --------------------------------------------------------------------------- */
+
+.glass-btn,
+.avatar-btn,
+.accessory-btn,
+.circle-btn,
+.ex-menu,
+.round-btn,
+.set-check,
+.check-circle,
+.icon-btn,
+.row-action,
+.btn,
+.chip,
+.tag-chip,
+.set-badge,
+.popup,
+.inline-btn,
+.cal-day,
+.avatar-lg-btn,
+.tab svg {
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease,
+    color 0.2s ease, opacity 0.2s ease, box-shadow 0.25s ease;
+  /* muelle real (sobrepasa un poco y se asienta) donde el navegador lo soporta */
+  transition: transform 0.55s
+      linear(0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017 19.4%, 1.077 22.6%,
+        1.121 26.3%, 1.13 29.1%, 1.126 31.9%, 1.078 38.8%, 1.021 46%, 0.995 52.8%, 0.989 59.5%,
+        0.999 76.2%, 1),
+    background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* al tocar: rápido, sin rebote */
+.glass-btn:active,
+.avatar-btn:active,
+.accessory-btn:active,
+.circle-btn:active,
+.ex-menu:active,
+.round-btn:active,
+.set-check:active,
+.check-circle:active,
+.icon-btn:active,
+.row-action:active,
+.btn:active,
+.chip:active,
+.tag-chip:active,
+.set-badge:active,
+.popup:active,
+.inline-btn:active,
+.cal-day:active,
+.avatar-lg-btn:active,
+.tab:active svg {
+  transition: transform 0.12s cubic-bezier(0.2, 0, 0, 1), background-color 0.08s ease, color 0.2s ease,
+    opacity 0.08s ease, box-shadow 0.2s ease;
+}
+
+/* vidrio y controles redondos: crecen */
+.glass-btn:active,
+.avatar-btn:active,
+.accessory-btn:active,
+.circle-btn:active,
+.ex-menu:active,
+.icon-btn:active,
+.row-action:active {
+  transform: scale(1.12);
+}
+
+.round-btn:active,
+.set-check:active,
+.check-circle:active {
+  transform: scale(1.1);
+}
+
+.tab:active svg {
+  transform: scale(1.2);
+}
+
+/* sólidos: se hunden (los grandes, menos) */
+.btn:active,
+.chip:active,
+.tag-chip:active,
+.set-badge:active,
+.popup:active,
+.inline-btn:active,
+.cal-day.is-trained:active,
+.avatar-lg-btn:active {
+  transform: scale(0.94);
+}
+
+.btn-lg:active,
+.btn-block:active {
+  transform: scale(0.97);
+}
+
+/* texto: se atenúa como en iOS */
+.btn-plain:active {
+  transform: none;
+  opacity: 0.4;
+}
+
+.tab-indicator {
+  transition: transform 0.55s
+    linear(0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017 19.4%, 1.077 22.6%,
+      1.121 26.3%, 1.13 29.1%, 1.126 31.9%, 1.078 38.8%, 1.021 46%, 0.995 52.8%, 0.989 59.5%,
+      0.999 76.2%, 1);
+}
+
+button:disabled:active,
+.btn:disabled:active,
+.glass-btn:disabled:active {
+  transform: none;
+  opacity: 0.38;
+}
+
 @media (max-width: 360px) {
   .cal-day {
     width: 36px;
