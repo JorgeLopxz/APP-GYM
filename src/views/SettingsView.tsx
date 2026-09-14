@@ -20,10 +20,10 @@ import { downloadCreatineICS } from '../lib/ics'
 import { disablePush, enablePush, pushDiagnostics, syncPushHour, testServerPush } from '../lib/push'
 import { NumberField, Row, Section, Segmented, Sheet, Switch } from '../components/ui'
 import { Avatar } from '../components/chrome'
-import { squareAvatar } from '../lib/image'
+import { PhotoCropSheet } from '../components/PhotoCropSheet'
 
 /** Versión visible de la app. Súbela en cada release. */
-export const APP_VERSION = 'v0.24'
+export const APP_VERSION = 'v0.25'
 
 // ---------------------------------------------------------------------------
 // Perfil corporal: la app pide tus métricas para afinar los cálculos
@@ -41,16 +41,10 @@ export function ProfileSheet(props: { data: AppData; update: Update; onClose: ()
   const [loadingPhoto, setLoadingPhoto] = useState(false)
   const photoRef = useRef<HTMLInputElement>(null)
 
-  const pickPhoto = async (file: File | undefined) => {
-    if (!file) return
-    setLoadingPhoto(true)
-    try {
-      setFoto(await squareAvatar(file))
-    } catch {
-      alert('No se pudo usar esa imagen. Prueba con otra foto.')
-    } finally {
-      setLoadingPhoto(false)
-    }
+  // la foto elegida pasa primero por la hoja de ajuste (encuadre y zoom)
+  const [cropFile, setCropFile] = useState<File | null>(null)
+  const pickPhoto = (file: File | undefined) => {
+    if (file) setCropFile(file)
   }
 
   const save = () => {
@@ -125,7 +119,7 @@ export function ProfileSheet(props: { data: AppData; update: Update; onClose: ()
           onChange={(e) => {
             const file = e.target.files?.[0]
             e.target.value = ''
-            void pickPhoto(file)
+            pickPhoto(file)
           }}
         />
       </div>
@@ -173,6 +167,16 @@ export function ProfileSheet(props: { data: AppData; update: Update; onClose: ()
           accessory={<NumberField value={peso} step={0.5} min={30} onChange={setPeso} ariaLabel="Peso en kilos" />}
         />
       </Section>
+      {cropFile && (
+        <PhotoCropSheet
+          file={cropFile}
+          onCancel={() => setCropFile(null)}
+          onDone={(url) => {
+            setFoto(url)
+            setCropFile(null)
+          }}
+        />
+      )}
     </Sheet>
   )
 }

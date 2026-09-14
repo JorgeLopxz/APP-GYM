@@ -32,7 +32,7 @@ push y el asistente de rutinas con IA. El flujo es:
 | `src/lib/nutrition.ts` | Estimador de calorías (Mifflin-St Jeor) y proteína según objetivo. |
 | `src/lib/generator.ts` · `src/lib/ai.ts` | Generador de rutinas integrado (sin conexión) y cliente del asistente con Gemini. |
 | `src/lib/push.ts` · `notify.ts` · `ics.ts` | Notificaciones push reales, pitido del descanso y evento de calendario. |
-| `src/views/WorkoutView.tsx` | Pestaña **Entreno**: hoy (creatina, «A continuación», rutinas semanales) → días de la rutina → sesión activa. |
+| `src/views/WorkoutView.tsx` | Pestaña **Entreno**: hoy (creatina y rutinas semanales; sin recomendar día, lo elige el usuario) → días de la rutina → sesión activa. |
 | `src/views/workout/` | Piezas de Entreno: `ActiveSession` (sesión, tarjeta de ejercicio, series, resumen y récords), `Editors` (día y rutina semanal, reordenar arrastrando), `ExercisePicker` (catálogo con filtros), `ExerciseInfoSheet` (vídeo, ficha y claves), `BrandPicker`, `ExerciseCreator`, `AssistantSheet`. |
 | `src/views/TimerView.tsx` | Pestaña **Descanso** (estilo Reloj de iOS) y el accesorio flotante sobre la barra de pestañas. |
 | `src/views/ProgressView.tsx` | Pestaña **Progreso**: gráficas por ejercicio filtrables por variante y marca, y «Mi cuerpo» (peso + calorías). |

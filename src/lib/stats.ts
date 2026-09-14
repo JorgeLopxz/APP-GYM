@@ -275,7 +275,13 @@ export function prsBefore(
 
 export function nextUp(
   data: AppData
-): { program: Program; routine: Routine; lastDone: string | null } | null {
+): {
+  program: Program
+  routine: Routine
+  lastDone: string | null
+  /** El último entreno de la rutina, que es por lo que toca este día */
+  after: { name: string; date: string } | null
+} | null {
   const exists = (id: string) => data.routines.some((r) => r.id === id)
   const programs = data.programs.filter((p) => p.dayIds.some(exists))
   if (programs.length === 0) return null
@@ -302,7 +308,8 @@ export function nextUp(
   return {
     program,
     routine,
-    lastDone: doneOnes.length > 0 ? doneOnes[doneOnes.length - 1].date : null
+    lastDone: doneOnes.length > 0 ? doneOnes[doneOnes.length - 1].date : null,
+    after: last ? { name: last.routineName, date: last.date } : null
   }
 }
 

@@ -14,7 +14,7 @@ import {
 import type { AppData, Program, Routine, Update } from '../types'
 import { GOAL_LABEL } from '../types'
 import { getRoutineItems, logLabel } from '../lib/exercise'
-import { creatineStreak, fmtRelative, getExercise, nextUp, todayKey } from '../lib/stats'
+import { creatineStreak, fmtRelative, getExercise, todayKey } from '../lib/stats'
 import { EmptyState, PageHeader, Row, Section, Sheet } from '../components/ui'
 import { AvatarButton, useBackGesture } from '../components/chrome'
 import {
@@ -79,12 +79,9 @@ function TodayView(props: {
   const [creating, setCreating] = useState<false | 'choose' | 'manual' | 'ai'>(false)
   const [confirming, setConfirming] = useState<Routine | null>(null)
   const nombre = data.profile.nombre?.trim().split(/\s+/)[0]
-  const next = useMemo(() => nextUp(data), [data])
   const today = capitalize(
     new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
   )
-
-  const nextItems = next ? getRoutineItems(data, next.routine) : []
 
   return (
     <div className={`view ${anim === 'pop' ? 'pop-in' : ''}`}>
@@ -96,32 +93,6 @@ function TodayView(props: {
       />
 
       <CreatineRow data={data} update={update} />
-
-      {next && nextItems.length > 0 && (
-        <Section title="A continuación" bare>
-          <div className="up-next">
-            <span className="up-next-name">{next.routine.name}</span>
-            <span className="up-next-meta">
-              {next.program.name} · {nextItems.length} ejercicios ·{' '}
-              {next.lastDone ? `última vez ${fmtRelative(next.lastDone)}` : 'sin estrenar'}
-            </span>
-            <p className="up-next-list">
-              {nextItems
-                .map((it) => getExercise(data, it.exerciseId)?.name)
-                .filter(Boolean)
-                .join(' · ')}
-            </p>
-            <button
-              type="button"
-              className="btn btn-filled btn-lg btn-block"
-              onClick={() => setConfirming(next.routine)}
-            >
-              <Play size={18} strokeWidth={2.4} fill="currentColor" />
-              Empezar
-            </button>
-          </div>
-        </Section>
-      )}
 
       <Section
         title="Rutinas semanales"
@@ -233,8 +204,6 @@ function ProgramDetail(props: {
   const days = program.dayIds
     .map((id) => data.routines.find((r) => r.id === id))
     .filter((r): r is Routine => !!r)
-  const next = nextUp(data)
-  const nextId = next?.program.id === program.id ? next.routine.id : null
 
   const lastDone = (routineId: string): string | null => {
     const done = data.sessions
@@ -278,7 +247,6 @@ function ProgramDetail(props: {
                 <span className="row-text">
                   <span className="row-title">
                     {routine.name}
-                    {routine.id === nextId && <span className="badge">Toca hoy</span>}
                   </span>
                   <span className="row-sub">
                     {n} ejercicios · {last ? `última vez ${fmtRelative(last)}` : 'sin estrenar'}
